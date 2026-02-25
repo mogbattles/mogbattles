@@ -1,5 +1,5 @@
-import SwipeArena from "@/components/SwipeArena";
+import { redirect } from "next/navigation";
 
 export default function SwipePage() {
-  return <SwipeArena />;
+  redirect("/swipe/all");
 }

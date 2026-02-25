@@ -1,0 +1,332 @@
+"use client";
+
+import { useEffect, useState, useCallback, useRef } from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { getProfileById, getMyGlobalRank, type ArenaProfile } from "@/lib/arenas";
+import { countryFlagByName } from "@/lib/countries";
+
+function inchesToDisplay(inches: number): string {
+  return `${Math.floor(inches / 12)}'${inches % 12}"`;
+}
+
+function RankBadge({ rank }: { rank: number }) {
+  const label = rank === 1 ? "👑 #1" : rank === 2 ? "🥈 #2" : rank === 3 ? "🥉 #3" : `#${rank}`;
+  return (
+    <span
+      className="text-sm font-black px-3 py-1 rounded-full"
+      style={{
+        background: rank === 1
+          ? "rgba(240,192,64,0.15)"
+          : "rgba(255,255,255,0.08)",
+        border: rank === 1
+          ? "1px solid rgba(240,192,64,0.4)"
+          : "1px solid rgba(255,255,255,0.12)",
+        color: rank === 1 ? "#F0C040" : "#aaa",
+      }}
+    >
+      {label}
+    </span>
+  );
+}
+
+function fallback(name: string) {
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=111827&color=888&size=400&bold=true`;
+}
+
+export default function PlayerPage() {
+  const params = useParams();
+  const id = typeof params.id === "string" ? params.id : "";
+
+  const [profile, setProfile] = useState<ArenaProfile | null | "loading">("loading");
+  const [rank, setRank] = useState<number | null>(null);
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (!id) return;
+    Promise.all([getProfileById(id), getMyGlobalRank(id)]).then(([p, r]) => {
+      setProfile(p);
+      setRank(r);
+    });
+  }, [id]);
+
+  const images =
+    profile && profile !== "loading"
+      ? profile.image_urls.filter(Boolean).length > 0
+        ? profile.image_urls.filter(Boolean)
+        : profile.image_url
+        ? [profile.image_url]
+        : []
+      : [];
+
+  const hasMultiple = images.length > 1;
+
+  const resetTimer = useCallback(() => {
+    if (!hasMultiple) return;
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setCurrentIdx((prev) => (prev + 1) % images.length);
+    }, 3500);
+  }, [hasMultiple, images.length]);
+
+  useEffect(() => {
+    resetTimer();
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [resetTimer]);
+
+  if (profile === "loading") {
+    return (
+      <div className="flex items-center justify-center h-[60vh]">
+        <div
+          className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
+          style={{ borderColor: "#F0C040", borderTopColor: "transparent" }}
+        />
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="text-center py-20">
+        <p className="text-lg mb-3" style={{ color: "#3D5070" }}>Player not found.</p>
+        <Link href="/leaderboard" className="text-sm underline" style={{ color: "#F0C040" }}>
+          ← Back to leaderboard
+        </Link>
+      </div>
+    );
+  }
+
+  const flag = countryFlagByName(profile.country);
+  const currentImage = images[currentIdx] ?? null;
+  const winRate = profile.matches > 0 ? Math.round((profile.wins / profile.matches) * 100) : 0;
+
+  return (
+    <div className="max-w-md mx-auto px-4 py-8">
+      {/* Back */}
+      <Link
+        href="/leaderboard"
+        className="inline-flex items-center gap-1.5 text-xs font-bold mb-6 transition-opacity hover:opacity-70"
+        style={{ color: "#3D5070" }}
+      >
+        ← All Leaderboards
+      </Link>
+
+      {/* Photo card */}
+      <div
+        className="relative rounded-2xl overflow-hidden mb-5"
+        style={{ aspectRatio: "3/4", background: "#111827" }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={currentImage ?? fallback(profile.name)}
+          alt={profile.name}
+          className="w-full h-full object-cover"
+          onError={(e) => { (e.target as HTMLImageElement).src = fallback(profile.name); }}
+        />
+
+        {/* Bottom gradient */}
+        <div
+          className="absolute inset-x-0 bottom-0 h-24 pointer-events-none"
+          style={{ background: "linear-gradient(to top, rgba(7,9,15,0.85) 0%, transparent 100%)" }}
+        />
+
+        {/* Rank badge */}
+        {rank !== null && (
+          <div
+            className="absolute top-3 left-3 text-sm font-black px-3 py-1.5 rounded-full"
+            style={{
+              background: "rgba(7,9,15,0.8)",
+              border: rank === 1 ? "1px solid rgba(240,192,64,0.5)" : "1px solid rgba(255,255,255,0.15)",
+              backdropFilter: "blur(8px)",
+              color: rank === 1 ? "#F0C040" : "#fff",
+            }}
+          >
+            {rank === 1 ? "👑 #1" : rank === 2 ? "🥈 #2" : rank === 3 ? "🥉 #3" : `#${rank}`}
+          </div>
+        )}
+
+        {/* Left / right photo navigation arrows */}
+        {hasMultiple && (
+          <>
+            <button
+              onClick={() => {
+                setCurrentIdx((prev) => (prev - 1 + images.length) % images.length);
+                resetTimer();
+              }}
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center rounded-full"
+              style={{
+                background: "rgba(7,9,15,0.72)",
+                border: "1px solid rgba(240,192,64,0.25)",
+                color: "rgba(255,255,255,0.9)",
+                fontSize: "18px",
+                lineHeight: 1,
+                backdropFilter: "blur(6px)",
+              }}
+            >
+              ‹
+            </button>
+            <button
+              onClick={() => {
+                setCurrentIdx((prev) => (prev + 1) % images.length);
+                resetTimer();
+              }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center rounded-full"
+              style={{
+                background: "rgba(7,9,15,0.72)",
+                border: "1px solid rgba(240,192,64,0.25)",
+                color: "rgba(255,255,255,0.9)",
+                fontSize: "18px",
+                lineHeight: 1,
+                backdropFilter: "blur(6px)",
+              }}
+            >
+              ›
+            </button>
+          </>
+        )}
+
+        {/* Image dots */}
+        {hasMultiple && (
+          <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-10">
+            {images.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => { setCurrentIdx(i); resetTimer(); }}
+                className="rounded-full transition-all"
+                style={{
+                  width: i === currentIdx ? "18px" : "6px",
+                  height: "6px",
+                  background: i === currentIdx ? "#F0C040" : "rgba(255,255,255,0.3)",
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Name + category */}
+      <div className="flex items-start justify-between gap-3 mb-5">
+        <div>
+          <h1 className="text-2xl font-black text-white leading-tight">{profile.name}</h1>
+          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+            {(profile.categories?.length ? profile.categories : profile.category ? [profile.category] : []).map((cat) => (
+              <span
+                key={cat}
+                className="text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wide"
+                style={{
+                  color: "#3D5070",
+                  background: "rgba(61,80,112,0.15)",
+                  border: "1px solid rgba(61,80,112,0.25)",
+                }}
+              >
+                {cat.replace(/_/g, " ")}
+              </span>
+            ))}
+            {flag && (
+              <span className="text-xl" title={profile.country ?? ""}>{flag}</span>
+            )}
+          </div>
+        </div>
+        <div className="text-right shrink-0">
+          <p className="text-2xl font-black" style={{ color: "#F0C040" }}>{profile.elo_rating}</p>
+          <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "#253147" }}>ELO</p>
+        </div>
+      </div>
+
+      {/* Rank badge row */}
+      {rank !== null && (
+        <div className="mb-5">
+          <RankBadge rank={rank} />
+        </div>
+      )}
+
+      {/* Stats grid */}
+      <div className="grid grid-cols-3 gap-3 mb-5">
+        {[
+          { label: "Wins", value: profile.wins, color: "#22C55E" },
+          { label: "Losses", value: profile.losses, color: "#EF4444" },
+          { label: "Battles", value: profile.matches, color: "#F0C040" },
+        ].map(({ label, value, color }) => (
+          <div
+            key={label}
+            className="rounded-xl p-3 text-center"
+            style={{ background: "#111827", border: "1px solid #1B2338" }}
+          >
+            <p className="font-black text-xl text-white">{value}</p>
+            <p className="text-xs font-bold uppercase tracking-wide mt-0.5" style={{ color }}>{label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Win rate bar */}
+      {profile.matches > 0 && (
+        <div
+          className="rounded-xl p-4 mb-5"
+          style={{ background: "#111827", border: "1px solid #1B2338" }}
+        >
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs font-black uppercase tracking-widest" style={{ color: "#3D5070" }}>
+              Win Rate
+            </p>
+            <span className="font-black text-white text-sm">{winRate}%</span>
+          </div>
+          <div className="h-2 rounded-full overflow-hidden" style={{ background: "#1B2338" }}>
+            <div
+              className="h-full rounded-full transition-all"
+              style={{
+                width: `${winRate}%`,
+                background: "linear-gradient(90deg, #F0C040 0%, #FFD96A 100%)",
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Physical stats */}
+      {(profile.height_in || profile.weight_lbs || profile.country) && (
+        <div
+          className="rounded-xl p-4 mb-6"
+          style={{ background: "#111827", border: "1px solid #1B2338" }}
+        >
+          <p className="text-xs font-black uppercase tracking-widest mb-3" style={{ color: "#3D5070" }}>
+            Stats
+          </p>
+          <div className="space-y-2.5">
+            {profile.country && (
+              <div className="flex justify-between items-center">
+                <span className="text-sm" style={{ color: "#3D5070" }}>Country</span>
+                <span className="text-white text-sm font-semibold">
+                  {flag} {profile.country}
+                </span>
+              </div>
+            )}
+            {profile.height_in != null && (
+              <div className="flex justify-between items-center">
+                <span className="text-sm" style={{ color: "#3D5070" }}>Height</span>
+                <span className="text-white text-sm font-semibold">
+                  {inchesToDisplay(profile.height_in)}
+                </span>
+              </div>
+            )}
+            {profile.weight_lbs != null && (
+              <div className="flex justify-between items-center">
+                <span className="text-sm" style={{ color: "#3D5070" }}>Weight</span>
+                <span className="text-white text-sm font-semibold">
+                  {profile.weight_lbs} lbs
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <Link
+        href="/swipe"
+        className="btn-gold gold-pulse-btn block text-center w-full py-3.5 rounded-xl font-black text-base uppercase tracking-wider"
+      >
+        ⚔️ Battle in Arena
+      </Link>
+    </div>
+  );
+}
