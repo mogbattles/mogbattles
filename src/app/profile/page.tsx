@@ -97,10 +97,9 @@ export default function ProfilePage() {
     setGoogleLoading(true);
     setAuthError(null);
     const supabase = createClient();
-    const redirectTo =
-      typeof window !== "undefined"
-        ? `${window.location.origin}/auth/callback`
-        : undefined;
+    // Always use the canonical domain so Supabase redirect URL matching works
+    // regardless of whether the user is on www. or the apex domain
+    const redirectTo = `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo },
@@ -117,10 +116,7 @@ export default function ProfilePage() {
     setSending(true);
     setAuthError(null);
     const supabase = createClient();
-    const redirectTo =
-      typeof window !== "undefined"
-        ? `${window.location.origin}/auth/callback`
-        : undefined;
+    const redirectTo = `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`;
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: redirectTo },
