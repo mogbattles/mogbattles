@@ -6,9 +6,11 @@ export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
 
+  console.log("[auth/callback] code present:", !!code);
+
   if (code) {
-    // Build the redirect response first so we can set cookies ON it
-    const response = NextResponse.redirect(`${origin}/swipe`);
+    // Collect all cookies to set, then apply to whichever response we return
+    const cookiesToApply: Array<{ name: string; value: string; options: Record<string, unknown> }> = [];
 
     const supabase = createServerClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,37 +20,36 @@ export async function GET(request: NextRequest) {
           getAll() {
             return request.cookies.getAll();
           },
-          // ✅ Cookies are set on the RESPONSE — this is what persists the session
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              response.cookies.set(name, value, options)
-            );
+          setAll(cookies) {
+            cookies.forEach((c) => cookiesToApply.push(c));
           },
         },
       }
     );
 
     const { error, data } = await supabase.auth.exchangeCodeForSession(code);
+    console.log("[auth/callback] exchange error:", error?.message ?? "none");
+    console.log("[auth/callback] cookies to set:", cookiesToApply.map(c => c.name));
 
     if (!error && data.user) {
-      // Check if this user already has a public profile
       const { data: profile } = await supabase
         .from("profiles")
         .select("id")
         .eq("user_id", data.user.id)
         .maybeSingle();
 
-      if (!profile) {
-        // First login — redirect to onboarding, carrying session cookies over
-        const onboardingRes = NextResponse.redirect(`${origin}/onboarding`);
-        response.cookies.getAll().forEach(({ name, value }) => {
-          onboardingRes.cookies.set(name, value);
-        });
-        return onboardingRes;
-      }
+      const redirectTo = profile ? `${origin}/swipe` : `${origin}/onboarding`;
+      console.log("[auth/callback] redirecting to:", redirectTo);
 
-      return response; // Session cookies are attached to this response ✅
+      const response = NextResponse.redirect(redirectTo);
+      // Apply session cookies to the response so the browser stores them
+      cookiesToApply.forEach(({ name, value, options }) => {
+        response.cookies.set(name, value, options as Parameters<typeof response.cookies.set>[2]);
+      });
+      return response;
     }
+
+    console.log("[auth/callback] exchange failed, redirecting to error");
   }
 
   return NextResponse.redirect(`${origin}/profile?error=auth_failed`);
