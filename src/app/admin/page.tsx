@@ -194,6 +194,7 @@ const CATEGORY_LOOKUP: Record<string, string> = {
   "streamers & influencers": "streamers",
   politician: "politicians", politicians: "politicians",
   "political commentator": "political_commentators",
+  "political commentators": "political_commentators",
   political_commentators: "political_commentators",
   model: "models", models: "models",
 };
