@@ -6,8 +6,6 @@ export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
 
-  console.log("[auth/callback] code present:", !!code);
-
   if (code) {
     // Collect all cookies to set, then apply to whichever response we return
     const cookiesToApply: Array<{ name: string; value: string; options: Record<string, unknown> }> = [];
@@ -28,8 +26,6 @@ export async function GET(request: NextRequest) {
     );
 
     const { error, data } = await supabase.auth.exchangeCodeForSession(code);
-    console.log("[auth/callback] exchange error:", error?.message ?? "none");
-    console.log("[auth/callback] cookies to set:", cookiesToApply.map(c => c.name));
 
     if (!error && data.user) {
       const { data: profile } = await supabase
@@ -39,17 +35,12 @@ export async function GET(request: NextRequest) {
         .maybeSingle();
 
       const redirectTo = profile ? `${origin}/swipe` : `${origin}/onboarding`;
-      console.log("[auth/callback] redirecting to:", redirectTo);
-
       const response = NextResponse.redirect(redirectTo);
-      // Apply session cookies to the response so the browser stores them
       cookiesToApply.forEach(({ name, value, options }) => {
         response.cookies.set(name, value, options as Parameters<typeof response.cookies.set>[2]);
       });
       return response;
     }
-
-    console.log("[auth/callback] exchange failed, redirecting to error");
   }
 
   return NextResponse.redirect(`${origin}/profile?error=auth_failed`);
