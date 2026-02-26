@@ -149,6 +149,7 @@ export default function ProfileCard({
           src={currentImage ?? fallback(name)}
           alt={name}
           className="w-full h-full object-cover"
+          decoding="async"
           onError={(e) => {
             (e.target as HTMLImageElement).src = fallback(name);
           }}

@@ -112,33 +112,40 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
       setVotedPairs(voted);
       pickRandomPair(filteredData, voted);
       setLoading(false);
+
+      // Preload all primary images so battles feel instant
+      filteredData.forEach((p) => {
+        const url = p.image_urls?.[0] ?? p.image_url;
+        if (url) {
+          const img = new window.Image();
+          img.src = url;
+        }
+      });
     }
     init();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [arena.id, user?.id]);
 
-  // Load tags + image votes when pair changes
+  // Load tags + image votes when pair changes — all fetches in parallel
   useEffect(() => {
     if (!pair) return;
     const ids = [pair[0].id, pair[1].id];
 
-    // Tags
-    getTopTagsForProfiles(ids).then(setPairTags);
-
-    // Image votes
-    getImageVotesForProfiles(ids).then(setPairImageVotes);
-
-    if (user) {
-      Promise.all([
-        getMyVotedTags(pair[0].id, user.id),
-        getMyVotedTags(pair[1].id, user.id),
-        getMyVotedImages(pair[0].id, user.id),
-        getMyVotedImages(pair[1].id, user.id),
-      ]).then(([vt0, vt1, vi0, vi1]) => {
-        setMyVotedTags(new Map([[pair[0].id, vt0], [pair[1].id, vt1]]));
-        setMyVotedImagesMap(new Map([[pair[0].id, vi0], [pair[1].id, vi1]]));
-      });
-    }
+    Promise.all([
+      getTopTagsForProfiles(ids),
+      getImageVotesForProfiles(ids),
+      user ? getMyVotedTags(pair[0].id, user.id) : Promise.resolve(new Set<string>()),
+      user ? getMyVotedTags(pair[1].id, user.id) : Promise.resolve(new Set<string>()),
+      user ? getMyVotedImages(pair[0].id, user.id) : Promise.resolve(new Set<string>()),
+      user ? getMyVotedImages(pair[1].id, user.id) : Promise.resolve(new Set<string>()),
+    ]).then(([tags, imageVotes, vt0, vt1, vi0, vi1]) => {
+      setPairTags(tags as Map<string, TagEntry[]>);
+      setPairImageVotes(imageVotes as Map<string, Map<string, number>>);
+      if (user) {
+        setMyVotedTags(new Map([[pair[0].id, vt0 as Set<string>], [pair[1].id, vt1 as Set<string>]]));
+        setMyVotedImagesMap(new Map([[pair[0].id, vi0 as Set<string>], [pair[1].id, vi1 as Set<string>]]));
+      }
+    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pair?.[0]?.id, pair?.[1]?.id, user?.id]);
 
@@ -336,6 +343,12 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
 
   if (!pair) return null;
 
+  /* ── Pre-compute sorted image arrays once (avoid duplicate work in JSX) ── */
+  const leftVotes  = pairImageVotes.get(pair[0].id) ?? new Map<string, number>();
+  const rightVotes = pairImageVotes.get(pair[1].id) ?? new Map<string, number>();
+  const leftImgs   = sortImageUrlsByVotes(pair[0].image_urls, leftVotes);
+  const rightImgs  = sortImageUrlsByVotes(pair[1].image_urls, rightVotes);
+
   /* ── Battle screen ───────────────────────────────────── */
   return (
     <div className="max-w-4xl mx-auto px-3 py-4">
@@ -408,43 +421,35 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
 
           {/* Profile card — uses vote-sorted image URLs so highest-voted photo shows first */}
           <div className="relative w-full">
-            {(() => {
-              const leftVotes = pairImageVotes.get(pair[0].id) ?? new Map<string, number>();
-              const leftImgs = sortImageUrlsByVotes(pair[0].image_urls, leftVotes);
-              return (
-                <>
-                  <ProfileCard
-                    name={pair[0].name}
-                    imageUrl={leftImgs[0] ?? pair[0].image_url}
-                    imageUrls={leftImgs}
-                    eloRating={pair[0].elo_rating}
-                    wins={pair[0].wins}
-                    losses={pair[0].losses}
-                    country={pair[0].country}
-                    heightIn={pair[0].height_in}
-                    weightLbs={pair[0].weight_lbs}
-                    onClick={() => handleVote(pair[0], pair[1])}
-                    side="left"
-                  />
+            <ProfileCard
+              name={pair[0].name}
+              imageUrl={leftImgs[0] ?? pair[0].image_url}
+              imageUrls={leftImgs}
+              eloRating={pair[0].elo_rating}
+              wins={pair[0].wins}
+              losses={pair[0].losses}
+              country={pair[0].country}
+              heightIn={pair[0].height_in}
+              weightLbs={pair[0].weight_lbs}
+              onClick={() => handleVote(pair[0], pair[1])}
+              side="left"
+            />
 
-                  {/* Tag popup — opens to the RIGHT */}
-                  {hoveredCard === "left" && (
-                    <TagPopup
-                      side="left"
-                      profileName={pair[0].name}
-                      existingTags={pairTags.get(pair[0].id) ?? []}
-                      myVotedTags={myVotedTags.get(pair[0].id) ?? new Set()}
-                      userId={user?.id ?? null}
-                      onVote={(tag) => handleTagVote(pair[0].id, tag)}
-                      images={leftImgs}
-                      imageVotes={leftVotes}
-                      myVotedImages={myVotedImagesMap.get(pair[0].id)}
-                      onImageVote={(url, voted) => handleImageVote(pair[0].id, url, voted)}
-                    />
-                  )}
-                </>
-              );
-            })()}
+            {/* Tag popup — opens to the RIGHT */}
+            {hoveredCard === "left" && (
+              <TagPopup
+                side="left"
+                profileName={pair[0].name}
+                existingTags={pairTags.get(pair[0].id) ?? []}
+                myVotedTags={myVotedTags.get(pair[0].id) ?? new Set()}
+                userId={user?.id ?? null}
+                onVote={(tag) => handleTagVote(pair[0].id, tag)}
+                images={leftImgs}
+                imageVotes={leftVotes}
+                myVotedImages={myVotedImagesMap.get(pair[0].id)}
+                onImageVote={(url, voted) => handleImageVote(pair[0].id, url, voted)}
+              />
+            )}
           </div>
         </div>
 
@@ -482,43 +487,35 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
 
           {/* Profile card — uses vote-sorted image URLs so highest-voted photo shows first */}
           <div className="relative w-full">
-            {(() => {
-              const rightVotes = pairImageVotes.get(pair[1].id) ?? new Map<string, number>();
-              const rightImgs = sortImageUrlsByVotes(pair[1].image_urls, rightVotes);
-              return (
-                <>
-                  <ProfileCard
-                    name={pair[1].name}
-                    imageUrl={rightImgs[0] ?? pair[1].image_url}
-                    imageUrls={rightImgs}
-                    eloRating={pair[1].elo_rating}
-                    wins={pair[1].wins}
-                    losses={pair[1].losses}
-                    country={pair[1].country}
-                    heightIn={pair[1].height_in}
-                    weightLbs={pair[1].weight_lbs}
-                    onClick={() => handleVote(pair[1], pair[0])}
-                    side="right"
-                  />
+            <ProfileCard
+              name={pair[1].name}
+              imageUrl={rightImgs[0] ?? pair[1].image_url}
+              imageUrls={rightImgs}
+              eloRating={pair[1].elo_rating}
+              wins={pair[1].wins}
+              losses={pair[1].losses}
+              country={pair[1].country}
+              heightIn={pair[1].height_in}
+              weightLbs={pair[1].weight_lbs}
+              onClick={() => handleVote(pair[1], pair[0])}
+              side="right"
+            />
 
-                  {/* Tag popup — opens to the LEFT */}
-                  {hoveredCard === "right" && (
-                    <TagPopup
-                      side="right"
-                      profileName={pair[1].name}
-                      existingTags={pairTags.get(pair[1].id) ?? []}
-                      myVotedTags={myVotedTags.get(pair[1].id) ?? new Set()}
-                      userId={user?.id ?? null}
-                      onVote={(tag) => handleTagVote(pair[1].id, tag)}
-                      images={rightImgs}
-                      imageVotes={rightVotes}
-                      myVotedImages={myVotedImagesMap.get(pair[1].id)}
-                      onImageVote={(url, voted) => handleImageVote(pair[1].id, url, voted)}
-                    />
-                  )}
-                </>
-              );
-            })()}
+            {/* Tag popup — opens to the LEFT */}
+            {hoveredCard === "right" && (
+              <TagPopup
+                side="right"
+                profileName={pair[1].name}
+                existingTags={pairTags.get(pair[1].id) ?? []}
+                myVotedTags={myVotedTags.get(pair[1].id) ?? new Set()}
+                userId={user?.id ?? null}
+                onVote={(tag) => handleTagVote(pair[1].id, tag)}
+                images={rightImgs}
+                imageVotes={rightVotes}
+                myVotedImages={myVotedImagesMap.get(pair[1].id)}
+                onImageVote={(url, voted) => handleImageVote(pair[1].id, url, voted)}
+              />
+            )}
           </div>
         </div>
 

@@ -45,7 +45,9 @@ export default function LeaderboardTable({ arenaId }: { arenaId: string }) {
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 5000);
+    const interval = setInterval(() => {
+      if (!document.hidden) fetchData();
+    }, 30000);
     return () => clearInterval(interval);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [arenaId]);
