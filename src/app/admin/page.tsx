@@ -608,7 +608,6 @@ export default function AdminPage() {
     reader.onload = (ev) => {
       const text = ev.target?.result as string;
       setCsvPreview(parseCSV(text));
-      setImportMessage(null);
     };
     reader.readAsText(file);
     e.target.value = "";
