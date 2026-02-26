@@ -303,7 +303,6 @@ export default function AdminPage() {
   const [showImport, setShowImport] = useState(false);
   const [csvPreview, setCsvPreview] = useState<CSVRow[]>([]);
   const [importing, setImporting] = useState(false);
-  const [importMessage, setImportMessage] = useState<string | null>(null);
   const csvFileRef = useRef<HTMLInputElement>(null);
 
   // Featured battles state
@@ -618,7 +617,7 @@ export default function AdminPage() {
   const handleImportCSV = useCallback(async () => {
     if (csvPreview.length === 0) return;
     setImporting(true);
-    setImportMessage(null);
+    setMessage(null);
     const rows = csvPreview.map((row) => ({
       name: row.name,
       categories: row.categories,
@@ -633,18 +632,30 @@ export default function AdminPage() {
       total_losses: 0,
       total_matches: 0,
     }));
-    let success = 0; let failed = 0;
+    let success = 0;
+    let failed = 0;
+    let firstError: string | null = null;
     for (let i = 0; i < rows.length; i += 50) {
       const batch = rows.slice(i, i + 50);
       const results = await Promise.allSettled(
         batch.map((row) => supabase.from("profiles").insert(row))
       );
       results.forEach((r) => {
-        if (r.status === "fulfilled" && !r.value.error) success++;
-        else failed++;
+        if (r.status === "fulfilled" && !r.value.error) {
+          success++;
+        } else {
+          failed++;
+          if (!firstError) {
+            firstError =
+              r.status === "rejected"
+                ? String(r.reason)
+                : (r.value.error as { message: string }).message;
+          }
+        }
       });
     }
-    // Reload profiles
+
+    // Reload profiles list
     const { data: fresh } = await supabase.from("profiles").select("*").order("name");
     if (fresh) {
       const profs = fresh as Profile[];
@@ -665,10 +676,20 @@ export default function AdminPage() {
       setSlugInputs(slugs);
       setStatsInputs(stats);
     }
-    setImportMessage(`✅ Imported ${success}${failed > 0 ? `, ${failed} failed` : ""} profiles.`);
+
+    const resultMsg =
+      failed === 0
+        ? `✅ Imported ${success} profiles successfully.`
+        : success === 0
+        ? `❌ All ${failed} rows failed to import.${firstError ? ` Error: ${firstError}` : ""}`
+        : `⚠️ Imported ${success}, failed ${failed}.${firstError ? ` First error: ${firstError}` : ""}`;
+
+    // Show result in the top-level banner (always visible, even after panel closes)
+    setMessage(resultMsg);
     setCsvPreview([]);
     setImporting(false);
-    setShowImport(false);
+    // Only auto-close on full success; keep panel open on failure so user can see error
+    if (failed === 0) setShowImport(false);
   }, [csvPreview, supabase]);
 
   // Wait for auth to resolve before showing gate
@@ -736,7 +757,7 @@ export default function AdminPage() {
             </button>
           )}
           <button
-            onClick={() => { setShowImport((v) => !v); setCsvPreview([]); setImportMessage(null); }}
+            onClick={() => { setShowImport((v) => !v); setCsvPreview([]); setMessage(null); }}
             className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white font-bold text-sm px-4 py-2 rounded-xl transition-colors"
           >
             📥 Import CSV
@@ -1105,7 +1126,7 @@ Clavicular,Looksmaxxers,5'11",165,United States,https://example.com/clav.jpg,`}
               </div>
             </div>
           )}
-          {importMessage && <p className="text-sm text-zinc-300">{importMessage}</p>}
+          {importing && <p className="text-sm text-zinc-400 animate-pulse">Importing rows, please wait…</p>}
         </div>
       )}
 
