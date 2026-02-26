@@ -717,11 +717,15 @@ export default function AdminPage() {
   }
 
   // ── ELO override: set ELO across all arenas for a profile ────────────────────
+  // After setting all arena stats, run admin_fix_elo_sync to recalculate the
+  // "all" arena from scratch.  This prevents trigger-cascade corruption where
+  // each category-arena update piles deltas onto "all".
   async function handleSaveElo(profileId: string) {
     const newElo = Math.max(100, Math.min(9999, parseInt(eloInputs[profileId] ?? "1200") || 1200));
     setSavingElo(profileId);
     setMessage(null);
 
+    // 1. Update profiles table directly
     const { error: profErr } = await supabase
       .from("profiles")
       .update({ elo_rating: newElo })
@@ -733,6 +737,7 @@ export default function AdminPage() {
       return;
     }
 
+    // 2. Update all arena_profile_stats rows (triggers will fire and may corrupt "all" arena)
     const { error: statsErr } = await supabase
       .from("arena_profile_stats")
       .update({ elo_rating: newElo })
@@ -740,11 +745,20 @@ export default function AdminPage() {
 
     if (statsErr) {
       setMessage(`⚠️ Profile ELO updated but arena stats failed: ${(statsErr as { message: string }).message}`);
-    } else {
-      setProfiles((prev) => prev.map((p) => p.id === profileId ? { ...p, elo_rating: newElo } : p));
-      setEloInputs((prev) => ({ ...prev, [profileId]: newElo.toString() }));
-      setMessage(`✅ ELO set to ${newElo} (all arenas).`);
+      setSavingElo(null);
+      return;
     }
+
+    // 3. Recalculate "all" arena from scratch to fix trigger cascade damage
+    const { error: syncErr } = await supabase.rpc("admin_fix_elo_sync");
+
+    setProfiles((prev) => prev.map((p) => p.id === profileId ? { ...p, elo_rating: newElo } : p));
+    setEloInputs((prev) => ({ ...prev, [profileId]: newElo.toString() }));
+    setMessage(
+      syncErr
+        ? `⚠️ ELO set to ${newElo} but sync repair failed: ${(syncErr as { message: string }).message}`
+        : `✅ ELO set to ${newElo} (all arenas) + sync repaired.`
+    );
     setSavingElo(null);
   }
 

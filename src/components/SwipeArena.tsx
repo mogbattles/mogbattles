@@ -100,15 +100,15 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
         user ? getMyProfile(user.id) : Promise.resolve(null),
       ]);
 
-      // Build category→arenaId map for "all" swipe mode (used to redirect votes)
+      // Build category→arenaId map for "all" swipe mode (used to redirect votes).
+      // Awaited so the map is ready before the user can vote (prevents race condition).
       if (arena.slug === "all") {
-        getPublicArenas().then((arenas) => {
-          const map: Record<string, string> = {};
-          arenas
-            .filter((a) => a.is_official && a.category && a.slug !== "all" && a.slug !== "members")
-            .forEach((a) => { map[a.category!] = a.id; });
-          categoryArenaMap.current = map;
-        });
+        const allArenas = await getPublicArenas();
+        const map: Record<string, string> = {};
+        allArenas
+          .filter((a) => a.is_official && a.category && a.slug !== "all" && a.slug !== "members")
+          .forEach((a) => { map[a.category!] = a.id; });
+        categoryArenaMap.current = map;
       }
 
       // Never show the logged-in user's own profile as a voting option
@@ -182,14 +182,26 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
     setVotedPairs(newVoted);
 
     // ── Resolve effective arena for this vote ─────────────────────────────────
-    // When voting in "all" mode, redirect to the shared category arena so the
-    // ELO sync trigger (category → All) propagates correctly. Falls back to
-    // recording directly in "all" if the profiles don't share a category.
+    // When voting in "all" mode, redirect to a category arena so the ELO sync
+    // trigger (category → All) propagates correctly. Voting directly in "all"
+    // would be silently ignored by the trigger's recursion guard.
     let effectiveArenaId = arena.id;
     if (arena.slug === "all") {
       const sharedCat = winner.categories.find((c) => loser.categories.includes(c));
       if (sharedCat && categoryArenaMap.current[sharedCat]) {
+        // Best case: both profiles share a category
         effectiveArenaId = categoryArenaMap.current[sharedCat];
+      } else {
+        // Fallback: use the winner's first known category arena, then loser's
+        const fallbackCat =
+          winner.categories.find((c) => categoryArenaMap.current[c]) ??
+          loser.categories.find((c) => categoryArenaMap.current[c]);
+        if (fallbackCat) {
+          effectiveArenaId = categoryArenaMap.current[fallbackCat];
+        }
+        // If still no match (uncategorized profiles), the vote goes to "all"
+        // directly. The trigger won't propagate it, but admin_fix_elo_sync can
+        // recover. This is rare and only affects uncategorized profiles.
       }
     }
 
