@@ -56,10 +56,31 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
   // so the ELO sync trigger (category → all) works correctly.
   const categoryArenaMap = useRef<Record<string, string>>({});
 
+  // ── Image preload cache ────────────────────────────────────────────────────
+  // Tracks URLs we've already kicked off preloads for so we never double-fetch.
+  const preloadedUrls = useRef<Set<string>>(new Set());
+  // The next pair to show (preloaded ahead of time)
+  const nextPairRef = useRef<[ArenaProfile, ArenaProfile] | null>(null);
+
   // ── Image votes state ────────────────────────────────────────────────────────
   // profileId → (imageUrl → count)
   const [pairImageVotes, setPairImageVotes] = useState<Map<string, Map<string, number>>>(new Map());
   const [myVotedImagesMap, setMyVotedImagesMap] = useState<Map<string, Set<string>>>(new Map());
+
+  // Preload every image URL for a profile (all 4 slots, not just primary)
+  const preloadImages = useCallback((profiles: ArenaProfile[]) => {
+    profiles.forEach((p) => {
+      const urls = p.image_urls?.length ? p.image_urls : p.image_url ? [p.image_url] : [];
+      urls.forEach((url) => {
+        if (url && !preloadedUrls.current.has(url)) {
+          preloadedUrls.current.add(url);
+          const img = new window.Image();
+          img.decoding = "async";
+          img.src = url;
+        }
+      });
+    });
+  }, []);
 
   const pickRandomPair = useCallback(
     (profileList: ArenaProfile[], voted: Set<string>) => {
@@ -81,10 +102,41 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
         return;
       }
 
+      // If we pre-picked a next pair and it's still valid, use it
+      if (nextPairRef.current) {
+        const [a, b] = nextPairRef.current;
+        const key = pairKey(a.id, b.id);
+        if (!voted.has(key)) {
+          setPair(nextPairRef.current);
+          nextPairRef.current = null;
+          // Pre-pick + preload the NEXT next pair
+          const remaining = available.filter(
+            ([x, y]) => pairKey(x.id, y.id) !== key
+          );
+          if (remaining.length > 0) {
+            const next = remaining[Math.floor(Math.random() * remaining.length)];
+            nextPairRef.current = next;
+            preloadImages(next);
+          }
+          return;
+        }
+        nextPairRef.current = null;
+      }
+
       const chosen = available[Math.floor(Math.random() * available.length)];
       setPair(chosen);
+
+      // Pre-pick + preload the next pair so it's instantly ready
+      const remaining = available.filter(
+        ([a, b]) => pairKey(a.id, b.id) !== pairKey(chosen[0].id, chosen[1].id)
+      );
+      if (remaining.length > 0) {
+        const next = remaining[Math.floor(Math.random() * remaining.length)];
+        nextPairRef.current = next;
+        preloadImages(next);
+      }
     },
-    []
+    [preloadImages]
   );
 
   useEffect(() => {
@@ -131,14 +183,8 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
       pickRandomPair(filteredData, voted);
       setLoading(false);
 
-      // Preload all primary images so battles feel instant
-      filteredData.forEach((p) => {
-        const url = p.image_urls?.[0] ?? p.image_url;
-        if (url) {
-          const img = new window.Image();
-          img.src = url;
-        }
-      });
+      // Preload ALL images for ALL profiles (all 4 slots, not just primary)
+      preloadImages(filteredData);
     }
     init();
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -464,6 +510,7 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
           {/* Profile card — uses vote-sorted image URLs so highest-voted photo shows first */}
           <div className="relative w-full">
             <ProfileCard
+              key={pair[0].id}
               name={pair[0].name}
               imageUrl={leftImgs[0] ?? pair[0].image_url}
               imageUrls={leftImgs}
@@ -530,6 +577,7 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
           {/* Profile card — uses vote-sorted image URLs so highest-voted photo shows first */}
           <div className="relative w-full">
             <ProfileCard
+              key={pair[1].id}
               name={pair[1].name}
               imageUrl={rightImgs[0] ?? pair[1].image_url}
               imageUrls={rightImgs}

@@ -144,12 +144,28 @@ export default function ProfileCard({
         className="aspect-[3/4] relative select-none"
         style={{ background: "#0C1020" }}
       >
+        {/* Hidden preload: ensure all carousel images are in browser cache */}
+        {images.map((url, i) =>
+          i !== currentIdx && url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={url}
+              src={url}
+              alt=""
+              aria-hidden
+              decoding="async"
+              className="absolute w-0 h-0 opacity-0 pointer-events-none"
+            />
+          ) : null
+        )}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={currentImage ?? fallback(name)}
           alt={name}
           className="w-full h-full object-cover"
           decoding="async"
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          {...({ fetchPriority: "high" } as any)}
           onError={(e) => {
             const img = e.target as HTMLImageElement;
             img.onerror = null; // prevent infinite loop if fallback also fails
