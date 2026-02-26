@@ -200,6 +200,84 @@ export interface Database {
         };
         Update: Record<string, never>;
       };
+      follows: {
+        Row: {
+          follower_id: string;
+          following_id: string;
+          created_at: string;
+        };
+        Insert: {
+          follower_id: string;
+          following_id: string;
+          created_at?: string;
+        };
+        Update: Record<string, never>;
+      };
+      conversations: {
+        Row: {
+          id: string;
+          participant_a: string;
+          participant_b: string;
+          last_message_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          participant_a: string;
+          participant_b: string;
+          last_message_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          last_message_at?: string | null;
+        };
+      };
+      direct_messages: {
+        Row: {
+          id: string;
+          conversation_id: string;
+          sender_id: string;
+          content: string;
+          created_at: string;
+          read_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          conversation_id: string;
+          sender_id: string;
+          content: string;
+          created_at?: string;
+          read_at?: string | null;
+        };
+        Update: {
+          read_at?: string | null;
+        };
+      };
+      live_streams: {
+        Row: {
+          id: string;
+          host_id: string;
+          room_name: string;
+          title: string;
+          is_active: boolean;
+          started_at: string;
+          ended_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          host_id: string;
+          room_name: string;
+          title?: string;
+          is_active?: boolean;
+          started_at?: string;
+          ended_at?: string | null;
+        };
+        Update: {
+          title?: string;
+          is_active?: boolean;
+          ended_at?: string | null;
+        };
+      };
     };
     Functions: {
       record_match: {
@@ -219,6 +297,10 @@ export interface Database {
       delete_profile: {
         Args: { p_id: string };
         Returns: void;
+      };
+      is_mutual_follow: {
+        Args: { a: string; b: string };
+        Returns: boolean;
       };
     };
   };

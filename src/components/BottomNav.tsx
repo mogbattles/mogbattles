@@ -2,17 +2,44 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { getTotalUnreadCount } from "@/lib/messaging";
+import { createClient } from "@/lib/supabase";
 
 const tabs = [
-  { href: "/explore",     label: "Explore", icon: "🧭",  activeIcon: "🧭"  },
-  { href: "/swipe",       label: "Battle",  icon: "⚔️",  activeIcon: "⚔️"  },
-  { href: "/leaderboard", label: "Ranks",   icon: "🏆",  activeIcon: "🏆"  },
-  { href: "/live",        label: "Live",    icon: "🔴",  activeIcon: "🔴"  },
-  { href: "/profile",     label: "Me",      icon: "👤",  activeIcon: "👤"  },
+  { href: "/explore",     label: "Explore",  icon: "🧭" },
+  { href: "/swipe",       label: "Battle",   icon: "⚔️" },
+  { href: "/leaderboard", label: "Ranks",    icon: "🏆" },
+  { href: "/messages",    label: "DMs",      icon: "💬" },
+  { href: "/profile",     label: "Me",       icon: "👤" },
 ];
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const { user } = useAuth();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!user) { setUnreadCount(0); return; }
+    getTotalUnreadCount(user.id).then(setUnreadCount);
+
+    const supabase = createClient();
+    const channel = supabase
+      .channel("bottom-nav-unread")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "direct_messages" },
+        () => { getTotalUnreadCount(user.id).then(setUnreadCount); }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "direct_messages" },
+        () => { getTotalUnreadCount(user.id).then(setUnreadCount); }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
 
   return (
     <nav
@@ -36,6 +63,8 @@ export default function BottomNav() {
             // Treat "/" as /explore since it redirects there
             (tab.href === "/explore" && pathname === "/");
 
+          const showBadge = tab.href === "/messages" && unreadCount > 0 && !!user;
+
           return (
             <Link
               key={tab.href}
@@ -57,20 +86,37 @@ export default function BottomNav() {
                 }}
               />
 
-              {/* Icon */}
-              <span
-                className="leading-none transition-all duration-200"
-                style={{
-                  fontSize:   isActive ? "22px" : "20px",
-                  transform:  isActive ? "scale(1.18)" : "scale(1)",
-                  filter:     isActive
-                    ? "drop-shadow(0 0 5px rgba(240,192,64,0.7))"
-                    : "grayscale(0.3) brightness(0.6)",
-                  transition: "all 0.2s ease",
-                }}
-              >
-                {tab.icon}
-              </span>
+              {/* Icon + unread badge wrapper */}
+              <div className="relative">
+                <span
+                  className="leading-none transition-all duration-200"
+                  style={{
+                    fontSize:   isActive ? "22px" : "20px",
+                    display:    "block",
+                    transform:  isActive ? "scale(1.18)" : "scale(1)",
+                    filter:     isActive
+                      ? "drop-shadow(0 0 5px rgba(240,192,64,0.7))"
+                      : "grayscale(0.3) brightness(0.6)",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  {tab.icon}
+                </span>
+                {showBadge && (
+                  <span
+                    className="absolute -top-1.5 -right-2 text-[8px] font-black rounded-full flex items-center justify-center"
+                    style={{
+                      background: "#EF4444",
+                      color: "#fff",
+                      minWidth: "14px",
+                      height: "14px",
+                      padding: "0 2px",
+                    }}
+                  >
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </div>
 
               {/* Label */}
               <span

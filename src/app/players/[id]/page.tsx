@@ -5,6 +5,14 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { getProfileById, getMyGlobalRank, type ArenaProfile } from "@/lib/arenas";
 import { countryFlagByName } from "@/lib/countries";
+import { useAuth } from "@/context/AuthContext";
+import {
+  followUser,
+  unfollowUser,
+  isFollowing,
+  isMutualFollow,
+  getFollowCounts,
+} from "@/lib/follows";
 
 function inchesToDisplay(inches: number): string {
   return `${Math.floor(inches / 12)}'${inches % 12}"`;
@@ -37,11 +45,19 @@ function fallback(name: string) {
 export default function PlayerPage() {
   const params = useParams();
   const id = typeof params.id === "string" ? params.id : "";
+  const { user, permissions } = useAuth();
 
   const [profile, setProfile] = useState<ArenaProfile | null | "loading">("loading");
   const [rank, setRank] = useState<number | null>(null);
   const [currentIdx, setCurrentIdx] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Follow state
+  const [following, setFollowing] = useState(false);
+  const [mutual, setMutual] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
 
   useEffect(() => {
     if (!id) return;
@@ -50,6 +66,51 @@ export default function PlayerPage() {
       setRank(r);
     });
   }, [id]);
+
+  // Load follow state when we have both current user and target user_id
+  useEffect(() => {
+    const targetUserId = (profile && profile !== "loading") ? profile.user_id ?? null : null;
+    if (!user || !targetUserId || user.id === targetUserId) return;
+
+    Promise.all([
+      isFollowing(user.id, targetUserId),
+      isMutualFollow(user.id, targetUserId),
+      getFollowCounts(targetUserId),
+    ]).then(([f, m, counts]) => {
+      setFollowing(f);
+      setMutual(m);
+      setFollowerCount(counts.followers);
+      setFollowingCount(counts.following);
+    });
+  }, [user, profile]);
+
+  const handleFollow = async () => {
+    const targetUserId = (profile && profile !== "loading") ? profile.user_id ?? null : null;
+    if (!user || !targetUserId) return;
+    setFollowLoading(true);
+    const { error } = await followUser(user.id, targetUserId);
+    if (!error) {
+      setFollowing(true);
+      setFollowerCount((c) => c + 1);
+      // Re-check mutual
+      const m = await isMutualFollow(user.id, targetUserId);
+      setMutual(m);
+    }
+    setFollowLoading(false);
+  };
+
+  const handleUnfollow = async () => {
+    const targetUserId = (profile && profile !== "loading") ? profile.user_id ?? null : null;
+    if (!user || !targetUserId) return;
+    setFollowLoading(true);
+    const { error } = await unfollowUser(user.id, targetUserId);
+    if (!error) {
+      setFollowing(false);
+      setMutual(false);
+      setFollowerCount((c) => Math.max(0, c - 1));
+    }
+    setFollowLoading(false);
+  };
 
   const images =
     profile && profile !== "loading"
@@ -100,6 +161,11 @@ export default function PlayerPage() {
   const flag = countryFlagByName(profile.country);
   const currentImage = images[currentIdx] ?? null;
   const winRate = profile.matches > 0 ? Math.round((profile.wins / profile.matches) * 100) : 0;
+
+  // Is this a registered user profile (not a celebrity)?
+  const targetUserId = profile.user_id ?? null;
+  const isOwnProfile = user?.id === targetUserId;
+  const canFollow = !!(user && permissions.isMember && targetUserId && !isOwnProfile);
 
   return (
     <div className="max-w-md mx-auto px-4 py-8">
@@ -206,7 +272,7 @@ export default function PlayerPage() {
       </div>
 
       {/* Name + category */}
-      <div className="flex items-start justify-between gap-3 mb-5">
+      <div className="flex items-start justify-between gap-3 mb-2">
         <div>
           <h1 className="text-2xl font-black text-white leading-tight">{profile.name}</h1>
           <div className="flex items-center gap-2 mt-1.5 flex-wrap">
@@ -233,6 +299,66 @@ export default function PlayerPage() {
           <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "#253147" }}>ELO</p>
         </div>
       </div>
+
+      {/* Follower counts (only for registered user profiles) */}
+      {targetUserId && (
+        <div className="flex items-center gap-4 mb-4">
+          <span className="text-sm" style={{ color: "#3D5070" }}>
+            <span className="font-black text-white">{followerCount}</span> followers
+          </span>
+          <span className="text-sm" style={{ color: "#3D5070" }}>
+            <span className="font-black text-white">{followingCount}</span> following
+          </span>
+          {mutual && (
+            <span
+              className="text-xs font-bold px-2 py-0.5 rounded-full"
+              style={{
+                background: "rgba(240,192,64,0.12)",
+                border: "1px solid rgba(240,192,64,0.25)",
+                color: "#F0C040",
+              }}
+            >
+              🤝 Friends
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Follow / Message buttons */}
+      {canFollow && (
+        <div className="flex gap-2 mb-5">
+          <button
+            onClick={following ? handleUnfollow : handleFollow}
+            disabled={followLoading}
+            className="flex-1 py-2.5 rounded-xl font-black text-sm uppercase tracking-wide transition-opacity disabled:opacity-50"
+            style={following ? {
+              background: "rgba(255,255,255,0.06)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              color: "#aaa",
+            } : {
+              background: "rgba(240,192,64,0.15)",
+              border: "1px solid rgba(240,192,64,0.4)",
+              color: "#F0C040",
+            }}
+          >
+            {followLoading ? "…" : following ? "✓ Following" : "+ Follow"}
+          </button>
+
+          {mutual && (
+            <Link
+              href={`/messages/${targetUserId}`}
+              className="flex-1 py-2.5 rounded-xl font-black text-sm uppercase tracking-wide text-center transition-opacity hover:opacity-80"
+              style={{
+                background: "rgba(61,80,112,0.15)",
+                border: "1px solid rgba(61,80,112,0.4)",
+                color: "#3D7FBF",
+              }}
+            >
+              💬 Message
+            </Link>
+          )}
+        </div>
+      )}
 
       {/* Rank badge row */}
       {rank !== null && (

@@ -3,12 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { getTotalUnreadCount } from "@/lib/messaging";
+import { createClient } from "@/lib/supabase";
 
 const NAV_LINKS = [
   { href: "/explore",     label: "Explore",      icon: "🧭" },
   { href: "/swipe",       label: "Battle",        icon: "⚔️" },
   { href: "/live",        label: "Live",          icon: "🔴" },
   { href: "/leaderboard", label: "Leaderboards",  icon: "🏆" },
+  { href: "/messages",    label: "Messages",      icon: "💬" },
   { href: "/profile",     label: "Profile",       icon: "👤" },
 ];
 
@@ -23,6 +27,30 @@ export default function Navbar() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Load + poll unread count
+  useEffect(() => {
+    if (!user) { setUnreadCount(0); return; }
+    getTotalUnreadCount(user.id).then(setUnreadCount);
+
+    const supabase = createClient();
+    const channel = supabase
+      .channel("navbar-unread")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "direct_messages" },
+        () => { getTotalUnreadCount(user.id).then(setUnreadCount); }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "direct_messages" },
+        () => { getTotalUnreadCount(user.id).then(setUnreadCount); }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -74,11 +102,12 @@ export default function Navbar() {
             pathname === link.href ||
             pathname.startsWith(link.href + "/") ||
             (link.href === "/explore" && pathname === "/");
+          const showBadge = link.href === "/messages" && unreadCount > 0 && user;
           return (
             <Link
               key={link.href}
               href={link.href}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-bold transition-all duration-150"
+              className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-bold transition-all duration-150"
               style={{
                 color: isActive ? "#F0C040" : "#4D6080",
                 background: isActive ? "rgba(240,192,64,0.08)" : "transparent",
@@ -87,6 +116,20 @@ export default function Navbar() {
             >
               <span className="text-sm leading-none">{link.icon}</span>
               <span>{link.label}</span>
+              {showBadge && (
+                <span
+                  className="absolute -top-1 -right-1 text-[9px] font-black rounded-full flex items-center justify-center"
+                  style={{
+                    background: "#EF4444",
+                    color: "#fff",
+                    minWidth: "16px",
+                    height: "16px",
+                    padding: "0 3px",
+                  }}
+                >
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
             </Link>
           );
         })}

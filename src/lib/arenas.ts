@@ -14,6 +14,7 @@ function db() {
 
 export interface ArenaProfile {
   id: string;
+  user_id?: string | null;
   name: string;
   image_url: string | null;
   image_urls: string[];
@@ -718,13 +719,13 @@ export async function getProfileById(id: string): Promise<ArenaProfile | null> {
   const { data } = await client
     .from("profiles")
     .select(
-      "id, name, image_url, image_urls, wikipedia_slug, category, categories, elo_rating, total_wins, total_losses, total_matches, height_in, weight_lbs, country, gender"
+      "id, user_id, name, image_url, image_urls, wikipedia_slug, category, categories, elo_rating, total_wins, total_losses, total_matches, height_in, weight_lbs, country, gender"
     )
     .eq("id", id)
     .maybeSingle();
   if (!data) return null;
   type R = {
-    id: string; name: string; image_url: string | null; image_urls: string[] | null;
+    id: string; user_id: string | null; name: string; image_url: string | null; image_urls: string[] | null;
     wikipedia_slug: string | null; category: string | null; categories: string[] | null;
     elo_rating: number; total_wins: number; total_losses: number; total_matches: number;
     height_in: number | null; weight_lbs: number | null; country: string | null; gender: string | null;
@@ -732,6 +733,7 @@ export async function getProfileById(id: string): Promise<ArenaProfile | null> {
   const p = data as R;
   return {
     id: p.id,
+    user_id: p.user_id ?? null,
     name: p.name,
     image_url: p.image_url,
     image_urls: p.image_urls ?? (p.image_url ? [p.image_url] : []),
