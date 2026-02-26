@@ -421,6 +421,8 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
                     wins={pair[0].wins}
                     losses={pair[0].losses}
                     country={pair[0].country}
+                    heightIn={pair[0].height_in}
+                    weightLbs={pair[0].weight_lbs}
                     onClick={() => handleVote(pair[0], pair[1])}
                     side="left"
                   />
@@ -493,6 +495,8 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
                     wins={pair[1].wins}
                     losses={pair[1].losses}
                     country={pair[1].country}
+                    heightIn={pair[1].height_in}
+                    weightLbs={pair[1].weight_lbs}
                     onClick={() => handleVote(pair[1], pair[0])}
                     side="right"
                   />

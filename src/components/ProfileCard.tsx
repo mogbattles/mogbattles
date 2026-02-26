@@ -11,8 +11,16 @@ interface ProfileCardProps {
   wins: number;
   losses: number;
   country?: string | null;
+  heightIn?: number | null;
+  weightLbs?: number | null;
   onClick: () => void;
   side: "left" | "right";
+}
+
+function fmtHeight(totalIn: number): string {
+  const ft = Math.floor(totalIn / 12);
+  const ins = totalIn % 12;
+  return `${ft}'${ins}"`;
 }
 
 function fallback(name: string) {
@@ -27,6 +35,8 @@ export default function ProfileCard({
   wins,
   losses,
   country,
+  heightIn,
+  weightLbs,
   onClick,
 }: ProfileCardProps) {
   const flag = countryFlagByName(country);
@@ -282,6 +292,25 @@ export default function ProfileCard({
             <span className="text-sm shrink-0 leading-none">{flag}</span>
           )}
         </div>
+
+        {/* Height / weight */}
+        {(heightIn || weightLbs) && (
+          <div className="flex items-center gap-1.5 mt-0.5">
+            {heightIn && (
+              <span style={{ color: "#4D6080", fontSize: "10px", fontWeight: 700 }}>
+                {fmtHeight(heightIn)}
+              </span>
+            )}
+            {heightIn && weightLbs && (
+              <span style={{ color: "#2E3D58", fontSize: "10px" }}>·</span>
+            )}
+            {weightLbs && (
+              <span style={{ color: "#4D6080", fontSize: "10px", fontWeight: 700 }}>
+                {weightLbs} lbs
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Stats row */}
         <div className="flex items-center justify-between mt-0.5">
