@@ -468,14 +468,18 @@ export async function getHeadToHead(
 
 export async function getVotedPairs(
   userId: string,
-  arenaId: string
+  arenaId: string | null  // null = fetch across ALL arenas (used for "all" swipe mode)
 ): Promise<Set<string>> {
   const client = db();
-  const { data } = await client
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let query: any = client
     .from("user_votes")
     .select("profile_a, profile_b")
-    .eq("voter_id", userId)
-    .eq("arena_id", arenaId);
+    .eq("voter_id", userId);
+  if (arenaId !== null) {
+    query = query.eq("arena_id", arenaId);
+  }
+  const { data } = await query;
 
   const set = new Set<string>();
   ((data ?? []) as { profile_a: string; profile_b: string }[]).forEach((row) => {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { createClient, type ArenaRow } from "@/lib/supabase";
-import { getProfilesForArena, getVotedPairs, getMyProfile, type ArenaProfile } from "@/lib/arenas";
+import { getProfilesForArena, getPublicArenas, getVotedPairs, getMyProfile, type ArenaProfile } from "@/lib/arenas";
 import {
   getTopTagsForProfiles,
   getTopTagsForProfile,
@@ -50,6 +50,12 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
   const [hoveredCard, setHoveredCard] = useState<"left" | "right" | null>(null);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // ── Category arena map (populated when in "all" arena) ───────────────────────
+  // Maps category string (e.g. "streamers") → that arena's UUID.
+  // When voting in "all" mode we redirect the vote to the shared category arena
+  // so the ELO sync trigger (category → all) works correctly.
+  const categoryArenaMap = useRef<Record<string, string>>({});
+
   // ── Image votes state ────────────────────────────────────────────────────────
   // profileId → (imageUrl → count)
   const [pairImageVotes, setPairImageVotes] = useState<Map<string, Map<string, number>>>(new Map());
@@ -89,9 +95,21 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
 
       const [data, voted, myProfile] = await Promise.all([
         getProfilesForArena(arena),
-        user ? getVotedPairs(user.id, arena.id) : Promise.resolve(new Set<string>()),
+        // "all" mode: fetch votes across ALL arenas so cross-category deduplication works
+        user ? getVotedPairs(user.id, arena.slug === "all" ? null : arena.id) : Promise.resolve(new Set<string>()),
         user ? getMyProfile(user.id) : Promise.resolve(null),
       ]);
+
+      // Build category→arenaId map for "all" swipe mode (used to redirect votes)
+      if (arena.slug === "all") {
+        getPublicArenas().then((arenas) => {
+          const map: Record<string, string> = {};
+          arenas
+            .filter((a) => a.is_official && a.category && a.slug !== "all" && a.slug !== "members")
+            .forEach((a) => { map[a.category!] = a.id; });
+          categoryArenaMap.current = map;
+        });
+      }
 
       // Never show the logged-in user's own profile as a voting option
       const filteredData = myProfile
@@ -163,10 +181,22 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
     newVoted.add(key);
     setVotedPairs(newVoted);
 
+    // ── Resolve effective arena for this vote ─────────────────────────────────
+    // When voting in "all" mode, redirect to the shared category arena so the
+    // ELO sync trigger (category → All) propagates correctly. Falls back to
+    // recording directly in "all" if the profiles don't share a category.
+    let effectiveArenaId = arena.id;
+    if (arena.slug === "all") {
+      const sharedCat = winner.categories.find((c) => loser.categories.includes(c));
+      if (sharedCat && categoryArenaMap.current[sharedCat]) {
+        effectiveArenaId = categoryArenaMap.current[sharedCat];
+      }
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const supabase = createClient() as any;
     const { data: eloData, error: rpcError } = await supabase.rpc("record_match", {
-      p_arena_id: arena.id,
+      p_arena_id: effectiveArenaId,
       p_winner_id: winner.id,
       p_loser_id: loser.id,
       p_voter_id: user?.id ?? null,
