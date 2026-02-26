@@ -57,7 +57,7 @@ export default async function LeaderboardArenaPage({
         )}
       </div>
 
-      <LeaderboardTable arenaId={arena.id} />
+      <LeaderboardTable arenaId={arena.id} arenaSlug={slug} />
     </div>
   );
 }

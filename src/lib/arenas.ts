@@ -261,9 +261,11 @@ export async function getProfilesForArena(
 // ─── Fetch leaderboard for an arena (sorted by ELO) ─────────────────────────
 
 export async function getLeaderboardForArena(
-  arenaId: string
+  arenaId: string,
+  options?: { membersOnly?: boolean }
 ): Promise<(ArenaProfile & { rank: number })[]> {
   const client = db();
+  const membersOnly = options?.membersOnly ?? false;
 
   type LRow = {
     elo_rating: number;
@@ -283,13 +285,14 @@ export async function getLeaderboardForArena(
       weight_lbs: number | null;
       country: string | null;
       gender: string | null;
+      user_id: string | null;
     } | null;
   };
 
   const { data, error } = await client
     .from("arena_profile_stats")
     .select(
-      "elo_rating, wins, losses, matches, profile_id, profiles(id, name, image_url, image_urls, wikipedia_slug, category, categories, height_in, weight_lbs, country, gender)"
+      "elo_rating, wins, losses, matches, profile_id, profiles(id, name, image_url, image_urls, wikipedia_slug, category, categories, height_in, weight_lbs, country, gender, user_id)"
     )
     .eq("arena_id", arenaId)
     .order("elo_rating", { ascending: false });
@@ -297,7 +300,7 @@ export async function getLeaderboardForArena(
   if (error || !data) return [];
 
   return ((data as unknown as LRow[]))
-    .filter((row) => row.profiles)
+    .filter((row) => row.profiles && (!membersOnly || row.profiles.user_id !== null))
     .map((row, i) => {
       const profile = row.profiles!;
       return {

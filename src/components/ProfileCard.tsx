@@ -151,7 +151,9 @@ export default function ProfileCard({
           className="w-full h-full object-cover"
           decoding="async"
           onError={(e) => {
-            (e.target as HTMLImageElement).src = fallback(name);
+            const img = e.target as HTMLImageElement;
+            img.onerror = null; // prevent infinite loop if fallback also fails
+            img.src = fallback(name);
           }}
           draggable={false}
         />

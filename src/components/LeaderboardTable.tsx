@@ -25,14 +25,14 @@ function RankLabel({ rank }: { rank: number }) {
   );
 }
 
-export default function LeaderboardTable({ arenaId }: { arenaId: string }) {
+export default function LeaderboardTable({ arenaId, arenaSlug }: { arenaId: string; arenaSlug?: string }) {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [topTags, setTopTags] = useState<Map<string, TagEntry[]>>(new Map());
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
   const fetchData = async () => {
-    const data = await getLeaderboardForArena(arenaId);
+    const data = await getLeaderboardForArena(arenaId, { membersOnly: arenaSlug === "members" });
     setEntries(data);
     setLoading(false);
 
@@ -149,7 +149,9 @@ export default function LeaderboardTable({ arenaId }: { arenaId: string }) {
                     : "2px solid #1B2338",
                 }}
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = avatarUrl(entry.name);
+                  const img = e.target as HTMLImageElement;
+                  img.onerror = null;
+                  img.src = avatarUrl(entry.name);
                 }}
               />
 

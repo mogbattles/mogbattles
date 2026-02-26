@@ -30,6 +30,8 @@ interface Profile {
   height_in: number | null;
   weight_lbs: number | null;
   country: string | null;
+  user_id: string | null;
+  is_test_profile: boolean;
 }
 
 interface WikiSummary {
@@ -300,6 +302,23 @@ export default function AdminPage() {
   const [newImageUrl, setNewImageUrl] = useState("");
   const [adding, setAdding] = useState(false);
 
+  // ELO manipulation inputs (per profile)
+  const [eloInputs, setEloInputs] = useState<Record<string, string>>({});
+  const [savingElo, setSavingElo] = useState<string | null>(null);
+
+  // Seeded users panel
+  const [showSeedForm, setShowSeedForm] = useState(false);
+  const [seedName, setSeedName] = useState("");
+  const [seedImageUrl, setSeedImageUrl] = useState("");
+  const [seedElo, setSeedElo] = useState("1200");
+  const [seedGender, setSeedGender] = useState<"male" | "female" | "">("");
+  const [seeding, setSeeding] = useState(false);
+  const seedFormRef = useRef<HTMLDivElement>(null);
+
+  // Arena IDs for seeded user stats (fetched once)
+  const [allArenaId, setAllArenaId] = useState<string | null>(null);
+  const [membersArenaId, setMembersArenaId] = useState<string | null>(null);
+
   // CSV Import state
   const [showImport, setShowImport] = useState(false);
   const [csvPreview, setCsvPreview] = useState<CSVRow[]>([]);
@@ -339,6 +358,7 @@ export default function AdminPage() {
       const imgs: Record<string, string[]> = {};
       const slugs: Record<string, string> = {};
       const stats: Record<string, { height: string; weight: string; country: string }> = {};
+      const elos: Record<string, string> = {};
 
       profs.forEach((p) => {
         const urls = p.image_urls?.length ? p.image_urls : p.image_url ? [p.image_url] : [];
@@ -349,6 +369,7 @@ export default function AdminPage() {
           weight: p.weight_lbs?.toString() ?? "",
           country: p.country ?? "",
         };
+        elos[p.id] = p.elo_rating.toString();
         // Backfill categories from single category if needed
         if (!p.categories || p.categories.length === 0) {
           p.categories = p.category ? [p.category] : [];
@@ -357,9 +378,27 @@ export default function AdminPage() {
       setImageInputs(imgs);
       setSlugInputs(slugs);
       setStatsInputs(stats);
+      setEloInputs(elos);
       setLoading(false);
     }
     load();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── Fetch arena IDs for seeded user stats ────────────────────────────────────
+  useEffect(() => {
+    async function fetchArenaIds() {
+      const { data } = await supabase
+        .from("arenas")
+        .select("id, slug")
+        .in("slug", ["all", "members"]);
+      if (data) {
+        const rows = data as { id: string; slug: string }[];
+        setAllArenaId(rows.find((a) => a.slug === "all")?.id ?? null);
+        setMembersArenaId(rows.find((a) => a.slug === "members")?.id ?? null);
+      }
+    }
+    fetchArenaIds();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -601,6 +640,111 @@ export default function AdminPage() {
     setAdding(false);
   }
 
+  // ── Add seeded (fake) user ───────────────────────────────────────────────────
+  // Seeded users get user_id (non-null → appear in All Players) + is_test_profile=true
+  // (the hidden algorithm tag that identifies them as seeded calibration profiles)
+  async function handleAddSeededUser(e: React.FormEvent) {
+    e.preventDefault();
+    if (!seedName.trim()) return;
+    setSeeding(true);
+    setMessage(null);
+
+    const imageUrls = seedImageUrl.trim() ? [seedImageUrl.trim()] : [];
+    const eloRating = Math.max(100, Math.min(9999, parseInt(seedElo) || 1200));
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .insert({
+        name: seedName.trim(),
+        categories: [],
+        category: null,
+        image_url: imageUrls[0] ?? null,
+        image_urls: imageUrls,
+        elo_rating: eloRating,
+        total_wins: 0,
+        total_losses: 0,
+        total_matches: 0,
+        // non-null user_id → qualifies for "All Players" (members) arena
+        user_id: crypto.randomUUID(),
+        // is_test_profile = true is the hidden algorithm tag:
+        // when real new users first open "All" arena, the algorithm knows
+        // these are calibration profiles, not organic users
+        is_test_profile: true,
+        gender: seedGender || null,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      setMessage(`❌ ${(error as { message: string }).message}`);
+      setSeeding(false);
+      return;
+    }
+
+    const newProfile = data as Profile;
+    newProfile.categories = [];
+
+    // Insert arena_profile_stats so they appear in leaderboards immediately
+    const statsRows = [];
+    if (allArenaId)    statsRows.push({ arena_id: allArenaId,    profile_id: newProfile.id, elo_rating: eloRating, wins: 0, losses: 0, matches: 0 });
+    if (membersArenaId) statsRows.push({ arena_id: membersArenaId, profile_id: newProfile.id, elo_rating: eloRating, wins: 0, losses: 0, matches: 0 });
+    let statsWarning: string | null = null;
+    if (statsRows.length > 0) {
+      const { error: statsErr } = await supabase
+        .from("arena_profile_stats")
+        .upsert(statsRows, { onConflict: "arena_id,profile_id" });
+      if (statsErr) {
+        statsWarning = `⚠️ Profile created but arena stats insert failed: ${(statsErr as { message: string }).message}. Add RLS policy for arena_profile_stats inserts.`;
+      }
+    }
+
+    setProfiles((prev) => [newProfile, ...prev]);
+    setImageInputs((prev) => ({
+      ...prev,
+      [newProfile.id]: [...imageUrls, ...Array(MAX_IMAGES - imageUrls.length).fill("")].slice(0, MAX_IMAGES),
+    }));
+    setSlugInputs((prev) => ({ ...prev, [newProfile.id]: "" }));
+    setStatsInputs((prev) => ({ ...prev, [newProfile.id]: { height: "", weight: "", country: "" } }));
+    setEloInputs((prev) => ({ ...prev, [newProfile.id]: eloRating.toString() }));
+
+    setSeedName(""); setSeedImageUrl(""); setSeedElo("1200"); setSeedGender("");
+    setShowSeedForm(false);
+    setMessage(statsWarning ?? `✅ Seeded user "${newProfile.name}" created (ELO: ${eloRating}, tag: is_test_profile=true).`);
+    setSeeding(false);
+  }
+
+  // ── ELO override: set ELO across all arenas for a profile ────────────────────
+  async function handleSaveElo(profileId: string) {
+    const newElo = Math.max(100, Math.min(9999, parseInt(eloInputs[profileId] ?? "1200") || 1200));
+    setSavingElo(profileId);
+    setMessage(null);
+
+    const { error: profErr } = await supabase
+      .from("profiles")
+      .update({ elo_rating: newElo })
+      .eq("id", profileId);
+
+    if (profErr) {
+      setMessage(`❌ ${(profErr as { message: string }).message}`);
+      setSavingElo(null);
+      return;
+    }
+
+    const { error: statsErr } = await supabase
+      .from("arena_profile_stats")
+      .update({ elo_rating: newElo })
+      .eq("profile_id", profileId);
+
+    if (statsErr) {
+      setMessage(`⚠️ Profile ELO updated but arena stats failed: ${(statsErr as { message: string }).message}`);
+    } else {
+      setProfiles((prev) => prev.map((p) => p.id === profileId ? { ...p, elo_rating: newElo } : p));
+      setEloInputs((prev) => ({ ...prev, [profileId]: newElo.toString() }));
+      setMessage(`✅ ELO set to ${newElo} (all arenas).`);
+    }
+    setSavingElo(null);
+  }
+
   // ── CSV File Handler ─────────────────────────────────────────────────────────
   const handleCSVFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -663,11 +807,13 @@ export default function AdminPage() {
       const imgs: Record<string, string[]> = {};
       const slugs: Record<string, string> = {};
       const stats: Record<string, { height: string; weight: string; country: string }> = {};
+      const elos: Record<string, string> = {};
       profs.forEach((p) => {
         const urls = p.image_urls?.length ? p.image_urls : p.image_url ? [p.image_url] : [];
         imgs[p.id] = [...urls, ...Array(MAX_IMAGES - urls.length).fill("")].slice(0, MAX_IMAGES);
         slugs[p.id] = p.wikipedia_slug ?? "";
         stats[p.id] = { height: p.height_in ? inchesToDisplay(p.height_in) : "", weight: p.weight_lbs?.toString() ?? "", country: p.country ?? "" };
+        elos[p.id] = p.elo_rating.toString();
         if (!p.categories || p.categories.length === 0) {
           p.categories = p.category ? [p.category] : [];
         }
@@ -675,6 +821,7 @@ export default function AdminPage() {
       setImageInputs(imgs);
       setSlugInputs(slugs);
       setStatsInputs(stats);
+      setEloInputs(elos);
     }
 
     const resultMsg =
@@ -764,7 +911,19 @@ export default function AdminPage() {
           </button>
           <button
             onClick={() => {
+              setShowSeedForm((v) => !v);
+              setShowAddForm(false);
+              setTimeout(() => seedFormRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+            }}
+            className="border font-bold text-sm px-4 py-2 rounded-xl transition-colors"
+            style={{ background: "rgba(99,102,241,0.12)", border: "1px solid rgba(99,102,241,0.35)", color: "#A5B4FC" }}
+          >
+            🤖 Add Seeded User
+          </button>
+          <button
+            onClick={() => {
               setShowAddForm((v) => !v);
+              setShowSeedForm(false);
               setTimeout(() => addFormRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
             }}
             className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white font-bold text-sm px-4 py-2 rounded-xl transition-colors"
@@ -972,6 +1131,86 @@ export default function AdminPage() {
             })()}
         </div>
       </div>
+
+      {/* ── Seeded Users Panel ───────────────────────────────────────────────── */}
+      {showSeedForm && (
+        <div ref={seedFormRef} className="mb-6 rounded-2xl p-5" style={{ background: "rgba(99,102,241,0.06)", border: "1px solid rgba(99,102,241,0.25)" }}>
+          <div className="mb-4">
+            <h2 className="text-white font-bold text-base mb-0.5">🤖 Add Seeded User</h2>
+            <p className="text-xs" style={{ color: "#6B7280" }}>
+              Creates a profile with a synthetic <code className="text-indigo-400">user_id</code> (so they appear in &ldquo;All Players&rdquo;) and{" "}
+              <code className="text-indigo-400">is_test_profile = true</code> — the hidden algorithm tag used to identify calibration profiles
+              when real users first swipe in the &ldquo;All&rdquo; arena.
+            </p>
+          </div>
+          <form onSubmit={handleAddSeededUser} className="flex flex-wrap gap-3 items-end">
+            <div className="flex-1 min-w-[160px]">
+              <label className="block text-xs mb-1" style={{ color: "#6B7280" }}>Name (required)</label>
+              <input
+                type="text"
+                placeholder="e.g. SeedUser_Alpha"
+                value={seedName}
+                onChange={(e) => setSeedName(e.target.value)}
+                required
+                className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-600 text-sm rounded-lg px-3 py-2 focus:outline-none"
+                style={{ outlineColor: "#6366F1" }}
+              />
+            </div>
+            <div className="flex-1 min-w-[180px]">
+              <label className="block text-xs mb-1" style={{ color: "#6B7280" }}>Image URL (optional)</label>
+              <input
+                type="url"
+                placeholder="https://example.com/photo.jpg"
+                value={seedImageUrl}
+                onChange={(e) => setSeedImageUrl(e.target.value)}
+                className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-600 text-sm rounded-lg px-3 py-2 focus:outline-none"
+              />
+            </div>
+            <div className="w-28">
+              <label className="block text-xs mb-1" style={{ color: "#6B7280" }}>Starting ELO</label>
+              <input
+                type="number"
+                min={100}
+                max={9999}
+                placeholder="1200"
+                value={seedElo}
+                onChange={(e) => setSeedElo(e.target.value)}
+                className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-600 text-sm rounded-lg px-3 py-2 focus:outline-none"
+              />
+            </div>
+            <div className="w-28">
+              <label className="block text-xs mb-1" style={{ color: "#6B7280" }}>Gender</label>
+              <select
+                value={seedGender}
+                onChange={(e) => setSeedGender(e.target.value as "male" | "female" | "")}
+                className="w-full bg-zinc-800 border border-zinc-700 text-sm rounded-lg px-2 py-2 focus:outline-none"
+                style={{ color: seedGender ? "#D1D5DB" : "#52525B" }}
+              >
+                <option value="">— any —</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="submit"
+                disabled={seeding || !seedName.trim()}
+                className="font-bold text-sm px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+                style={{ background: "#4F46E5", color: "#fff" }}
+              >
+                {seeding ? "Creating…" : "Create"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowSeedForm(false)}
+                className="text-zinc-500 hover:text-white text-sm px-3 py-2 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* ── CSV Import Panel ─────────────────────────────────────────────────── */}
       {showImport && (
@@ -1196,7 +1435,18 @@ Clavicular,Looksmaxxers,5'11",165,United States,https://example.com/clav.jpg,`}
 
                 {/* Name + stats */}
                 <div className="flex-1 min-w-[120px]">
-                  <p className="text-white font-bold text-sm">{profile.name}</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-white font-bold text-sm">{profile.name}</p>
+                    {profile.is_test_profile && profile.user_id && (
+                      <span
+                        className="text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-widest shrink-0"
+                        style={{ background: "rgba(99,102,241,0.15)", color: "#818CF8", border: "1px solid rgba(99,102,241,0.3)" }}
+                        title="Seeded calibration user — is_test_profile=true"
+                      >
+                        🤖 seeded
+                      </span>
+                    )}
+                  </div>
                   <div className="flex gap-2 mt-0.5 flex-wrap">
                     <p className="text-zinc-500 text-xs">{profile.elo_rating} ELO</p>
                     {profile.height_in && (
@@ -1251,6 +1501,36 @@ Clavicular,Looksmaxxers,5'11",165,United States,https://example.com/clav.jpg,`}
               {/* Expanded Editor */}
               {isExpanded && (
                 <div className="border-t border-zinc-800 p-4 bg-zinc-950/50 space-y-5">
+
+                  {/* ── ELO Override ── */}
+                  <div>
+                    <p className="text-zinc-500 text-xs font-bold uppercase tracking-wider mb-3">
+                      ELO Override
+                    </p>
+                    <div className="flex items-end gap-3">
+                      <div className="w-36">
+                        <label className="block text-zinc-600 text-xs mb-1">ELO rating (all arenas)</label>
+                        <input
+                          type="number"
+                          min={100}
+                          max={9999}
+                          value={eloInputs[profile.id] ?? profile.elo_rating}
+                          onChange={(e) => setEloInputs((prev) => ({ ...prev, [profile.id]: e.target.value }))}
+                          className="w-full bg-zinc-800 border border-zinc-700 text-zinc-300 placeholder:text-zinc-600 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-yellow-500"
+                        />
+                      </div>
+                      <button
+                        onClick={() => handleSaveElo(profile.id)}
+                        disabled={savingElo === profile.id}
+                        className="bg-yellow-500 hover:bg-yellow-400 disabled:opacity-50 text-black text-xs font-black px-3 py-2 rounded-lg transition-colors"
+                      >
+                        {savingElo === profile.id ? "Saving…" : "Set ELO"}
+                      </button>
+                      <p className="text-zinc-600 text-[10px]">
+                        Overwrites ELO in profiles + all arena_profile_stats rows
+                      </p>
+                    </div>
+                  </div>
 
                   {/* ── Stats: height / weight / country ── */}
                   <div>
