@@ -306,6 +306,9 @@ export default function AdminPage() {
   const [eloInputs, setEloInputs] = useState<Record<string, string>>({});
   const [savingElo, setSavingElo] = useState<string | null>(null);
 
+  // ELO sync fix
+  const [fixingEloSync, setFixingEloSync] = useState(false);
+
   // Seeded users panel
   const [showSeedForm, setShowSeedForm] = useState(false);
   const [seedName, setSeedName] = useState("");
@@ -745,6 +748,19 @@ export default function AdminPage() {
     setSavingElo(null);
   }
 
+  // ── Fix ELO Sync (calls admin_fix_elo_sync RPC) ──────────────────────────────
+  async function handleFixEloSync() {
+    setFixingEloSync(true);
+    setMessage(null);
+    const { data, error } = await supabase.rpc("admin_fix_elo_sync");
+    if (error) {
+      setMessage(`❌ ELO Sync failed: ${(error as { message: string }).message}`);
+    } else {
+      setMessage(`✅ ${data ?? "ELO sync complete."}`);
+    }
+    setFixingEloSync(false);
+  }
+
   // ── CSV File Handler ─────────────────────────────────────────────────────────
   const handleCSVFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -903,6 +919,15 @@ export default function AdminPage() {
               {fetchingAll ? "Fetching…" : `Fetch All Missing (${missingImages})`}
             </button>
           )}
+          <button
+            onClick={handleFixEloSync}
+            disabled={fixingEloSync}
+            title="Recalculate All-arena ELO from scratch using category arena deltas"
+            className="border font-bold text-sm px-4 py-2 rounded-xl transition-colors disabled:opacity-50"
+            style={{ background: "rgba(34,197,94,0.10)", border: "1px solid rgba(34,197,94,0.30)", color: "#86EFAC" }}
+          >
+            {fixingEloSync ? "Fixing…" : "🔁 Fix ELO Sync"}
+          </button>
           <button
             onClick={() => { setShowImport((v) => !v); setCsvPreview([]); setMessage(null); }}
             className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white font-bold text-sm px-4 py-2 rounded-xl transition-colors"
