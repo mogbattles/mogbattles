@@ -433,8 +433,9 @@ export default function ExplorePage() {
           const { count } = await db.from("profiles").select("id", { count: "exact", head: true });
           arena.player_count = count ?? 0;
         }
-        // Fetch top 3 leaderboard
-        getTopProfilesForArena(arena.id, 3).then((players) => {
+        // Fetch top 3 leaderboard (exclude seeded profiles for "All Players")
+        const excludeTest = arena.slug === "members";
+        getTopProfilesForArena(arena.id, 3, { excludeTestProfiles: excludeTest }).then((players) => {
           setTopPlayersMap((prev) => ({ ...prev, [arena.id]: players }));
         });
       }

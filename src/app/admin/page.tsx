@@ -58,6 +58,7 @@ const MAX_IMAGES = 4;
 
 // ─── CategoryMultiSelect ──────────────────────────────────────────────────────
 // Uses dynamic categories from the DB. Shows hierarchy with indentation.
+// Root categories (depth 0) are non-selectable group headers.
 // value/onChange use category slugs (strings) for backward compat.
 function CategoryMultiSelect({
   value,
@@ -74,9 +75,9 @@ function CategoryMultiSelect({
   const dropRef = useRef<HTMLDivElement>(null);
   const id = useId();
 
-  // Only show active non-root categories (depth >= 1) for profile assignment
-  // Also include root if desired
-  const selectableCategories = allCategories.filter((c) => c.is_active);
+  const activeCategories = allCategories.filter((c) => c.is_active);
+  // Only sub-categories (depth > 0) are selectable
+  const selectableCategories = activeCategories.filter((c) => c.depth > 0);
 
   // Close when clicking outside either the button or the portal dropdown
   useEffect(() => {
@@ -149,13 +150,25 @@ function CategoryMultiSelect({
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {selectableCategories.map((c) => {
+            {activeCategories.map((c) => {
+              if (c.depth === 0) {
+                // Root = non-selectable group header
+                return (
+                  <div
+                    key={c.id}
+                    className="px-2.5 pt-2.5 pb-1 text-[10px] font-black uppercase tracking-wider select-none"
+                    style={{ color: "#6B7280" }}
+                  >
+                    {c.icon ? c.icon + " " : ""}{c.name}
+                  </div>
+                );
+              }
               const checked = value.includes(c.slug);
               return (
                 <label
                   key={c.id}
-                  className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800 cursor-pointer select-none"
-                  style={{ paddingLeft: `${8 + c.depth * 16}px` }}
+                  className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800 cursor-pointer select-none ${checked ? "bg-zinc-800/60" : ""}`}
+                  style={{ paddingLeft: `${16 + (c.depth - 1) * 16}px` }}
                 >
                   <input
                     type="checkbox"
@@ -163,7 +176,7 @@ function CategoryMultiSelect({
                     onChange={() => toggle(c.slug)}
                     className="accent-orange-500 w-3.5 h-3.5 shrink-0"
                   />
-                  <span className={`text-xs ${c.depth === 0 ? "text-zinc-200 font-bold" : "text-zinc-300"}`}>
+                  <span className="text-xs text-zinc-300">
                     {c.icon ? c.icon + " " : ""}{c.name}
                   </span>
                 </label>

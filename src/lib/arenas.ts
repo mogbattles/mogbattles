@@ -350,32 +350,41 @@ export async function getLeaderboardForArena(
 
 export async function getTopProfilesForArena(
   arenaId: string,
-  limit = 3
+  limit = 3,
+  opts?: { excludeTestProfiles?: boolean }
 ): Promise<{ id: string; name: string; image_url: string | null; elo_rating: number }[]> {
   const client = db();
-  const { data, error } = await client
+  let query = client
     .from("arena_profile_stats")
-    .select("elo_rating, profile_id, profiles(id, name, image_url)")
+    .select("elo_rating, profile_id, profiles(id, name, image_url, is_test_profile)")
     .eq("arena_id", arenaId)
-    .order("elo_rating", { ascending: false })
-    .limit(limit);
+    .order("elo_rating", { ascending: false });
 
+  // When excluding test profiles, fetch more to compensate for filtering
+  const fetchLimit = opts?.excludeTestProfiles ? limit * 5 : limit;
+  query = query.limit(fetchLimit);
+
+  const { data, error } = await query;
   if (error || !data) return [];
 
   type Row = {
     elo_rating: number;
     profile_id: string;
-    profiles: { id: string; name: string; image_url: string | null } | null;
+    profiles: { id: string; name: string; image_url: string | null; is_test_profile?: boolean } | null;
   };
 
-  return (data as unknown as Row[])
-    .filter((r) => r.profiles)
-    .map((r) => ({
-      id: r.profiles!.id,
-      name: r.profiles!.name,
-      image_url: r.profiles!.image_url,
-      elo_rating: r.elo_rating,
-    }));
+  let rows = (data as unknown as Row[]).filter((r) => r.profiles);
+
+  if (opts?.excludeTestProfiles) {
+    rows = rows.filter((r) => !r.profiles!.is_test_profile);
+  }
+
+  return rows.slice(0, limit).map((r) => ({
+    id: r.profiles!.id,
+    name: r.profiles!.name,
+    image_url: r.profiles!.image_url,
+    elo_rating: r.elo_rating,
+  }));
 }
 
 // ─── Featured battles (Battle of the Day / Coming Up) ────────────────────────
