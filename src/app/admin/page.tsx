@@ -78,6 +78,9 @@ function CategoryMultiSelect({
   const activeCategories = allCategories.filter((c) => c.is_active);
   // Only sub-categories (depth > 0) are selectable
   const selectableCategories = activeCategories.filter((c) => c.depth > 0);
+  // Filter out root category slugs from value (legacy data cleanup)
+  const rootSlugs = new Set(activeCategories.filter((c) => c.depth === 0).map((c) => c.slug));
+  const cleanValue = value.filter((v) => !rootSlugs.has(v));
 
   // Close when clicking outside either the button or the portal dropdown
   useEffect(() => {
@@ -95,19 +98,19 @@ function CategoryMultiSelect({
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
 
-  const selectedCats = selectableCategories.filter((c) => value.includes(c.slug));
+  const selectedCats = selectableCategories.filter((c) => cleanValue.includes(c.slug));
   const label =
-    value.length === 0
+    cleanValue.length === 0
       ? "— None —"
-      : value.length === 1
-      ? (selectedCats[0]?.icon ? selectedCats[0].icon + " " : "") + (selectedCats[0]?.name ?? value[0])
-      : `${value.length} categories`;
+      : cleanValue.length === 1
+      ? (selectedCats[0]?.icon ? selectedCats[0].icon + " " : "") + (selectedCats[0]?.name ?? cleanValue[0])
+      : `${cleanValue.length} categories`;
 
   function toggle(slug: string) {
-    if (value.includes(slug)) {
-      onChange(value.filter((c) => c !== slug));
+    if (cleanValue.includes(slug)) {
+      onChange(cleanValue.filter((c) => c !== slug));
     } else {
-      onChange([...value, slug]);
+      onChange([...cleanValue, slug]);
     }
   }
 
@@ -163,7 +166,7 @@ function CategoryMultiSelect({
                   </div>
                 );
               }
-              const checked = value.includes(c.slug);
+              const checked = cleanValue.includes(c.slug);
               return (
                 <label
                   key={c.id}
