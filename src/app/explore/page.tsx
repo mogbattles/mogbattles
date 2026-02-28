@@ -405,16 +405,26 @@ export default function ExplorePage() {
   useEffect(() => {
     const db = supabase();
     // Arenas — then fetch top 3 players for highlighted arenas
-    getExploreArenas({ sort: "popular" }).then((data) => {
-      setArenas(data);
-      setArenasLoading(false);
-      // Fetch top 3 leaderboard for "All" and "Members"
+    getExploreArenas({ sort: "popular" }).then(async (data) => {
+      // Fix player counts for highlighted arenas — show real profile counts
       const highlighted = data.filter((a) => HIGHLIGHTED_SLUGS.includes(a.slug));
-      highlighted.forEach((arena) => {
+      for (const arena of highlighted) {
+        if (arena.slug === "members") {
+          // "All Players" — count only registered user profiles
+          const { count } = await db.from("profiles").select("id", { count: "exact", head: true }).not("user_id", "is", null);
+          arena.player_count = count ?? 0;
+        } else if (arena.slug === "all") {
+          // "All" — count total profiles
+          const { count } = await db.from("profiles").select("id", { count: "exact", head: true });
+          arena.player_count = count ?? 0;
+        }
+        // Fetch top 3 leaderboard
         getTopProfilesForArena(arena.id, 3).then((players) => {
           setTopPlayersMap((prev) => ({ ...prev, [arena.id]: players }));
         });
-      });
+      }
+      setArenas(data);
+      setArenasLoading(false);
     });
     // Featured battles
     getFeaturedBattles().then((battles) => {

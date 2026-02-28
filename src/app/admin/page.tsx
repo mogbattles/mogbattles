@@ -341,6 +341,10 @@ export default function AdminPage() {
   const [importing, setImporting] = useState(false);
   const csvFileRef = useRef<HTMLInputElement>(null);
 
+  // Collapsible panel state — all collapsed by default
+  const [openPanels, setOpenPanels] = useState<Record<string, boolean>>({});
+  const togglePanel = (key: string) => setOpenPanels((prev) => ({ ...prev, [key]: !prev[key] }));
+
   // Featured battles state
   const [featuredBattles, setFeaturedBattles] = useState<FeaturedBattle[]>([]);
   const [featuredSaving, setFeaturedSaving] = useState<"battle_of_day" | "upcoming" | null>(null);
@@ -1233,18 +1237,22 @@ export default function AdminPage() {
       )}
 
       {/* ── Featured Battles Panel ───────────────────────────────────────────── */}
-      <div className="mb-6 bg-zinc-900 border border-yellow-500/20 rounded-2xl p-5 space-y-5">
-        <div className="flex items-center justify-between">
-          <div>
+      <div className="mb-4 bg-zinc-900 border border-yellow-500/20 rounded-2xl overflow-hidden">
+        <button onClick={() => togglePanel("featured")} className="w-full flex items-center justify-between p-5 hover:bg-zinc-800/50 transition-colors">
+          <div className="text-left">
             <h2 className="text-white font-bold text-base">⚔️ Featured Battles</h2>
             <p className="text-zinc-500 text-xs mt-0.5">Set the homepage "Battle of the Day" and "Coming Up" cards</p>
           </div>
-          {featuredMsg && (
-            <span className="text-xs font-bold" style={{ color: featuredMsg.startsWith("✅") ? "#22C55E" : "#EF4444" }}>
-              {featuredMsg}
-            </span>
-          )}
-        </div>
+          <div className="flex items-center gap-2">
+            {featuredMsg && (
+              <span className="text-xs font-bold" style={{ color: featuredMsg.startsWith("✅") ? "#22C55E" : "#EF4444" }}>
+                {featuredMsg}
+              </span>
+            )}
+            <span className="text-zinc-500 text-lg shrink-0">{openPanels.featured ? "▲" : "▼"}</span>
+          </div>
+        </button>
+        {openPanels.featured && <div className="px-5 pb-5 space-y-5">
 
         {/* Battle of the Day */}
         <div className="bg-zinc-950/60 border border-zinc-800 rounded-xl p-4 space-y-3">
@@ -1422,15 +1430,19 @@ export default function AdminPage() {
               );
             })()}
         </div>
+        </div>}
       </div>
 
       {/* ── Arena Thumbnails Panel ──────────────────────────────────────────── */}
-      <div className="mb-6 bg-zinc-900 border border-purple-500/20 rounded-2xl p-5 space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
+      <div className="mb-4 bg-zinc-900 border border-purple-500/20 rounded-2xl overflow-hidden">
+        <button onClick={() => togglePanel("thumbnails")} className="w-full flex items-center justify-between p-5 hover:bg-zinc-800/50 transition-colors">
+          <div className="text-left">
             <h2 className="text-white font-bold text-base">🖼️ Arena Thumbnails</h2>
             <p className="text-zinc-500 text-xs mt-0.5">Set cover images for official arenas (paste image URL)</p>
           </div>
+          <span className="text-zinc-500 text-lg shrink-0">{openPanels.thumbnails ? "▲" : "▼"}</span>
+        </button>
+        {openPanels.thumbnails && <div className="px-5 pb-5 space-y-4">
           <div className="flex items-center gap-3">
             {arenaThumbnailMsg && (
               <span className="text-xs font-bold" style={{ color: arenaThumbnailMsg.startsWith("✅") ? "#22C55E" : "#EF4444" }}>
@@ -1497,14 +1509,15 @@ export default function AdminPage() {
             </div>
           ))}
         </div>
+        </div>}
       </div>
 
       {/* ── Category Management Panel ─────────────────────────────────────────── */}
-      <div className="mb-6 bg-zinc-900 border border-emerald-500/20 rounded-2xl p-5 space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="mb-4 bg-zinc-900 border border-emerald-500/20 rounded-2xl overflow-hidden">
+        <div className="flex items-center justify-between p-5 cursor-pointer hover:bg-zinc-800/50 transition-colors" onClick={() => togglePanel("categories")}>
           <div>
             <h2 className="text-white font-bold text-base">🗂️ Category Hierarchy</h2>
-            <p className="text-zinc-500 text-xs mt-0.5">Manage the category tree (Human → Actors, Athletes, etc.)</p>
+            <p className="text-zinc-500 text-xs mt-0.5">Manage the category tree (Humans → Actors, Athletes, etc.)</p>
           </div>
           <div className="flex items-center gap-3">
             {categoryMsg && (
@@ -1512,12 +1525,14 @@ export default function AdminPage() {
                 {categoryMsg}
               </span>
             )}
-            <button onClick={() => { resetCategoryForm(); setShowCategoryForm(!showCategoryForm); }}
+            <button onClick={(e) => { e.stopPropagation(); resetCategoryForm(); setShowCategoryForm(!showCategoryForm); if (!openPanels.categories) togglePanel("categories"); }}
               className="shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black px-4 py-2 rounded-lg transition-colors">
               {showCategoryForm ? "Cancel" : "+ Add Category"}
             </button>
+            <span className="text-zinc-500 text-lg shrink-0">{openPanels.categories ? "▲" : "▼"}</span>
           </div>
         </div>
+        {openPanels.categories && <div className="px-5 pb-5 space-y-4">
 
         {/* Add/Edit category form */}
         {showCategoryForm && (
@@ -1610,21 +1625,26 @@ export default function AdminPage() {
             <p className="text-zinc-600 text-xs text-center py-4">No categories yet. Run the SQL migration first, then refresh.</p>
           )}
         </div>
+        </div>}
       </div>
 
       {/* ── Arena Management Panel ─────────────────────────────────────────────── */}
-      <div className="mb-6 bg-zinc-900 border border-blue-500/20 rounded-2xl p-5 space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="mb-4 bg-zinc-900 border border-blue-500/20 rounded-2xl overflow-hidden">
+        <div className="flex items-center justify-between p-5 cursor-pointer hover:bg-zinc-800/50 transition-colors" onClick={() => togglePanel("arenas")}>
           <div>
             <h2 className="text-white font-bold text-base">🏟️ Arena Management</h2>
             <p className="text-zinc-500 text-xs mt-0.5">Manage all arenas — official, custom, visibility, categories</p>
           </div>
-          {arenaMsg && (
-            <span className="text-xs font-bold" style={{ color: arenaMsg.startsWith("Error") ? "#EF4444" : "#22C55E" }}>
-              {arenaMsg}
-            </span>
-          )}
+          <div className="flex items-center gap-3">
+            {arenaMsg && (
+              <span className="text-xs font-bold" style={{ color: arenaMsg.startsWith("Error") ? "#EF4444" : "#22C55E" }}>
+                {arenaMsg}
+              </span>
+            )}
+            <span className="text-zinc-500 text-lg shrink-0">{openPanels.arenas ? "▲" : "▼"}</span>
+          </div>
         </div>
+        {openPanels.arenas && <div className="px-5 pb-5 space-y-4">
 
         {/* Filters */}
         <div className="flex items-center gap-3">
@@ -1822,6 +1842,7 @@ export default function AdminPage() {
             <p className="text-zinc-600 text-xs text-center py-4">No arenas match your filter.</p>
           )}
         </div>
+        </div>}
       </div>
 
       {/* ── Seeded Users Panel ───────────────────────────────────────────────── */}

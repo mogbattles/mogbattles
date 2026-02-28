@@ -24,16 +24,16 @@ export default function NewArenaPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Load categories for the picker — show root categories + their children
+  const [rootCategory, setRootCategory] = useState<CategoryRow | null>(null);
+
+  // Load categories for the picker — find root, show its children
   useEffect(() => {
     getCategoryChildren(null).then((roots) => {
       if (roots.length === 0) return;
-      // Include root categories (e.g. "Humans") then their children
       const humanRoot = roots.find((c) => c.slug === "human");
       if (humanRoot) {
-        getCategoryChildren(humanRoot.id).then((children) => {
-          setCategoryOptions([humanRoot, ...children]);
-        });
+        setRootCategory(humanRoot);
+        getCategoryChildren(humanRoot.id).then(setCategoryOptions);
       } else {
         setCategoryOptions(roots);
       }
@@ -184,6 +184,12 @@ export default function NewArenaPage() {
             <label className="block font-semibold text-sm mb-2" style={{ color: "#ccc" }}>
               Category
             </label>
+            {/* Root category label */}
+            {rootCategory && (
+              <p className="text-xs font-black uppercase tracking-wider mb-2" style={{ color: "#A78BFA" }}>
+                {rootCategory.icon ? `${rootCategory.icon} ` : ""}{rootCategory.name}
+              </p>
+            )}
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
