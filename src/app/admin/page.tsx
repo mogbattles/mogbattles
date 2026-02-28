@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, useCallback, useId } from "react";
 import { createPortal } from "react-dom";
 import { createBrowserClient } from "@supabase/ssr";
 import { getFeaturedBattles, upsertFeaturedBattle, searchProfiles, type FeaturedBattle } from "@/lib/arenas";
-import { useAuth, usePermissions } from "@/context/AuthContext";
+import { useAuth, usePermissions, useImpersonation } from "@/context/AuthContext";
 import { getAllCategories, createCategory, updateCategory, deleteCategory, setProfileCategories, getCategoryBySlug } from "@/lib/categories";
 import { grantRole, revokeRole, type UserRole } from "@/lib/user_roles";
 import type { CategoryRow } from "@/lib/supabase";
@@ -426,6 +426,7 @@ function useDb() {
 export default function AdminPage() {
   const { user, loading: authLoading, refreshPermissions } = useAuth();
   const perms = usePermissions();
+  const { isImpersonating, profile: impersonatedProfile, start: startImpersonating, stop: stopImpersonating } = useImpersonation();
   const [refreshing, setRefreshing] = useState(false);
 
   // Re-fetch permissions once when the admin page mounts, in case the role
@@ -2469,6 +2470,31 @@ Clavicular,Looksmaxxers,5'11",165,United States,https://example.com/clav.jpg,`}
                 <span className={`text-xs shrink-0 ${profile.image_urls?.filter(Boolean).length ? "text-green-500" : "text-zinc-600"}`}>
                   {profile.image_urls?.filter(Boolean).length || 0}/4 imgs
                 </span>
+
+                {/* Control As button (seeded users only) */}
+                {section.key === "seeded" && (
+                  <button
+                    onClick={() => {
+                      if (impersonatedProfile?.id === profile.id) {
+                        stopImpersonating();
+                      } else {
+                        startImpersonating({ id: profile.id, name: profile.name, image_url: profile.image_url });
+                      }
+                    }}
+                    className="text-xs font-bold px-2.5 py-1.5 rounded-lg transition-colors shrink-0"
+                    style={impersonatedProfile?.id === profile.id ? {
+                      background: "rgba(99,102,241,0.3)",
+                      color: "#A5B4FC",
+                      border: "1px solid rgba(99,102,241,0.6)",
+                    } : {
+                      background: "rgba(99,102,241,0.1)",
+                      color: "#818CF8",
+                      border: "1px solid rgba(99,102,241,0.3)",
+                    }}
+                  >
+                    {impersonatedProfile?.id === profile.id ? "✓ Controlling" : "🎭 Control As"}
+                  </button>
+                )}
 
                 {/* Edit button */}
                 <button

@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import BottomNav from "@/components/BottomNav";
 import PageTransition from "@/components/PageTransition";
+import ImpersonationBanner from "@/components/ImpersonationBanner";
 import { AuthProvider } from "@/context/AuthContext";
 
 const inter = Inter({
@@ -31,6 +32,7 @@ export default function RootLayout({
       </head>
       <body className="bg-navy-900 text-white min-h-screen font-sans antialiased">
         <AuthProvider>
+          <ImpersonationBanner />
           <Navbar />
           {/* pt-14 = below fixed navbar; pb-24 = above fixed bottom nav + safe area */}
           <main className="pt-14 pb-24 lg:pb-8">

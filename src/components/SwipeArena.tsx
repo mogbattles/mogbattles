@@ -16,7 +16,7 @@ import {
   toggleImageVote,
   sortImageUrlsByVotes,
 } from "@/lib/image_votes";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth, useImpersonation } from "@/context/AuthContext";
 import ProfileTags from "./ProfileTags";
 import TagPopup from "./TagPopup";
 import Link from "next/link";
@@ -36,6 +36,7 @@ function fallback(name: string) {
 
 export default function SwipeArena({ arena }: SwipeArenaProps) {
   const { user } = useAuth();
+  const { isImpersonating, profile: impProfile } = useImpersonation();
   const [profiles, setProfiles] = useState<ArenaProfile[]>([]);
   const [pair, setPair] = useState<[ArenaProfile, ArenaProfile] | null>(null);
   const [votedPairs, setVotedPairs] = useState<Set<string>>(new Set());
@@ -151,7 +152,9 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
           .forEach((a) => { map[a.category!] = a.id; });
         categoryArenaMap.current = map;
       }
-      const filteredData = myProfile ? data.filter((p) => p.id !== myProfile.id) : data;
+      // Exclude your own profile AND the impersonated profile from matchups
+      let filteredData = myProfile ? data.filter((p) => p.id !== myProfile.id) : data;
+      if (impProfile) filteredData = filteredData.filter((p) => p.id !== impProfile.id);
       if (filteredData.length < 2) {
         setError(filteredData.length === 0 ? "No profiles in this arena yet." : "Need at least 2 profiles to battle.");
         setLoading(false); return;
@@ -240,14 +243,30 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const supabase = createClient() as any;
-    const { data: eloData, error: rpcError } = await supabase.rpc("record_match", {
-      p_arena_id: effectiveArenaId,
-      p_winner_id: winner.id,
-      p_loser_id: loser.id,
-      p_voter_id: user?.id ?? null,
-    });
 
-    if (rpcError) console.error("record_match error:", rpcError);
+    let eloData: { winner_elo_before?: number; winner_elo_after?: number; loser_elo_before?: number; loser_elo_after?: number } | null = null;
+
+    if (isImpersonating && impProfile) {
+      // Admin voting as impersonated seeded profile
+      const { data, error: rpcError } = await supabase.rpc("admin_vote_as_profile", {
+        p_arena_id: effectiveArenaId,
+        p_winner_id: winner.id,
+        p_loser_id: loser.id,
+        p_acting_as: impProfile.id,
+      });
+      if (rpcError) console.error("admin_vote_as_profile error:", rpcError);
+      eloData = data;
+    } else {
+      // Normal voting
+      const { data, error: rpcError } = await supabase.rpc("record_match", {
+        p_arena_id: effectiveArenaId,
+        p_winner_id: winner.id,
+        p_loser_id: loser.id,
+        p_voter_id: user?.id ?? null,
+      });
+      if (rpcError) console.error("record_match error:", rpcError);
+      eloData = data;
+    }
 
     const newWinnerElo: number = eloData?.winner_elo_after ?? winner.elo_rating;
     const newLoserElo: number  = eloData?.loser_elo_after  ?? loser.elo_rating;

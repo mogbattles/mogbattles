@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { createBrowserClient } from "@supabase/ssr";
-import { useAuth, usePermissions } from "@/context/AuthContext";
+import { useAuth, usePermissions, useImpersonation } from "@/context/AuthContext";
 
 interface Thread {
   id: string;
@@ -46,6 +46,7 @@ export default function ThreadPage() {
   const { threadId } = useParams<{ threadId: string }>();
   const { user } = useAuth();
   const perms = usePermissions();
+  const { isImpersonating, profile: impProfile } = useImpersonation();
 
   const [thread, setThread] = useState<Thread | null>(null);
   const [replies, setReplies] = useState<Reply[]>([]);
@@ -69,14 +70,32 @@ export default function ThreadPage() {
   async function postReply() {
     if (!replyText.trim() || !user || !thread) return;
     setPosting(true);
-    const { error } = await db().from("forum_replies").insert({
-      thread_id: thread.id,
-      author_id: user.id,
-      content: replyText.trim(),
-      image_url: replyImage.trim() || null,
-    });
+
+    let failed = false;
+
+    if (isImpersonating && impProfile) {
+      // Post reply as impersonated seeded profile via admin RPC
+      const { error } = await db().rpc("admin_post_as_profile", {
+        p_type: "reply",
+        p_profile_id: impProfile.id,
+        p_thread_id: thread.id,
+        p_content: replyText.trim(),
+        p_image_url: replyImage.trim() || null,
+      });
+      failed = !!error;
+    } else {
+      // Normal reply
+      const { error } = await db().from("forum_replies").insert({
+        thread_id: thread.id,
+        author_id: user.id,
+        content: replyText.trim(),
+        image_url: replyImage.trim() || null,
+      });
+      failed = !!error;
+    }
+
     setPosting(false);
-    if (!error) {
+    if (!failed) {
       setReplyText("");
       setReplyImage("");
       // Refresh replies
@@ -170,7 +189,7 @@ export default function ThreadPage() {
       </div>
 
       {/* Reply box */}
-      {!thread.is_locked && perms.canCommentForum && (
+      {!thread.is_locked && (perms.canCommentForum || isImpersonating) && (
         <div className="game-card rounded-2xl p-4 space-y-3">
           <p className="text-xs font-black uppercase tracking-widest text-navy-200">Reply</p>
           <textarea

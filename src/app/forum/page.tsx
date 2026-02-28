@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createBrowserClient } from "@supabase/ssr";
-import { useAuth, usePermissions } from "@/context/AuthContext";
+import { useAuth, usePermissions, useImpersonation } from "@/context/AuthContext";
 
 interface ForumBoard {
   id: string;
@@ -55,6 +55,7 @@ function NewThreadForm({
   onCreated: () => void;
 }) {
   const { user } = useAuth();
+  const { isImpersonating, profile: impProfile } = useImpersonation();
   const [boardId, setBoardId] = useState(boards[0]?.id ?? "");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -65,16 +66,35 @@ function NewThreadForm({
   async function submit() {
     if (!title.trim() || !user) return;
     setSaving(true);
-    const { error } = await db().from("forum_threads").insert({
-      board_id: boardId || null,
-      author_id: user.id,
-      title: title.trim(),
-      content: content.trim() || null,
-      image_url: imageUrl.trim() || null,
-    });
+
+    let error: { message: string } | null = null;
+
+    if (isImpersonating && impProfile) {
+      // Post as impersonated seeded profile via admin RPC
+      const { error: rpcErr } = await db().rpc("admin_post_as_profile", {
+        p_type: "thread",
+        p_profile_id: impProfile.id,
+        p_board_id: boardId || null,
+        p_title: title.trim(),
+        p_content: content.trim() || null,
+        p_image_url: imageUrl.trim() || null,
+      });
+      error = rpcErr as { message: string } | null;
+    } else {
+      // Normal post
+      const { error: insertErr } = await db().from("forum_threads").insert({
+        board_id: boardId || null,
+        author_id: user.id,
+        title: title.trim(),
+        content: content.trim() || null,
+        image_url: imageUrl.trim() || null,
+      });
+      error = insertErr as { message: string } | null;
+    }
+
     setSaving(false);
     if (error) {
-      setMsg("❌ " + (error as { message: string }).message);
+      setMsg("\u274C " + error.message);
       setTimeout(() => setMsg(null), 3000);
     } else {
       setTitle(""); setContent(""); setImageUrl("");

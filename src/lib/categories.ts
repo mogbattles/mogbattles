@@ -142,7 +142,8 @@ export async function getCategoryDescendantIds(
     root_id: categoryId,
   });
   if (error || !data) return [categoryId];
-  return (data as { id: string }[]).map((r) => r.id);
+  // RPC returns SETOF uuid → Supabase client returns string[] (flat UUIDs, not objects)
+  return (data as unknown as string[]);
 }
 
 // Returns both IDs and slugs for all descendants (including the category itself)
@@ -153,14 +154,13 @@ export async function getCategoryDescendants(
   const { data, error } = await client.rpc("get_category_descendants", {
     root_id: categoryId,
   });
-  if (error || !data || data.length === 0) {
+  if (error || !data || (data as unknown[]).length === 0) {
     // Fallback: at least return this category
     const { data: self } = await client.from("categories").select("id, slug").eq("id", categoryId).single();
     return self ? { ids: [self.id], slugs: [self.slug] } : { ids: [categoryId], slugs: [] };
   }
-  const rows = data as { id: string; slug?: string }[];
-  // The RPC might not return slug, so fetch them
-  const ids = rows.map((r) => r.id);
+  // RPC returns SETOF uuid → Supabase client returns string[] (flat UUIDs, not objects)
+  const ids = data as unknown as string[];
   const { data: cats } = await client.from("categories").select("id, slug").in("id", ids);
   const slugs = (cats ?? []).map((c) => c.slug);
   return { ids, slugs };
