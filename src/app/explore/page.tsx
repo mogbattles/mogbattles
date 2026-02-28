@@ -425,8 +425,8 @@ export default function ExplorePage() {
       const highlighted = data.filter((a) => HIGHLIGHTED_SLUGS.includes(a.slug));
       for (const arena of highlighted) {
         if (arena.slug === "members") {
-          // "All Players" — count only registered user profiles
-          const { count } = await db.from("profiles").select("id", { count: "exact", head: true }).not("user_id", "is", null);
+          // "All Players" — count only REAL registered user profiles (not seeded)
+          const { count } = await db.from("profiles").select("id", { count: "exact", head: true }).or("is_test_profile.is.null,is_test_profile.eq.false");
           arena.player_count = count ?? 0;
         } else if (arena.slug === "all") {
           // "All" — count total profiles

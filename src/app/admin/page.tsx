@@ -1473,9 +1473,8 @@ export default function AdminPage() {
               {savingArenaThumbnail === "all" ? "Saving all…" : "Save All"}
             </button>
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {officialArenas.map((arena) => (
             <div key={arena.id}
               className="bg-zinc-950/60 border border-zinc-800 rounded-xl p-3 space-y-2">
@@ -1582,9 +1581,9 @@ export default function AdminPage() {
                   onChange={(e) => setCatParentId(e.target.value || null)}
                   className="w-full bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500">
                   <option value="">— Root (no parent) —</option>
-                  {categories.filter((c) => c.is_active).map((c) => (
+                  {[...categories].filter((c) => c.is_active).sort((a, b) => (a.path ?? "").localeCompare(b.path ?? "")).map((c) => (
                     <option key={c.id} value={c.id}>
-                      {"  ".repeat(c.depth)}{c.icon ? `${c.icon} ` : ""}{c.name} ({c.slug})
+                      {"\u00A0\u00A0\u00A0\u00A0".repeat(c.depth)}{c.depth > 0 ? "└ " : ""}{c.icon ? `${c.icon} ` : ""}{c.name}
                     </option>
                   ))}
                 </select>
