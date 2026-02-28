@@ -441,8 +441,10 @@ export default function ExplorePage() {
           const { count } = await db.from("profiles").select("id", { count: "exact", head: true });
           arena.player_count = count ?? 0;
         }
-        // Fetch top 3 leaderboard — show all profiles (seeded + real) since they're who you battle
-        getTopProfilesForArena(arena.id, 3).then((players) => {
+        // Fetch top 3 leaderboard
+        // "All Players" = real users only; "All" = everyone (seeded + real)
+        const excludeTest = arena.slug === "members";
+        getTopProfilesForArena(arena.id, 3, { excludeTestProfiles: excludeTest }).then((players) => {
           setTopPlayersMap((prev) => ({ ...prev, [arena.id]: players }));
         });
       }
