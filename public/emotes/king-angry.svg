@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140" fill="none">
+  <!-- Face/beard shape -->
+  <ellipse cx="60" cy="85" rx="48" ry="45" fill="#5C3A1E"/>
+  <ellipse cx="60" cy="78" rx="42" ry="38" fill="#FF7088"/>
+  <!-- Angry eyebrows -->
+  <line x1="30" y1="58" x2="50" y2="65" stroke="#2A1A0A" stroke-width="5" stroke-linecap="round"/>
+  <line x1="90" y1="58" x2="70" y2="65" stroke="#2A1A0A" stroke-width="5" stroke-linecap="round"/>
+  <!-- Angry eyes -->
+  <ellipse cx="42" cy="72" rx="7" ry="8" fill="white"/>
+  <ellipse cx="78" cy="72" rx="7" ry="8" fill="white"/>
+  <ellipse cx="44" cy="73" rx="4" ry="5" fill="#1A1A1A"/>
+  <ellipse cx="76" cy="73" rx="4" ry="5" fill="#1A1A1A"/>
+  <!-- Angry mouth - gritting teeth -->
+  <rect x="38" y="90" width="44" height="14" rx="4" fill="#4A0A2A"/>
+  <line x1="48" y1="90" x2="48" y2="104" stroke="white" stroke-width="2"/>
+  <line x1="56" y1="90" x2="56" y2="104" stroke="white" stroke-width="2"/>
+  <line x1="64" y1="90" x2="64" y2="104" stroke="white" stroke-width="2"/>
+  <line x1="72" y1="90" x2="72" y2="104" stroke="white" stroke-width="2"/>
+  <!-- Crown -->
+  <polygon points="24,45 30,20 42,38 52,8 60,35 68,8 78,38 90,20 96,45" fill="#FFD700"/>
+  <polygon points="24,45 96,45 92,55 28,55" fill="#DAA520"/>
+  <!-- Crown gems -->
+  <circle cx="52" cy="26" r="4" fill="#FF4444"/>
+  <circle cx="68" cy="26" r="4" fill="#4488FF"/>
+  <circle cx="60" cy="42" r="3" fill="#44FF44"/>
+  <!-- Steam/anger marks -->
+  <path d="M15 55 Q10 45 18 42" stroke="#FF4444" stroke-width="3" fill="none" opacity="0.7"/>
+  <path d="M105 55 Q110 45 102 42" stroke="#FF4444" stroke-width="3" fill="none" opacity="0.7"/>
+  <path d="M12 48 Q7 38 15 35" stroke="#FF4444" stroke-width="2" fill="none" opacity="0.5"/>
+  <path d="M108 48 Q113 38 105 35" stroke="#FF4444" stroke-width="2" fill="none" opacity="0.5"/>
+</svg>
