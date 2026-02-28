@@ -22,6 +22,7 @@ interface ForumThread {
   created_at: string;
   last_reply_at: string;
   reply_count: number;
+  vote_score: number;
   is_pinned: boolean;
   is_locked: boolean;
   author_name: string | null;
@@ -154,7 +155,7 @@ export default function ForumPage() {
     setLoading(true);
     let q = db()
       .from("forum_threads")
-      .select("id, board_id, title, content, image_url, created_at, last_reply_at, reply_count, is_pinned, is_locked, author_name")
+      .select("id, board_id, title, content, image_url, created_at, last_reply_at, reply_count, vote_score, is_pinned, is_locked, author_name")
       .order("is_pinned", { ascending: false })
       .order("last_reply_at", { ascending: false })
       .limit(50);
@@ -311,7 +312,12 @@ export default function ForumPage() {
                     {thread.author_name ? `Anon#${thread.author_name.slice(0, 4)}` : "Anon"}
                     {" · "}{timeAgo(thread.created_at)}
                   </span>
-                  <span>💬 {thread.reply_count}</span>
+                  <span className="flex items-center gap-2">
+                    <span className={thread.vote_score > 0 ? "text-orange-400" : thread.vote_score < 0 ? "text-blue-400" : ""}>
+                      ⬆ {thread.vote_score}
+                    </span>
+                    <span>💬 {thread.reply_count}</span>
+                  </span>
                 </div>
               </div>
             </Link>

@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { createBrowserClient } from "@supabase/ssr";
 import { useAuth, usePermissions, useImpersonation } from "@/context/AuthContext";
+import ForumVoteButton from "@/components/ForumVoteButton";
 
 interface Thread {
   id: string;
@@ -14,6 +15,7 @@ interface Thread {
   created_at: string;
   is_locked: boolean;
   author_name: string | null;
+  vote_score: number;
 }
 
 interface Reply {
@@ -54,18 +56,44 @@ export default function ThreadPage() {
   const [replyText, setReplyText] = useState("");
   const [replyImage, setReplyImage] = useState("");
   const [posting, setPosting] = useState(false);
+  // Map of targetId → user's vote (+1, -1, or 0)
+  const [myVotes, setMyVotes] = useState<Map<string, number>>(new Map());
 
   useEffect(() => {
     if (!threadId) return;
     Promise.all([
-      db().from("forum_threads").select("id, title, content, image_url, created_at, is_locked, author_name").eq("id", threadId).single(),
-      db().from("forum_replies").select("id, content, image_url, created_at, likes, author_name").eq("thread_id", threadId).order("created_at"),
+      db()
+        .from("forum_threads")
+        .select("id, title, content, image_url, created_at, is_locked, author_name, vote_score")
+        .eq("id", threadId)
+        .single(),
+      db()
+        .from("forum_replies")
+        .select("id, content, image_url, created_at, likes, author_name")
+        .eq("thread_id", threadId)
+        .order("created_at"),
     ]).then(([{ data: t }, { data: r }]) => {
       setThread(t as Thread | null);
       setReplies((r ?? []) as Reply[]);
       setLoading(false);
     });
   }, [threadId]);
+
+  // Fetch current user's votes for this thread + its replies
+  useEffect(() => {
+    if (!threadId || !user) return;
+    db()
+      .rpc("get_my_forum_votes", { p_thread_id: threadId })
+      .then(({ data }) => {
+        if (!data) return;
+        const map = new Map<string, number>();
+        for (const row of data as { thread_id: string | null; reply_id: string | null; vote: number }[]) {
+          if (row.thread_id) map.set(row.thread_id, row.vote);
+          if (row.reply_id) map.set(row.reply_id, row.vote);
+        }
+        setMyVotes(map);
+      });
+  }, [threadId, user]);
 
   async function postReply() {
     if (!replyText.trim() || !user || !thread) return;
@@ -99,8 +127,11 @@ export default function ThreadPage() {
       setReplyText("");
       setReplyImage("");
       // Refresh replies
-      db().from("forum_replies").select("id, content, image_url, created_at, likes, author_name")
-        .eq("thread_id", thread.id).order("created_at")
+      db()
+        .from("forum_replies")
+        .select("id, content, image_url, created_at, likes, author_name")
+        .eq("thread_id", thread.id)
+        .order("created_at")
         .then(({ data }) => setReplies((data ?? []) as Reply[]));
     }
   }
@@ -121,15 +152,25 @@ export default function ThreadPage() {
     return (
       <div className="max-w-3xl mx-auto px-4 pt-20 pb-28 text-center py-24">
         <p className="font-black text-navy-200">Thread not found</p>
-        <Link href="/forum" className="text-xs font-bold mt-4 inline-block text-purple-bright hover:text-white transition-colors">← Back to Forum</Link>
+        <Link
+          href="/forum"
+          className="text-xs font-bold mt-4 inline-block text-purple-bright hover:text-white transition-colors"
+        >
+          ← Back to Forum
+        </Link>
       </div>
     );
   }
 
+  const canVote = perms.canCommentForum || isImpersonating;
+
   return (
     <div className="max-w-3xl mx-auto px-4 pt-20 pb-28">
       {/* Back link */}
-      <Link href="/forum" className="inline-flex items-center gap-1 text-xs font-bold mb-5 transition-colors text-navy-200 hover:text-white">
+      <Link
+        href="/forum"
+        className="inline-flex items-center gap-1 text-xs font-bold mb-5 transition-colors text-navy-200 hover:text-white"
+      >
         ← Forum
       </Link>
 
@@ -137,24 +178,47 @@ export default function ThreadPage() {
       <div className="rounded-2xl overflow-hidden mb-4 game-card !border-purple/20">
         {thread.image_url && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={thread.image_url} alt="" className="w-full max-h-80 object-cover"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+          <img
+            src={thread.image_url}
+            alt=""
+            className="w-full max-h-80 object-cover"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = "none";
+            }}
           />
         )}
-        <div className="p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="badge-purple !text-[9px]">OP</span>
-            <span className="text-[10px] font-bold text-navy-400">
-              {thread.author_name ?? "Anon"} · {timeAgo(thread.created_at)}
-            </span>
-            {thread.is_locked && (
-              <span className="ml-auto text-[9px] font-bold text-navy-200">🔒 Locked</span>
+        <div className="p-5 flex gap-3">
+          {/* Vote column */}
+          <ForumVoteButton
+            targetType="thread"
+            targetId={thread.id}
+            initialScore={thread.vote_score}
+            userVote={myVotes.get(thread.id) ?? 0}
+            canVote={canVote}
+          />
+
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="badge-purple !text-[9px]">OP</span>
+              <span className="text-[10px] font-bold text-navy-400">
+                {thread.author_name ?? "Anon"} · {timeAgo(thread.created_at)}
+              </span>
+              {thread.is_locked && (
+                <span className="ml-auto text-[9px] font-bold text-navy-200">
+                  🔒 Locked
+                </span>
+              )}
+            </div>
+            <h1 className="text-white font-black text-xl leading-snug mb-3">
+              {thread.title}
+            </h1>
+            {thread.content && (
+              <p className="text-sm leading-relaxed text-navy-100">
+                {thread.content}
+              </p>
             )}
           </div>
-          <h1 className="text-white font-black text-xl leading-snug mb-3">{thread.title}</h1>
-          {thread.content && (
-            <p className="text-sm leading-relaxed text-navy-100">{thread.content}</p>
-          )}
         </div>
       </div>
 
@@ -163,35 +227,57 @@ export default function ThreadPage() {
         {replies.map((reply, i) => (
           <div
             key={reply.id}
-            className="rounded-xl p-4 bg-navy-800 border border-navy-500"
+            className="rounded-xl p-4 bg-navy-800 border border-navy-500 flex gap-3"
           >
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-[9px] font-black text-navy-200">#{i + 1}</span>
-              <span className="text-[10px] font-bold text-navy-400">
-                {reply.author_name ?? "Anon"} · {timeAgo(reply.created_at)}
-              </span>
-              <span className="ml-auto text-[10px] font-bold text-navy-400">
-                ❤️ {reply.likes}
-              </span>
+            {/* Vote column */}
+            <ForumVoteButton
+              targetType="reply"
+              targetId={reply.id}
+              initialScore={reply.likes}
+              userVote={myVotes.get(reply.id) ?? 0}
+              canVote={canVote}
+            />
+
+            {/* Content */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-[9px] font-black text-navy-200">
+                  #{i + 1}
+                </span>
+                <span className="text-[10px] font-bold text-navy-400">
+                  {reply.author_name ?? "Anon"} · {timeAgo(reply.created_at)}
+                </span>
+              </div>
+              {reply.image_url && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={reply.image_url}
+                  alt=""
+                  className="w-full max-h-60 object-cover rounded-lg mb-2"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = "none";
+                  }}
+                />
+              )}
+              <p className="text-sm leading-relaxed text-navy-100">
+                {reply.content}
+              </p>
             </div>
-            {reply.image_url && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={reply.image_url} alt="" className="w-full max-h-60 object-cover rounded-lg mb-2"
-                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-              />
-            )}
-            <p className="text-sm leading-relaxed text-navy-100">{reply.content}</p>
           </div>
         ))}
         {replies.length === 0 && (
-          <p className="text-center py-6 text-xs font-bold text-navy-400">No replies yet — be the first</p>
+          <p className="text-center py-6 text-xs font-bold text-navy-400">
+            No replies yet — be the first
+          </p>
         )}
       </div>
 
       {/* Reply box */}
       {!thread.is_locked && (perms.canCommentForum || isImpersonating) && (
         <div className="game-card rounded-2xl p-4 space-y-3">
-          <p className="text-xs font-black uppercase tracking-widest text-navy-200">Reply</p>
+          <p className="text-xs font-black uppercase tracking-widest text-navy-200">
+            Reply
+          </p>
           <textarea
             placeholder="Write your reply…"
             value={replyText}
@@ -199,12 +285,17 @@ export default function ThreadPage() {
             rows={3}
             className="game-input text-sm resize-none"
           />
-          <input type="text" placeholder="Image URL (optional)" value={replyImage}
+          <input
+            type="text"
+            placeholder="Image URL (optional)"
+            value={replyImage}
             onChange={(e) => setReplyImage(e.target.value)}
             className="game-input text-sm"
           />
           <div className="flex justify-end">
-            <button onClick={postReply} disabled={posting || !replyText.trim()}
+            <button
+              onClick={postReply}
+              disabled={posting || !replyText.trim()}
               className="btn-purple px-6 py-2 rounded-xl text-sm font-black disabled:opacity-50"
             >
               {posting ? "Posting…" : "Post Reply"}
@@ -213,9 +304,15 @@ export default function ThreadPage() {
         </div>
       )}
 
-      {!perms.canCommentForum && (
+      {!perms.canCommentForum && !isImpersonating && (
         <div className="rounded-xl px-4 py-3 text-xs font-bold text-center bg-navy-800 border border-navy-500 text-navy-200">
-          <Link href="/profile" className="text-purple-bright hover:text-white transition-colors">Sign in</Link> as a member to leave a reply
+          <Link
+            href="/profile"
+            className="text-purple-bright hover:text-white transition-colors"
+          >
+            Sign in
+          </Link>{" "}
+          as a member to leave a reply
         </div>
       )}
 
