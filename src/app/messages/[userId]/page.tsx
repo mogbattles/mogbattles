@@ -14,7 +14,7 @@ import {
 import { createClient } from "@/lib/supabase";
 
 function Avatar({ src, name, size = 36 }: { src: string | null; name: string; size?: number }) {
-  const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=111827&color=888&size=${size * 2}&bold=true`;
+  const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0F0F1A&color=888&size=${size * 2}&bold=true`;
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
@@ -22,7 +22,7 @@ function Avatar({ src, name, size = 36 }: { src: string | null; name: string; si
       alt={name}
       width={size}
       height={size}
-      className="rounded-full object-cover shrink-0"
+      className="rounded-full object-cover shrink-0 ring-2 ring-navy-500"
       style={{ width: size, height: size }}
       onError={(e) => { (e.target as HTMLImageElement).src = fallback; }}
     />
@@ -183,10 +183,7 @@ export default function MessageThreadPage() {
   if (authLoading || initLoading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
-        <div
-          className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
-          style={{ borderColor: "#F0C040", borderTopColor: "transparent" }}
-        />
+        <div className="w-8 h-8 rounded-full border-2 border-purple border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -195,16 +192,11 @@ export default function MessageThreadPage() {
     return (
       <div className="max-w-lg mx-auto px-4 py-8 text-center">
         <p className="text-4xl mb-3">🔒</p>
-        <p className="font-bold text-white mb-2">Can&apos;t open conversation</p>
-        <p className="text-sm mb-5" style={{ color: "#3D5070" }}>{error}</p>
+        <p className="font-black text-white mb-2">Can&apos;t open conversation</p>
+        <p className="text-sm mb-5 text-navy-200">{error}</p>
         <Link
           href="/messages"
-          className="inline-block py-2.5 px-5 rounded-xl font-black text-sm uppercase tracking-wide"
-          style={{
-            background: "rgba(240,192,64,0.15)",
-            border: "1px solid rgba(240,192,64,0.4)",
-            color: "#F0C040",
-          }}
+          className="btn-dark inline-block py-2.5 px-5 rounded-xl text-sm font-black uppercase tracking-wide"
         >
           ← Messages
         </Link>
@@ -215,24 +207,21 @@ export default function MessageThreadPage() {
   return (
     <div className="max-w-lg mx-auto flex flex-col" style={{ height: "calc(100dvh - 64px)" }}>
       {/* Header */}
-      <div
-        className="flex items-center gap-3 px-4 py-3 shrink-0"
-        style={{ background: "#07090F", borderBottom: "1px solid #1B2338" }}
-      >
-        <Link href="/messages" className="text-lg font-black mr-1" style={{ color: "#3D5070" }}>
+      <div className="flex items-center gap-3 px-4 py-3 shrink-0 bg-navy-950 border-b border-navy-500">
+        <Link href="/messages" className="text-lg font-black mr-1 text-navy-200 hover:text-white transition-colors">
           ←
         </Link>
         <Avatar src={otherImage} name={otherName} size={38} />
         <div>
           <p className="font-black text-white text-sm leading-tight">{otherName}</p>
-          <p className="text-xs" style={{ color: "#3D5070" }}>Direct message</p>
+          <p className="text-[10px] font-bold text-navy-200">Direct message</p>
         </div>
       </div>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
         {messages.length === 0 && (
-          <p className="text-center text-sm py-8" style={{ color: "#3D5070" }}>
+          <p className="text-center text-sm py-8 text-navy-200">
             No messages yet — say hi! 👋
           </p>
         )}
@@ -248,28 +237,17 @@ export default function MessageThreadPage() {
           return (
             <div key={msg.id}>
               {showTime && (
-                <p className="text-center text-xs my-2" style={{ color: "#3D5070" }}>
+                <p className="text-center text-[10px] font-bold my-2 text-navy-200">
                   {formatTime(msg.created_at)}
                 </p>
               )}
               <div className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
                 <div
-                  className="max-w-[75%] px-3.5 py-2.5 rounded-2xl text-sm leading-snug"
-                  style={
+                  className={`max-w-[75%] px-3.5 py-2.5 rounded-2xl text-sm leading-snug ${
                     isMe
-                      ? {
-                          background: "rgba(240,192,64,0.18)",
-                          border: "1px solid rgba(240,192,64,0.3)",
-                          color: "#fff",
-                          borderBottomRightRadius: "6px",
-                        }
-                      : {
-                          background: "#111827",
-                          border: "1px solid #1B2338",
-                          color: "#e5e7eb",
-                          borderBottomLeftRadius: "6px",
-                        }
-                  }
+                      ? "bg-purple/15 border border-purple/25 text-white rounded-br-md"
+                      : "bg-navy-800 border border-navy-500 text-gray-200 rounded-bl-md"
+                  }`}
                 >
                   {msg.content}
                 </div>
@@ -281,10 +259,7 @@ export default function MessageThreadPage() {
       </div>
 
       {/* Input */}
-      <div
-        className="px-4 py-3 shrink-0 flex items-end gap-2"
-        style={{ borderTop: "1px solid #1B2338", background: "#07090F" }}
-      >
+      <div className="px-4 py-3 shrink-0 flex items-end gap-2 border-t border-navy-500 bg-navy-950">
         <textarea
           ref={inputRef}
           value={input}
@@ -293,13 +268,8 @@ export default function MessageThreadPage() {
           placeholder="Message…"
           rows={1}
           maxLength={2000}
-          className="flex-1 resize-none rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
-          style={{
-            background: "#111827",
-            border: "1px solid #1B2338",
-            maxHeight: "120px",
-            lineHeight: "1.4",
-          }}
+          className="game-input flex-1 resize-none !rounded-xl !px-3.5 !py-2.5 text-sm"
+          style={{ maxHeight: 120, lineHeight: "1.4" }}
           onInput={(e) => {
             const el = e.target as HTMLTextAreaElement;
             el.style.height = "auto";
@@ -309,13 +279,8 @@ export default function MessageThreadPage() {
         <button
           onClick={handleSend}
           disabled={!input.trim() || sending}
-          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-opacity disabled:opacity-40"
-          style={{
-            background: "rgba(240,192,64,0.2)",
-            border: "1px solid rgba(240,192,64,0.4)",
-            color: "#F0C040",
-            fontSize: "18px",
-          }}
+          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-150 disabled:opacity-40 bg-purple/20 border border-purple/40 text-purple-bright hover:bg-purple/30 active:scale-95"
+          style={{ fontSize: 18 }}
         >
           ↑
         </button>

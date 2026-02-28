@@ -88,10 +88,10 @@ export default function ThreadPage() {
 
   if (loading) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-6">
+      <div className="max-w-3xl mx-auto px-4 pt-20 pb-28">
         <div className="space-y-3">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="rounded-2xl h-20 animate-pulse" style={{ background: "#111827" }} />
+            <div key={i} className="rounded-2xl h-20 animate-pulse bg-navy-800" />
           ))}
         </div>
       </div>
@@ -100,22 +100,22 @@ export default function ThreadPage() {
 
   if (!thread) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-6 text-center py-24">
-        <p className="text-zinc-400 font-semibold">Thread not found</p>
-        <Link href="/forum" className="text-xs font-bold mt-4 inline-block" style={{ color: "#F0C040" }}>← Back to Forum</Link>
+      <div className="max-w-3xl mx-auto px-4 pt-20 pb-28 text-center py-24">
+        <p className="font-black text-navy-200">Thread not found</p>
+        <Link href="/forum" className="text-xs font-bold mt-4 inline-block text-purple-bright hover:text-white transition-colors">← Back to Forum</Link>
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6">
+    <div className="max-w-3xl mx-auto px-4 pt-20 pb-28">
       {/* Back link */}
-      <Link href="/forum" className="inline-flex items-center gap-1 text-xs font-bold mb-5 transition-colors" style={{ color: "#3D5070" }}>
+      <Link href="/forum" className="inline-flex items-center gap-1 text-xs font-bold mb-5 transition-colors text-navy-200 hover:text-white">
         ← Forum
       </Link>
 
       {/* OP post */}
-      <div className="rounded-2xl overflow-hidden mb-4" style={{ background: "#0D1120", border: "1px solid rgba(240,192,64,0.15)" }}>
+      <div className="rounded-2xl overflow-hidden mb-4 game-card !border-purple/20">
         {thread.image_url && (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={thread.image_url} alt="" className="w-full max-h-80 object-cover"
@@ -124,22 +124,17 @@ export default function ThreadPage() {
         )}
         <div className="p-5">
           <div className="flex items-center gap-2 mb-3">
-            <span
-              className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full"
-              style={{ background: "rgba(240,192,64,0.12)", color: "#F0C040", border: "1px solid rgba(240,192,64,0.2)" }}
-            >
-              OP
-            </span>
-            <span className="text-[10px] font-bold" style={{ color: "#253147" }}>
+            <span className="badge-purple !text-[9px]">OP</span>
+            <span className="text-[10px] font-bold text-navy-400">
               {thread.author_name ?? "Anon"} · {timeAgo(thread.created_at)}
             </span>
             {thread.is_locked && (
-              <span className="ml-auto text-[9px] font-bold" style={{ color: "#3D5070" }}>🔒 Locked</span>
+              <span className="ml-auto text-[9px] font-bold text-navy-200">🔒 Locked</span>
             )}
           </div>
           <h1 className="text-white font-black text-xl leading-snug mb-3">{thread.title}</h1>
           {thread.content && (
-            <p className="text-sm leading-relaxed" style={{ color: "#8096B0" }}>{thread.content}</p>
+            <p className="text-sm leading-relaxed text-navy-100">{thread.content}</p>
           )}
         </div>
       </div>
@@ -149,15 +144,14 @@ export default function ThreadPage() {
         {replies.map((reply, i) => (
           <div
             key={reply.id}
-            className="rounded-xl p-4"
-            style={{ background: "#0D1120", border: "1px solid #1B2338" }}
+            className="rounded-xl p-4 bg-navy-800 border border-navy-500"
           >
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-[9px] font-black" style={{ color: "#3D5070" }}>#{i + 1}</span>
-              <span className="text-[10px] font-bold" style={{ color: "#253147" }}>
+              <span className="text-[9px] font-black text-navy-200">#{i + 1}</span>
+              <span className="text-[10px] font-bold text-navy-400">
                 {reply.author_name ?? "Anon"} · {timeAgo(reply.created_at)}
               </span>
-              <span className="ml-auto text-[10px] font-bold" style={{ color: "#253147" }}>
+              <span className="ml-auto text-[10px] font-bold text-navy-400">
                 ❤️ {reply.likes}
               </span>
             </div>
@@ -167,33 +161,32 @@ export default function ThreadPage() {
                 onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
               />
             )}
-            <p className="text-sm leading-relaxed" style={{ color: "#8096B0" }}>{reply.content}</p>
+            <p className="text-sm leading-relaxed text-navy-100">{reply.content}</p>
           </div>
         ))}
         {replies.length === 0 && (
-          <p className="text-center py-6 text-xs font-bold" style={{ color: "#253147" }}>No replies yet — be the first</p>
+          <p className="text-center py-6 text-xs font-bold text-navy-400">No replies yet — be the first</p>
         )}
       </div>
 
       {/* Reply box */}
       {!thread.is_locked && perms.canCommentForum && (
-        <div className="rounded-2xl p-4 space-y-3" style={{ background: "#0D1120", border: "1px solid #1B2338" }}>
-          <p className="text-xs font-black uppercase tracking-widest" style={{ color: "#4D6080" }}>Reply</p>
+        <div className="game-card rounded-2xl p-4 space-y-3">
+          <p className="text-xs font-black uppercase tracking-widest text-navy-200">Reply</p>
           <textarea
             placeholder="Write your reply…"
             value={replyText}
             onChange={(e) => setReplyText(e.target.value)}
             rows={3}
-            className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-600 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-yellow-500 resize-none"
+            className="game-input text-sm resize-none"
           />
           <input type="text" placeholder="Image URL (optional)" value={replyImage}
             onChange={(e) => setReplyImage(e.target.value)}
-            className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-600 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-yellow-500"
+            className="game-input text-sm"
           />
           <div className="flex justify-end">
             <button onClick={postReply} disabled={posting || !replyText.trim()}
-              className="px-6 py-2 rounded-xl text-sm font-black disabled:opacity-50"
-              style={{ background: "#F0C040", color: "#07090F" }}
+              className="btn-purple px-6 py-2 rounded-xl text-sm font-black disabled:opacity-50"
             >
               {posting ? "Posting…" : "Post Reply"}
             </button>
@@ -202,13 +195,13 @@ export default function ThreadPage() {
       )}
 
       {!perms.canCommentForum && (
-        <div className="rounded-xl px-4 py-3 text-xs font-bold text-center" style={{ background: "#0D1120", border: "1px solid #1B2338", color: "#3D5070" }}>
-          <Link href="/profile" style={{ color: "#F0C040" }}>Sign in</Link> as a member to leave a reply
+        <div className="rounded-xl px-4 py-3 text-xs font-bold text-center bg-navy-800 border border-navy-500 text-navy-200">
+          <Link href="/profile" className="text-purple-bright hover:text-white transition-colors">Sign in</Link> as a member to leave a reply
         </div>
       )}
 
       {thread.is_locked && (
-        <div className="rounded-xl px-4 py-3 text-xs font-bold text-center" style={{ background: "#0D1120", border: "1px solid #1B2338", color: "#3D5070" }}>
+        <div className="rounded-xl px-4 py-3 text-xs font-bold text-center bg-navy-800 border border-navy-500 text-navy-200">
           🔒 This thread is locked
         </div>
       )}

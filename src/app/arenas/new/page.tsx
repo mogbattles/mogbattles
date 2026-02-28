@@ -20,7 +20,10 @@ export default function NewArenaPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
-        <div className="text-zinc-400 animate-pulse">Loading…</div>
+        <div
+          className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
+          style={{ borderColor: "#8B5CF6", borderTopColor: "transparent" }}
+        />
       </div>
     );
   }
@@ -30,12 +33,12 @@ export default function NewArenaPage() {
       <div className="flex flex-col items-center justify-center h-[60vh] px-4 text-center">
         <div className="text-4xl mb-4">🔒</div>
         <h2 className="text-white font-black text-xl mb-2">Sign in required</h2>
-        <p className="text-zinc-500 text-sm mb-6">
+        <p className="text-sm mb-6" style={{ color: "#4A4A66" }}>
           You need to be signed in to create an arena.
         </p>
         <Link
           href="/profile"
-          className="bg-orange-500 hover:bg-orange-400 text-white font-bold px-6 py-3 rounded-xl transition-colors"
+          className="btn-purple font-bold px-6 py-3 rounded-xl transition-colors"
         >
           Sign In →
         </Link>
@@ -72,11 +75,11 @@ export default function NewArenaPage() {
   return (
     <div className="max-w-lg mx-auto px-4 py-10">
       <div className="mb-8">
-        <Link href="/swipe" className="text-zinc-500 hover:text-zinc-300 text-xs">
+        <Link href="/swipe" className="text-xs" style={{ color: "#4A4A66" }}>
           ← Back
         </Link>
         <h1 className="text-3xl font-black text-white mt-3">Create Arena</h1>
-        <p className="text-zinc-500 text-sm mt-1">
+        <p className="text-sm mt-1" style={{ color: "#4A4A66" }}>
           Build your own mogging community.
         </p>
       </div>
@@ -84,7 +87,7 @@ export default function NewArenaPage() {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Name */}
         <div>
-          <label className="block text-zinc-300 font-semibold text-sm mb-2">
+          <label className="block font-semibold text-sm mb-2" style={{ color: "#ccc" }}>
             Arena Name *
           </label>
           <input
@@ -93,13 +96,16 @@ export default function NewArenaPage() {
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Chess Players, F1 Drivers, K-Pop Idols…"
             maxLength={60}
-            className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder:text-zinc-600 focus:outline-none focus:border-orange-500 transition-colors"
+            className="w-full rounded-xl px-4 py-3 text-white focus:outline-none transition-colors"
+            style={{ background: "#0F0F1A", border: "1px solid #222233", caretColor: "#8B5CF6" }}
+            onFocus={(e) => { (e.target as HTMLElement).style.borderColor = "rgba(139,92,246,0.5)"; }}
+            onBlur={(e) => { (e.target as HTMLElement).style.borderColor = "#222233"; }}
           />
         </div>
 
         {/* Description */}
         <div>
-          <label className="block text-zinc-300 font-semibold text-sm mb-2">
+          <label className="block font-semibold text-sm mb-2" style={{ color: "#ccc" }}>
             Description
           </label>
           <textarea
@@ -107,13 +113,16 @@ export default function NewArenaPage() {
             onChange={(e) => setDescription(e.target.value)}
             placeholder="What is this arena about?"
             rows={2}
-            className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder:text-zinc-600 focus:outline-none focus:border-orange-500 transition-colors resize-none"
+            className="w-full rounded-xl px-4 py-3 text-white focus:outline-none transition-colors resize-none"
+            style={{ background: "#0F0F1A", border: "1px solid #222233", caretColor: "#8B5CF6" }}
+            onFocus={(e) => { (e.target as HTMLElement).style.borderColor = "rgba(139,92,246,0.5)"; }}
+            onBlur={(e) => { (e.target as HTMLElement).style.borderColor = "#222233"; }}
           />
         </div>
 
         {/* Visibility */}
         <div>
-          <label className="block text-zinc-300 font-semibold text-sm mb-3">
+          <label className="block font-semibold text-sm mb-3" style={{ color: "#ccc" }}>
             Visibility
           </label>
           <div className="grid grid-cols-2 gap-3">
@@ -122,16 +131,15 @@ export default function NewArenaPage() {
                 key={v}
                 type="button"
                 onClick={() => setVisibility(v)}
-                className={`
-                  py-3 px-4 rounded-xl border-2 text-sm font-bold transition-all
-                  ${visibility === v
-                    ? "border-orange-500 bg-orange-500/10 text-orange-400"
-                    : "border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-500"
-                  }
-                `}
+                className="py-3 px-4 rounded-xl border-2 text-sm font-bold transition-all"
+                style={
+                  visibility === v
+                    ? { borderColor: "rgba(139,92,246,0.5)", background: "rgba(139,92,246,0.1)", color: "#A78BFA" }
+                    : { borderColor: "#222233", background: "#0F0F1A", color: "#4A4A66" }
+                }
               >
                 {v === "public" ? "🌍 Public" : "🔒 Private"}
-                <p className={`font-normal text-xs mt-0.5 ${visibility === v ? "text-orange-400/70" : "text-zinc-600"}`}>
+                <p className="font-normal text-xs mt-0.5" style={{ color: visibility === v ? "rgba(167,139,250,0.7)" : "#2A2A3D" }}>
                   {v === "public" ? "Anyone can find it" : "Invite link only"}
                 </p>
               </button>
@@ -141,7 +149,7 @@ export default function NewArenaPage() {
 
         {/* Arena type */}
         <div>
-          <label className="block text-zinc-300 font-semibold text-sm mb-3">
+          <label className="block font-semibold text-sm mb-3" style={{ color: "#ccc" }}>
             Who can join?
           </label>
           <div className="space-y-2">
@@ -156,18 +164,17 @@ export default function NewArenaPage() {
                 key={value}
                 type="button"
                 onClick={() => setArenaType(value)}
-                className={`
-                  w-full text-left py-3 px-4 rounded-xl border-2 text-sm transition-all
-                  ${arenaType === value
-                    ? "border-orange-500 bg-orange-500/10"
-                    : "border-zinc-700 bg-zinc-900 hover:border-zinc-500"
-                  }
-                `}
+                className="w-full text-left py-3 px-4 rounded-xl border-2 text-sm transition-all"
+                style={
+                  arenaType === value
+                    ? { borderColor: "rgba(139,92,246,0.5)", background: "rgba(139,92,246,0.1)" }
+                    : { borderColor: "#222233", background: "#0F0F1A" }
+                }
               >
-                <span className={`font-bold ${arenaType === value ? "text-orange-400" : "text-zinc-300"}`}>
+                <span className="font-bold" style={{ color: arenaType === value ? "#A78BFA" : "#ccc" }}>
                   {label}
                 </span>
-                <span className={`block text-xs mt-0.5 ${arenaType === value ? "text-orange-400/70" : "text-zinc-600"}`}>
+                <span className="block text-xs mt-0.5" style={{ color: arenaType === value ? "rgba(167,139,250,0.7)" : "#2A2A3D" }}>
                   {desc}
                 </span>
               </button>
@@ -176,13 +183,13 @@ export default function NewArenaPage() {
         </div>
 
         {error && (
-          <p className="text-red-400 text-sm">{error}</p>
+          <p className="text-sm" style={{ color: "#EF4444" }}>{error}</p>
         )}
 
         <button
           type="submit"
           disabled={submitting}
-          className="w-full bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white font-black py-4 rounded-xl transition-colors text-base"
+          className="btn-purple gold-pulse-btn w-full font-black py-4 rounded-xl transition-colors text-base disabled:opacity-50"
         >
           {submitting ? "Creating…" : "Create Arena →"}
         </button>

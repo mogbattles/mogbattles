@@ -23,11 +23,12 @@ function Avatar({ url, name }: { url: string | null; name: string }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=27272a&color=888&size=48`}
+      src={url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0F0F1A&color=888&size=48`}
       alt={name}
-      className="w-9 h-9 rounded-full object-cover border border-zinc-700 shrink-0"
+      className="w-9 h-9 rounded-full object-cover shrink-0"
+      style={{ border: "1px solid #222233" }}
       onError={(e) => {
-        (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=27272a&color=888&size=48`;
+        (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0F0F1A&color=888&size=48`;
       }}
     />
   );
@@ -45,7 +46,8 @@ function CategoryBadges({ profile }: { profile: { category: string | null; categ
       {cats.map((c) => (
         <span
           key={c}
-          className="text-xs bg-zinc-800 border border-zinc-700 text-zinc-400 px-2 py-0.5 rounded-full capitalize"
+          className="text-xs px-2 py-0.5 rounded-full capitalize"
+          style={{ background: "#1A1A28", border: "1px solid #222233", color: "#4A4A66" }}
         >
           {c.replace(/_/g, " ").replace(/\b\w/g, (ch) => ch.toUpperCase())}
         </span>
@@ -66,23 +68,19 @@ export default function ProfilePage() {
     }
   }, []);
 
-  // ── Auth form state ────────────────────────────────────────────────────────
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  // ── Arena profile state ────────────────────────────────────────────────────
   const [arenaProfile, setArenaProfile] = useState<ArenaProfile | null | "loading">("loading");
   const [globalRank, setGlobalRank] = useState<number | null>(null);
 
-  // ── History state ──────────────────────────────────────────────────────────
   const [history, setHistory] = useState<VoteHistoryRow[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historySearch, setHistorySearch] = useState("");
   const [historyLoaded, setHistoryLoaded] = useState(false);
 
-  // Load user's arena profile + global rank when logged in
   useEffect(() => {
     if (!user) { setArenaProfile(null); setGlobalRank(null); return; }
     getMyProfile(user.id).then((p) => {
@@ -97,8 +95,6 @@ export default function ProfilePage() {
     setGoogleLoading(true);
     setAuthError(null);
     const supabase = createClient();
-    // Always use the canonical domain so Supabase redirect URL matching works
-    // regardless of whether the user is on www. or the apex domain
     const redirectTo = `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -108,7 +104,6 @@ export default function ProfilePage() {
       setAuthError(error.message);
       setGoogleLoading(false);
     }
-    // On success the browser redirects — no need to reset loading state
   };
 
   const handleMagicLink = async (e: React.FormEvent) => {
@@ -126,7 +121,6 @@ export default function ProfilePage() {
     setSending(false);
   };
 
-  // Load history when History tab is first opened
   useEffect(() => {
     if (activeTab === "history" && user && !historyLoaded) {
       setHistoryLoading(true);
@@ -138,7 +132,6 @@ export default function ProfilePage() {
     }
   }, [activeTab, user, historyLoaded]);
 
-  // Filter history by search
   const filteredHistory = historySearch.trim()
     ? history.filter((row) => {
         const parts = historySearch
@@ -161,7 +154,7 @@ export default function ProfilePage() {
   if (authLoading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
-        <div className="text-zinc-400 animate-pulse">Loading...</div>
+        <div className="animate-pulse" style={{ color: "#4A4A66" }}>Loading...</div>
       </div>
     );
   }
@@ -173,44 +166,39 @@ export default function ProfilePage() {
         <div className="text-center mb-10">
           <div className="text-5xl mb-4">👤</div>
           <h1 className="text-3xl font-black text-white mb-2">Sign In</h1>
-          <p className="text-zinc-400 text-sm">
+          <p className="text-sm" style={{ color: "#4A4A66" }}>
             Sign in to create arenas, track your voting history, and enter the rankings.
           </p>
         </div>
 
         {sent ? (
-          <div className="text-center bg-zinc-900 border border-zinc-700 rounded-2xl p-8">
+          <div className="text-center rounded-2xl p-8" style={{ background: "#0F0F1A", border: "1px solid #222233" }}>
             <div className="text-4xl mb-3">📧</div>
             <h2 className="text-white font-bold text-lg mb-2">Check your inbox</h2>
-            <p className="text-zinc-400 text-sm">
+            <p className="text-sm" style={{ color: "#4A4A66" }}>
               We sent a magic link to{" "}
-              <span className="text-orange-400 font-semibold">{email}</span>.
+              <span className="font-semibold" style={{ color: "#A78BFA" }}>{email}</span>.
             </p>
             <button
               onClick={() => { setSent(false); setEmail(""); }}
-              className="mt-6 text-zinc-500 hover:text-zinc-300 text-sm underline transition-colors"
+              className="mt-6 text-sm underline transition-colors"
+              style={{ color: "#4A4A66" }}
             >
               Use a different email
             </button>
           </div>
         ) : (
           <div className="space-y-4">
-            {/* ── Google sign-in (primary) ── */}
+            {/* Google sign-in */}
             <button
               onClick={handleGoogleSignIn}
               disabled={googleLoading}
-              className="
-                w-full flex items-center justify-center gap-3
-                bg-white hover:bg-gray-100 disabled:bg-white/50
-                text-gray-800 font-bold py-3 rounded-xl
-                transition-colors text-sm shadow-sm
-              "
+              className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 disabled:bg-white/50 text-gray-800 font-bold py-3 rounded-xl transition-colors text-sm shadow-sm"
             >
               {googleLoading ? (
                 <span className="animate-pulse">Connecting…</span>
               ) : (
                 <>
-                  {/* Google "G" logo */}
                   <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
                     <g fill="none" fillRule="evenodd">
                       <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
@@ -224,14 +212,14 @@ export default function ProfilePage() {
               )}
             </button>
 
-            {/* ── Divider ── */}
+            {/* Divider */}
             <div className="flex items-center gap-3">
-              <div className="flex-1 h-px bg-zinc-800" />
-              <span className="text-zinc-600 text-xs">or use email</span>
-              <div className="flex-1 h-px bg-zinc-800" />
+              <div className="flex-1 h-px" style={{ background: "#222233" }} />
+              <span className="text-xs" style={{ color: "#353548" }}>or use email</span>
+              <div className="flex-1 h-px" style={{ background: "#222233" }} />
             </div>
 
-            {/* ── Magic link (secondary) ── */}
+            {/* Magic link */}
             <form onSubmit={handleMagicLink} className="space-y-3">
               <input
                 type="email"
@@ -239,19 +227,20 @@ export default function ProfilePage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder:text-zinc-600 focus:outline-none focus:border-orange-500 transition-colors"
+                className="game-input"
               />
-              {authError && <p className="text-red-400 text-sm">{authError}</p>}
+              {authError && <p className="text-sm" style={{ color: "#FF4545" }}>{authError}</p>}
               <button
                 type="submit"
                 disabled={sending}
-                className="w-full bg-zinc-800 hover:bg-zinc-700 disabled:bg-zinc-800/50 text-white font-bold py-3 rounded-xl transition-colors text-sm border border-zinc-700"
+                className="w-full py-3 rounded-xl font-bold text-sm transition-colors"
+                style={{ background: "#1A1A28", border: "1px solid #222233", color: "#8888AA" }}
               >
                 {sending ? "Sending..." : "Send Magic Link ✉️"}
               </button>
             </form>
 
-            <p className="text-center text-zinc-600 text-xs">
+            <p className="text-center text-xs" style={{ color: "#353548" }}>
               No password needed — we&apos;ll email you a one-click login link.
             </p>
           </div>
@@ -265,12 +254,12 @@ export default function ProfilePage() {
     <div className="max-w-md mx-auto px-4 py-8">
       {/* Welcome banner */}
       {isWelcome && (
-        <div className="mb-6 bg-orange-500/10 border border-orange-500/30 rounded-2xl p-4 text-center">
+        <div className="mb-6 rounded-2xl p-4 text-center" style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.25)" }}>
           <div className="text-2xl mb-1">🎉</div>
-          <p className="text-orange-300 font-bold text-sm">
+          <p className="font-bold text-sm" style={{ color: "#A78BFA" }}>
             You&apos;re in the arena! Your profile is live — go see how you rank.
           </p>
-          <Link href="/leaderboard" className="text-orange-400 underline text-xs mt-1 inline-block">
+          <Link href="/leaderboard" className="underline text-xs mt-1 inline-block" style={{ color: "#8B5CF6" }}>
             View Leaderboard →
           </Link>
         </div>
@@ -278,23 +267,23 @@ export default function ProfilePage() {
 
       {/* Avatar + email */}
       <div className="text-center mb-6">
-        <div className="w-16 h-16 rounded-full bg-orange-500/20 border-2 border-orange-500/40 flex items-center justify-center mx-auto mb-3">
+        <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3" style={{ background: "rgba(139,92,246,0.15)", border: "2px solid rgba(139,92,246,0.3)" }}>
           <span className="text-2xl">👤</span>
         </div>
-        <p className="text-zinc-400 text-sm">{user.email}</p>
+        <p className="text-sm" style={{ color: "#4A4A66" }}>{user.email}</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex border border-zinc-800 rounded-xl overflow-hidden mb-6">
+      <div className="flex rounded-xl overflow-hidden mb-6" style={{ border: "1px solid #222233" }}>
         {(["profile", "history"] as Tab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`flex-1 py-2.5 text-sm font-bold transition-colors ${
-              activeTab === tab
-                ? "bg-zinc-800 text-white"
-                : "text-zinc-500 hover:text-zinc-300"
-            }`}
+            className="flex-1 py-2.5 text-sm font-bold transition-colors"
+            style={{
+              background: activeTab === tab ? "#1A1A28" : "transparent",
+              color: activeTab === tab ? "#fff" : "#4A4A66",
+            }}
           >
             {tab === "profile" ? "👤 Profile" : "📜 History"}
           </button>
@@ -304,83 +293,82 @@ export default function ProfilePage() {
       {/* ── Profile tab ── */}
       {activeTab === "profile" && (
         <div className="space-y-3">
-          {/* Arena profile card */}
           {arenaProfile === "loading" ? (
-            <div className="h-24 bg-zinc-900 rounded-2xl animate-pulse" />
+            <div className="h-24 rounded-2xl animate-pulse" style={{ background: "#0F0F1A" }} />
           ) : arenaProfile ? (
-            /* User IS in the arena */
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
+            <div className="rounded-2xl p-4" style={{ background: "#0F0F1A", border: "1px solid #222233" }}>
               <div className="flex items-center gap-3">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={
                     arenaProfile.image_url ||
-                    `https://ui-avatars.com/api/?name=${encodeURIComponent(arenaProfile.name)}&background=27272a&color=888&size=80`
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(arenaProfile.name)}&background=0F0F1A&color=888&size=80`
                   }
                   alt={arenaProfile.name}
-                  className="w-14 h-14 rounded-xl object-cover border border-zinc-700 shrink-0"
+                  className="w-14 h-14 rounded-xl object-cover shrink-0"
+                  style={{ border: "1px solid #222233" }}
                 />
                 <div className="flex-1 min-w-0">
                   <p className="text-white font-black text-base truncate">{arenaProfile.name}</p>
                   <CategoryBadges profile={arenaProfile} />
                   <div className="flex gap-3 mt-1.5">
-                    <span className="text-orange-400 font-black text-sm">{arenaProfile.elo_rating} ELO</span>
-                    <span className="text-zinc-500 text-xs self-center">
+                    <span className="font-black text-sm" style={{ color: "#A78BFA" }}>{arenaProfile.elo_rating} ELO</span>
+                    <span className="text-xs self-center" style={{ color: "#4A4A66" }}>
                       {arenaProfile.wins}W – {arenaProfile.losses}L
                     </span>
                   </div>
                   {(arenaProfile.height_in || arenaProfile.weight_lbs || arenaProfile.country) && (
                     <div className="flex gap-2 mt-1 flex-wrap">
                       {arenaProfile.height_in != null && (
-                        <span className="text-zinc-500 text-xs">
+                        <span className="text-xs" style={{ color: "#4A4A66" }}>
                           {Math.floor(arenaProfile.height_in / 12)}&apos;{arenaProfile.height_in % 12}&quot;
                         </span>
                       )}
                       {arenaProfile.weight_lbs != null && (
-                        <span className="text-zinc-500 text-xs">{arenaProfile.weight_lbs} lbs</span>
+                        <span className="text-xs" style={{ color: "#4A4A66" }}>{arenaProfile.weight_lbs} lbs</span>
                       )}
                       {arenaProfile.country && (
-                        <span className="text-zinc-500 text-xs">{arenaProfile.country}</span>
+                        <span className="text-xs" style={{ color: "#4A4A66" }}>{arenaProfile.country}</span>
                       )}
                     </div>
                   )}
                 </div>
                 <div className="text-right shrink-0">
                   {globalRank !== null && (
-                    <p className="text-orange-400 font-black text-sm">
+                    <p className="font-black text-sm" style={{ color: "#A78BFA" }}>
                       {globalRank === 1 ? "👑 #1" : globalRank === 2 ? "🥈 #2" : globalRank === 3 ? "🥉 #3" : `#${globalRank}`}
                     </p>
                   )}
-                  <p className="text-zinc-600 text-xs">Global rank</p>
-                  <p className="text-zinc-500 text-xs">{arenaProfile.matches} battles</p>
+                  <p className="text-xs" style={{ color: "#353548" }}>Global rank</p>
+                  <p className="text-xs" style={{ color: "#4A4A66" }}>{arenaProfile.matches} battles</p>
                 </div>
               </div>
               <Link
                 href={`/leaderboard`}
-                className="mt-3 flex items-center justify-center gap-1 text-zinc-500 hover:text-orange-400 text-xs transition-colors"
+                className="mt-3 flex items-center justify-center gap-1 text-xs transition-colors"
+                style={{ color: "#4A4A66" }}
               >
                 View on Leaderboard →
               </Link>
             </div>
           ) : (
-            /* User is NOT yet in the arena */
             <Link
               href="/onboarding"
-              className="
-                block bg-gradient-to-r from-orange-500/20 to-zinc-900
-                border border-orange-500/40 hover:border-orange-500
-                rounded-2xl p-5 transition-colors group
-              "
+              className="block rounded-2xl p-5 transition-colors group"
+              style={{
+                background: "linear-gradient(90deg, rgba(139,92,246,0.12), #0F0F1A)",
+                border: "1px solid rgba(139,92,246,0.3)",
+              }}
             >
               <div className="flex items-center gap-4">
                 <div className="text-4xl shrink-0">⚔️</div>
                 <div className="flex-1 min-w-0">
                   <p className="text-white font-black text-base">Enter the Arena</p>
-                  <p className="text-zinc-400 text-sm mt-0.5">
+                  <p className="text-sm mt-0.5" style={{ color: "#4A4A66" }}>
                     Upload your photos and join the ELO rankings
                   </p>
                 </div>
-                <span className="text-orange-500 text-xl group-hover:translate-x-1 transition-transform shrink-0">
+                <span className="text-xl group-hover:translate-x-1 transition-transform shrink-0" style={{ color: "#8B5CF6" }}>
                   →
                 </span>
               </div>
@@ -390,29 +378,33 @@ export default function ProfilePage() {
           {/* Quick links */}
           <Link
             href="/arenas/new"
-            className="flex items-center justify-between w-full bg-zinc-900 border border-zinc-800 hover:border-orange-500/50 rounded-xl px-4 py-3 transition-colors group"
+            className="flex items-center justify-between w-full rounded-xl px-4 py-3 transition-colors group"
+            style={{ background: "#0F0F1A", border: "1px solid #222233" }}
           >
             <span className="text-white font-semibold">➕ Create Arena</span>
-            <span className="text-zinc-500 group-hover:text-orange-400 transition-colors">→</span>
+            <span className="group-hover:text-purple-400 transition-colors" style={{ color: "#4A4A66" }}>→</span>
           </Link>
           <Link
             href="/swipe"
-            className="flex items-center justify-between w-full bg-zinc-900 border border-zinc-800 hover:border-orange-500/50 rounded-xl px-4 py-3 transition-colors group"
+            className="flex items-center justify-between w-full rounded-xl px-4 py-3 transition-colors group"
+            style={{ background: "#0F0F1A", border: "1px solid #222233" }}
           >
             <span className="text-white font-semibold">⚔️ Battle Arenas</span>
-            <span className="text-zinc-500 group-hover:text-orange-400 transition-colors">→</span>
+            <span className="group-hover:text-purple-400 transition-colors" style={{ color: "#4A4A66" }}>→</span>
           </Link>
           <Link
             href="/admin"
-            className="flex items-center justify-between w-full bg-zinc-900 border border-zinc-800 hover:border-zinc-600 rounded-xl px-4 py-3 transition-colors group"
+            className="flex items-center justify-between w-full rounded-xl px-4 py-3 transition-colors group"
+            style={{ background: "#0F0F1A", border: "1px solid #222233" }}
           >
-            <span className="text-zinc-400 font-semibold">🔧 Admin Panel</span>
-            <span className="text-zinc-600 group-hover:text-zinc-400 transition-colors">→</span>
+            <span className="font-semibold" style={{ color: "#4A4A66" }}>🔧 Admin Panel</span>
+            <span className="group-hover:text-purple-400 transition-colors" style={{ color: "#353548" }}>→</span>
           </Link>
 
           <button
             onClick={signOut}
-            className="w-full mt-2 text-zinc-500 hover:text-white border border-zinc-800 hover:border-zinc-600 rounded-xl py-3 text-sm font-semibold transition-colors"
+            className="w-full mt-2 rounded-xl py-3 text-sm font-semibold transition-colors"
+            style={{ border: "1px solid #222233", color: "#4A4A66" }}
           >
             Sign Out
           </button>
@@ -427,19 +419,19 @@ export default function ProfilePage() {
             placeholder="e.g. Ronaldo  or  Ronaldo vs Messi"
             value={historySearch}
             onChange={(e) => setHistorySearch(e.target.value)}
-            className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-2.5 text-white placeholder:text-zinc-600 focus:outline-none focus:border-orange-500 transition-colors text-sm mb-4"
+            className="game-input text-sm mb-4"
           />
 
           {historyLoading ? (
             <div className="space-y-2">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-14 bg-zinc-900 rounded-xl animate-pulse" />
+                <div key={i} className="h-14 rounded-xl animate-pulse" style={{ background: "#0F0F1A" }} />
               ))}
             </div>
           ) : filteredHistory.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-3xl mb-3">📭</div>
-              <p className="text-zinc-400">
+              <p style={{ color: "#4A4A66" }}>
                 {historySearch
                   ? "No matches found for that search"
                   : "You haven't voted yet. Go battle!"}
@@ -447,7 +439,8 @@ export default function ProfilePage() {
               {!historySearch && (
                 <Link
                   href="/swipe"
-                  className="inline-block mt-4 text-orange-400 text-sm underline"
+                  className="inline-block mt-4 text-sm underline"
+                  style={{ color: "#A78BFA" }}
                 >
                   Start battling →
                 </Link>
@@ -455,7 +448,7 @@ export default function ProfilePage() {
             </div>
           ) : (
             <div className="space-y-2">
-              <p className="text-zinc-600 text-xs mb-2">
+              <p className="text-xs mb-2" style={{ color: "#353548" }}>
                 {filteredHistory.length} vote{filteredHistory.length !== 1 ? "s" : ""}
                 {historySearch && " found"}
               </p>
@@ -464,24 +457,25 @@ export default function ProfilePage() {
                 return (
                   <div
                     key={row.id}
-                    className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2.5"
+                    className="flex items-center gap-2 rounded-xl px-3 py-2.5"
+                    style={{ background: "#0F0F1A", border: "1px solid #222233" }}
                   >
                     <Avatar url={row.profile_a.image_url} name={row.profile_a.name} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className={`text-sm font-bold truncate ${aWon ? "text-white" : "text-zinc-500"}`}>
+                        <span className={`text-sm font-bold truncate ${aWon ? "text-white" : ""}`} style={aWon ? {} : { color: "#4A4A66" }}>
                           {row.profile_a.name}
                         </span>
-                        <span className={`text-xs font-black ${aWon ? "text-orange-400" : "text-zinc-600"}`}>
+                        <span className="text-xs font-black" style={{ color: aWon ? "#A78BFA" : "#353548" }}>
                           {aWon ? "👑 WON" : "lost"}
                         </span>
-                        <span className="text-zinc-600 text-xs">vs</span>
-                        <span className={`text-sm font-bold truncate ${!aWon ? "text-white" : "text-zinc-500"}`}>
+                        <span className="text-xs" style={{ color: "#353548" }}>vs</span>
+                        <span className={`text-sm font-bold truncate ${!aWon ? "text-white" : ""}`} style={!aWon ? {} : { color: "#4A4A66" }}>
                           {row.profile_b.name}
                         </span>
-                        {!aWon && <span className="text-orange-400 text-xs font-black">👑 WON</span>}
+                        {!aWon && <span className="text-xs font-black" style={{ color: "#A78BFA" }}>👑 WON</span>}
                       </div>
-                      <p className="text-zinc-600 text-xs mt-0.5">
+                      <p className="text-xs mt-0.5" style={{ color: "#353548" }}>
                         {row.arena.name} · {timeAgo(row.voted_at)}
                       </p>
                     </div>

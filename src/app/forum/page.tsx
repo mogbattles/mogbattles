@@ -83,14 +83,14 @@ function NewThreadForm({
   }
 
   return (
-    <div className="rounded-2xl p-5 space-y-3 mb-6" style={{ background: "#0D1120", border: "1px solid rgba(240,192,64,0.2)" }}>
-      <p className="text-xs font-black uppercase tracking-widest" style={{ color: "#F0C040" }}>New Thread</p>
+    <div className="game-card rounded-2xl p-5 space-y-3 mb-6 !border-purple/25">
+      <p className="text-xs font-black uppercase tracking-widest text-purple-bright">New Thread</p>
 
-      {msg && <p className="text-xs font-bold" style={{ color: "#EF4444" }}>{msg}</p>}
+      {msg && <p className="text-xs font-bold text-game-red">{msg}</p>}
 
       {boards.length > 1 && (
         <select value={boardId} onChange={(e) => setBoardId(e.target.value)}
-          className="w-full bg-zinc-800 border border-zinc-700 text-zinc-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-yellow-500"
+          className="game-input !py-2 text-sm"
         >
           {boards.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
         </select>
@@ -98,21 +98,20 @@ function NewThreadForm({
 
       <input type="text" placeholder="Thread title *" value={title}
         onChange={(e) => setTitle(e.target.value)}
-        className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-600 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-yellow-500"
+        className="game-input text-sm"
       />
       <textarea placeholder="Post content (optional)" value={content}
         onChange={(e) => setContent(e.target.value)}
         rows={4}
-        className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-600 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-yellow-500 resize-none"
+        className="game-input text-sm resize-none"
       />
       <input type="text" placeholder="Image URL (optional)" value={imageUrl}
         onChange={(e) => setImageUrl(e.target.value)}
-        className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-600 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-yellow-500"
+        className="game-input text-sm"
       />
       <div className="flex justify-end">
         <button onClick={submit} disabled={saving || !title.trim()}
-          className="px-6 py-2 rounded-xl text-sm font-black disabled:opacity-50 transition-colors"
-          style={{ background: "#F0C040", color: "#07090F" }}
+          className="btn-purple px-6 py-2 rounded-xl text-sm font-black disabled:opacity-50 transition-colors"
         >
           {saving ? "Posting…" : "Post Thread"}
         </button>
@@ -162,28 +161,27 @@ export default function ForumPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6">
+    <div className="max-w-4xl mx-auto px-4 pt-20 pb-28">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-2xl font-black text-white flex items-center gap-2">
-            💬 <span>Forum</span>
-          </h1>
-          <p className="text-zinc-500 text-sm mt-1">Community boards — anonymous-friendly</p>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-2xl">💬</span>
+            <h1 className="font-heading tracking-wide text-3xl text-gradient-purple">
+              Forum
+            </h1>
+          </div>
+          <p className="text-xs font-bold text-navy-200">Community boards — anonymous-friendly</p>
         </div>
         {perms.canPostThread ? (
           <button
             onClick={() => setShowNewThread((v) => !v)}
-            className="text-xs font-black px-4 py-2 rounded-xl transition-colors"
-            style={{ background: "rgba(240,192,64,0.1)", color: "#F0C040", border: "1px solid rgba(240,192,64,0.2)" }}
+            className="btn-dark text-xs font-black px-4 py-2 rounded-xl"
           >
             {showNewThread ? "✕ Cancel" : "✏️ New Thread"}
           </button>
         ) : (
-          <div
-            className="text-[10px] font-bold px-3 py-1.5 rounded-xl"
-            style={{ background: "#141A2C", color: "#3D5070", border: "1px solid #1B2338" }}
-          >
+          <div className="text-[10px] font-bold px-3 py-1.5 rounded-xl bg-navy-700 text-navy-200 border border-navy-500">
             {perms.isMember ? "Need arena profile to post" : "Sign in to comment"}
           </div>
         )}
@@ -194,12 +192,11 @@ export default function ForumPage() {
         <div className="flex gap-2 mb-5 overflow-x-auto pb-1">
           <button
             onClick={() => switchBoard(null)}
-            className="shrink-0 text-xs font-black px-3 py-1.5 rounded-full border transition-colors"
-            style={{
-              background: activeBoard === null ? "#F0C040" : "#111827",
-              color: activeBoard === null ? "#07090F" : "#4D6080",
-              border: `1px solid ${activeBoard === null ? "#F0C040" : "#1B2338"}`,
-            }}
+            className={`shrink-0 text-xs font-black px-3.5 py-1.5 rounded-full border transition-all duration-150 ${
+              activeBoard === null
+                ? "bg-purple text-white border-purple shadow-[0_0_12px_rgba(139,92,246,0.3)]"
+                : "bg-navy-800 text-navy-200 border-navy-500 hover:border-navy-300"
+            }`}
           >
             All
           </button>
@@ -207,12 +204,11 @@ export default function ForumPage() {
             <button
               key={board.id}
               onClick={() => switchBoard(board.id)}
-              className="shrink-0 text-xs font-black px-3 py-1.5 rounded-full border transition-colors"
-              style={{
-                background: activeBoard === board.id ? "#F0C040" : "#111827",
-                color: activeBoard === board.id ? "#07090F" : "#4D6080",
-                border: `1px solid ${activeBoard === board.id ? "#F0C040" : "#1B2338"}`,
-              }}
+              className={`shrink-0 text-xs font-black px-3.5 py-1.5 rounded-full border transition-all duration-150 ${
+                activeBoard === board.id
+                  ? "bg-purple text-white border-purple shadow-[0_0_12px_rgba(139,92,246,0.3)]"
+                  : "bg-navy-800 text-navy-200 border-navy-500 hover:border-navy-300"
+              }`}
             >
               /{board.slug}/ — {board.name}
             </button>
@@ -230,10 +226,7 @@ export default function ForumPage() {
 
       {/* Permission hint for members without arena profile */}
       {!perms.canPostThread && perms.isMember && (
-        <div
-          className="mb-4 px-4 py-3 rounded-xl text-xs font-bold"
-          style={{ background: "#0D1120", border: "1px solid #1B2338", color: "#3D5070" }}
-        >
+        <div className="mb-4 px-4 py-3 rounded-xl text-xs font-bold bg-navy-800 border border-navy-500 text-navy-200">
           💡 To post threads you need to be in at least one arena with a photo uploaded. Comments &amp; likes are open to all members.
         </div>
       )}
@@ -242,15 +235,15 @@ export default function ForumPage() {
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="rounded-2xl h-36 animate-pulse" style={{ background: "#111827" }} />
+            <div key={i} className="rounded-2xl h-36 animate-pulse bg-navy-800" />
           ))}
         </div>
       ) : threads.length === 0 ? (
         <div className="text-center py-24">
-          <div className="text-5xl mb-4">💬</div>
-          <p className="text-zinc-400 font-semibold">No threads yet</p>
+          <div className="text-5xl mb-4 opacity-30">💬</div>
+          <p className="font-black text-navy-200">No threads yet</p>
           {perms.canPostThread && (
-            <p className="text-zinc-600 text-sm mt-1">Be the first to start a discussion</p>
+            <p className="text-sm mt-1 text-navy-400">Be the first to start a discussion</p>
           )}
         </div>
       ) : (
@@ -259,14 +252,7 @@ export default function ForumPage() {
             <Link
               key={thread.id}
               href={`/forum/${thread.id}`}
-              className="block rounded-2xl overflow-hidden transition-all duration-150 active:scale-[0.98]"
-              style={{ background: "#0D1120", border: "1px solid #1B2338" }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.borderColor = "rgba(240,192,64,0.25)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.borderColor = "#1B2338";
-              }}
+              className="block rounded-2xl overflow-hidden game-card transition-all duration-150 active:scale-[0.98] hover:border-purple/40 hover:shadow-[0_0_20px_rgba(139,92,246,0.06)]"
             >
               {thread.image_url && (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -278,17 +264,15 @@ export default function ForumPage() {
                 {/* Badges */}
                 <div className="flex items-center gap-1.5 mb-1.5">
                   {thread.is_pinned && (
-                    <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full" style={{ background: "rgba(240,192,64,0.12)", color: "#F0C040" }}>
-                      📌 Pinned
-                    </span>
+                    <span className="badge-gold !text-[9px]">📌 Pinned</span>
                   )}
                   {thread.is_locked && (
-                    <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full" style={{ background: "#1B2338", color: "#3D5070" }}>
+                    <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-navy-500 text-navy-200">
                       🔒 Locked
                     </span>
                   )}
                   {boards.find((b) => b.id === thread.board_id) && (
-                    <span className="text-[9px] font-bold" style={{ color: "#253147" }}>
+                    <span className="text-[9px] font-bold text-navy-400">
                       /{boards.find((b) => b.id === thread.board_id)?.slug}/
                     </span>
                   )}
@@ -298,11 +282,11 @@ export default function ForumPage() {
                   {thread.title}
                 </h3>
                 {thread.content && (
-                  <p className="text-[11px] leading-snug line-clamp-2 mb-2" style={{ color: "#4D6080" }}>
+                  <p className="text-[11px] leading-snug line-clamp-2 mb-2 text-navy-200">
                     {thread.content}
                   </p>
                 )}
-                <div className="flex items-center justify-between text-[10px] font-bold" style={{ color: "#253147" }}>
+                <div className="flex items-center justify-between text-[10px] font-bold text-navy-400">
                   <span>
                     {thread.author_name ? `Anon#${thread.author_name.slice(0, 4)}` : "Anon"}
                     {" · "}{timeAgo(thread.created_at)}

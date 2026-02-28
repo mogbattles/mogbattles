@@ -39,26 +39,21 @@ export default function ArenaDropdown({ currentSlug }: ArenaDropdownProps) {
   const [open, setOpen] = useState(false);
   const [arenas, setArenas] = useState<ArenaWithCount[]>([]);
   const [filter, setFilter] = useState<FilterMode>("all");
-  // Hydration-safe: localStorage only read on client, after mount
   const [recentSlugs, setRecentSlugs] = useState<string[]>([]);
   const ref = useRef<HTMLDivElement>(null);
 
-  // Fetch arenas once
   useEffect(() => {
     getPublicArenas().then(setArenas);
   }, []);
 
-  // Read recently-viewed from localStorage after mount (client only)
   useEffect(() => {
     setRecentSlugs(getRecentlyViewed());
   }, []);
 
-  // Refresh recently-viewed whenever the dropdown opens
   useEffect(() => {
     if (open) setRecentSlugs(getRecentlyViewed());
   }, [open]);
 
-  // Close on outside click
   useEffect(() => {
     function handler(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -71,7 +66,6 @@ export default function ArenaDropdown({ currentSlug }: ArenaDropdownProps) {
 
   const currentArena = arenas.find((a) => a.slug === currentSlug);
 
-  // Sort arenas: recently viewed first, then the rest
   const sorted = [...arenas].sort((a, b) => {
     const ai = recentSlugs.indexOf(a.slug);
     const bi = recentSlugs.indexOf(b.slug);
@@ -81,7 +75,6 @@ export default function ArenaDropdown({ currentSlug }: ArenaDropdownProps) {
     return ai - bi;
   });
 
-  // Apply filter
   const filtered = sorted.filter((a) => {
     if (filter === "official") return a.is_official;
     if (filter === "open") return a.arena_type === "open";
@@ -103,37 +96,51 @@ export default function ArenaDropdown({ currentSlug }: ArenaDropdownProps) {
       {/* Trigger button */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className="
-          flex items-center gap-2 bg-zinc-900 border border-zinc-700
-          hover:border-orange-500/60 rounded-xl px-4 py-2.5
-          text-white font-bold text-sm transition-colors w-full
-        "
+        className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-white font-bold text-sm transition-all w-full"
+        style={{
+          background: "#0F0F1A",
+          border: `1px solid ${open ? "rgba(139,92,246,0.4)" : "#222233"}`,
+          boxShadow: open ? "0 0 12px rgba(139,92,246,0.1)" : "none",
+        }}
       >
         <span>{displayIcon}</span>
         <span className="flex-1 text-left">{displayName}</span>
-        <span className={`text-zinc-500 text-xs transition-transform duration-200 ${open ? "rotate-180" : ""}`}>
+        <span
+          className="text-xs transition-transform duration-200"
+          style={{
+            color: "#4A4A66",
+            transform: open ? "rotate(180deg)" : "rotate(0deg)",
+          }}
+        >
           ▼
         </span>
       </button>
 
       {/* Dropdown panel */}
       {open && (
-        <div className="
-          absolute top-full left-4 right-4 mt-1 z-50
-          bg-zinc-900 border border-zinc-700 rounded-2xl
-          shadow-2xl shadow-black/60 overflow-hidden
-        ">
+        <div
+          className="absolute top-full left-4 right-4 mt-1 z-50 rounded-2xl overflow-hidden"
+          style={{
+            background: "#0F0F1A",
+            border: "1px solid #222233",
+            boxShadow: "0 16px 48px rgba(0,0,0,0.7), 0 0 20px rgba(139,92,246,0.05)",
+            animation: "scaleIn 0.15s ease-out both",
+          }}
+        >
           {/* Filter chips */}
-          <div className="flex gap-2 p-3 pb-2 border-b border-zinc-800">
+          <div className="flex gap-2 p-3 pb-2" style={{ borderBottom: "1px solid #1A1A28" }}>
             {(["all", "official", "open", "request"] as FilterMode[]).map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`text-xs font-bold px-2.5 py-1 rounded-full border transition-colors ${
-                  filter === f
-                    ? "bg-orange-500 border-orange-500 text-white"
-                    : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500"
-                }`}
+                className="text-xs font-bold px-2.5 py-1 rounded-full transition-all"
+                style={{
+                  background: filter === f
+                    ? "linear-gradient(135deg, #8B5CF6, #6D28D9)"
+                    : "#1A1A28",
+                  border: `1px solid ${filter === f ? "#8B5CF6" : "#222233"}`,
+                  color: filter === f ? "#fff" : "#4A4A66",
+                }}
               >
                 {f === "all" ? "All" : f === "official" ? "Official" : f === "open" ? "Open" : "Invite Only"}
               </button>
@@ -143,7 +150,7 @@ export default function ArenaDropdown({ currentSlug }: ArenaDropdownProps) {
           {/* Arena list */}
           <div className="max-h-64 overflow-y-auto">
             {filtered.length === 0 ? (
-              <p className="text-zinc-500 text-sm text-center py-6">No arenas match this filter</p>
+              <p className="text-sm text-center py-6" style={{ color: "#4A4A66" }}>No arenas match this filter</p>
             ) : (
               filtered.map((arena) => {
                 const isActive = arena.slug === currentSlug;
@@ -152,29 +159,39 @@ export default function ArenaDropdown({ currentSlug }: ArenaDropdownProps) {
                   <button
                     key={arena.id}
                     onClick={() => navigate(arena.slug)}
-                    className={`
-                      w-full flex items-center gap-3 px-4 py-3 text-left
-                      hover:bg-zinc-800 transition-colors
-                      ${isActive ? "bg-orange-500/10" : ""}
-                    `}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors"
+                    style={{
+                      background: isActive ? "rgba(139,92,246,0.08)" : "transparent",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isActive) (e.currentTarget as HTMLElement).style.background = "#1A1A28";
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) (e.currentTarget as HTMLElement).style.background = "transparent";
+                    }}
                   >
                     <span className="text-xl shrink-0">{ARENA_EMOJIS[arena.slug] ?? "⚔️"}</span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className={`font-semibold text-sm ${isActive ? "text-orange-400" : "text-white"}`}>
+                        <span
+                          className="font-semibold text-sm"
+                          style={{ color: isActive ? "#A78BFA" : "#fff" }}
+                        >
                           {arena.name}
                         </span>
-                        {isActive && <span className="text-[10px] text-orange-400 font-bold">● NOW</span>}
+                        {isActive && (
+                          <span className="text-[10px] font-bold" style={{ color: "#8B5CF6" }}>● NOW</span>
+                        )}
                         {!isActive && isRecent && (
-                          <span className="text-[10px] text-zinc-600 font-bold">RECENT</span>
+                          <span className="text-[10px] font-bold" style={{ color: "#353548" }}>RECENT</span>
                         )}
                       </div>
-                      <p className="text-zinc-600 text-xs">
+                      <p className="text-xs" style={{ color: "#353548" }}>
                         {arena.player_count} players
                         {!arena.is_official && ` · ${arena.arena_type}`}
                       </p>
                     </div>
-                    {isActive && <span className="text-orange-500 text-sm">✓</span>}
+                    {isActive && <span className="text-sm" style={{ color: "#8B5CF6" }}>✓</span>}
                   </button>
                 );
               })
@@ -182,12 +199,15 @@ export default function ArenaDropdown({ currentSlug }: ArenaDropdownProps) {
           </div>
 
           {/* Explore link */}
-          <div className="border-t border-zinc-800 p-2">
+          <div className="p-2" style={{ borderTop: "1px solid #1A1A28" }}>
             <button
               onClick={() => { setOpen(false); router.push("/explore"); }}
-              className="w-full text-center text-zinc-500 hover:text-zinc-300 text-xs py-2 transition-colors"
+              className="w-full text-center text-xs py-2 transition-colors"
+              style={{ color: "#4A4A66" }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "#A78BFA"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "#4A4A66"; }}
             >
-              🌐 Browse all arenas &amp; create your own →
+              Browse all arenas &amp; create your own →
             </button>
           </div>
         </div>

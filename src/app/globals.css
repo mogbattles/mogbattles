@@ -1,70 +1,113 @@
 @import "tailwindcss";
 
+/* ═══════════════════════════════════════════════════════════════════════════════
+   MogBattles — Design System v2
+   Black / Purple / Gold · Tinder × Clash Royale
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
 /* ─── Custom Tailwind theme tokens ───────────────────────────────────────────── */
 @theme {
-  --color-navy-950:  #07090F;
-  --color-navy-900:  #0C1020;
-  --color-navy-800:  #111827;
-  --color-navy-700:  #141A2C;
-  --color-navy-600:  #1B2338;
-  --color-navy-500:  #1F293D;
-  --color-navy-400:  #253147;
-  --color-navy-300:  #2E3D58;
-  --color-navy-200:  #3D5070;
-  --color-navy-100:  #8FA0C0;
+  /* Fonts */
+  --font-heading: 'Bebas Neue', sans-serif;
 
+  /* Deep blacks */
+  --color-navy-950:  #050508;
+  --color-navy-900:  #0A0A12;
+  --color-navy-800:  #0F0F1A;
+  --color-navy-700:  #141420;
+  --color-navy-600:  #1A1A28;
+  --color-navy-500:  #222233;
+  --color-navy-400:  #2A2A3D;
+  --color-navy-300:  #353548;
+  --color-navy-200:  #4A4A66;
+  --color-navy-100:  #8888AA;
+
+  /* Gold */
   --color-gold:       #F0C040;
   --color-gold-bright:#FFD700;
   --color-gold-dark:  #B8902A;
   --color-gold-dim:   #7A5F18;
 
+  /* Purple */
+  --color-purple:     #8B5CF6;
+  --color-purple-bright: #A78BFA;
+  --color-purple-dark: #6D28D9;
+  --color-purple-dim:  #4C1D95;
+
+  /* Game actions */
   --color-game-orange: #FF6B2B;
   --color-game-green:  #3DD68C;
   --color-game-red:    #FF4545;
   --color-game-blue:   #4D9FFF;
 }
 
-/* ─── CSS custom props (for use in inline styles / box-shadow / gradients) ───── */
+/* ─── CSS custom props (glow effects) ────────────────────────────────────────── */
 :root {
   --gold-glow:    rgba(240, 192, 64, 0.45);
+  --purple-glow:  rgba(139, 92, 246, 0.40);
   --orange-glow:  rgba(255, 107, 43, 0.40);
   --green-glow:   rgba(61, 214, 140, 0.35);
   --red-glow:     rgba(255, 69, 69, 0.35);
+
+  /* Surface colors for inline use */
+  --surface-0: #050508;
+  --surface-1: #0A0A12;
+  --surface-2: #0F0F1A;
+  --surface-3: #141420;
+  --surface-4: #1A1A28;
+  --border-subtle: #222233;
+  --border-default: #2A2A3D;
+  --text-muted: #4A4A66;
+  --text-secondary: #8888AA;
+}
+
+/* ─── Fonts ──────────────────────────────────────────────────────────────────── */
+@font-face {
+  font-family: 'Bebas Neue';
+  src: url('https://fonts.gstatic.com/s/bebasneue/v14/JTUSjIg69CK48gW7PXoo9Wlhyw.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
 
 /* ─── Base ─────────────────────────────────────────────────────────────────── */
 body {
-  background-color: #0C1020;
+  background-color: #0A0A12;
   background-image:
-    radial-gradient(ellipse 90% 50% at 50% 0%,   rgba(77,159,255,0.07) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 40% at 90% 100%,  rgba(240,192,64,0.04) 0%, transparent 50%),
-    radial-gradient(ellipse 40% 30% at 10% 60%,   rgba(77,159,255,0.03) 0%, transparent 50%);
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(139,92,246,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 100% 100%, rgba(240,192,64,0.04) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 30% at 0% 70%,   rgba(139,92,246,0.04) 0%, transparent 50%);
   color: #fff;
 }
 
 main {
-  animation: fadeSlideUp 0.2s ease-out both;
+  animation: fadeSlideUp 0.25s ease-out both;
 }
 
 /* ─── Keyframes ────────────────────────────────────────────────────────────── */
 @keyframes fadeSlideUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0);   }
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0);    }
 }
 
 @keyframes goldPulse {
-  0%, 100% { box-shadow: 0 4px 0 #B8902A, 0 4px 16px var(--gold-glow), 0 0 30px rgba(240,192,64,0.2); }
-  50%       { box-shadow: 0 4px 0 #B8902A, 0 6px 28px var(--gold-glow), 0 0 50px rgba(240,192,64,0.35); }
+  0%, 100% { box-shadow: 0 4px 0 #8A6010, 0 4px 16px var(--gold-glow), 0 0 30px rgba(240,192,64,0.15); }
+  50%       { box-shadow: 0 4px 0 #8A6010, 0 6px 28px var(--gold-glow), 0 0 50px rgba(240,192,64,0.3); }
 }
 
 @keyframes goldTextGlow {
   0%, 100% { text-shadow: 0 0 8px rgba(240,192,64,0.4); }
-  50%       { text-shadow: 0 0 20px rgba(240,192,64,0.8), 0 0 40px rgba(240,192,64,0.4); }
+  50%       { text-shadow: 0 0 20px rgba(240,192,64,0.8), 0 0 40px rgba(240,192,64,0.3); }
+}
+
+@keyframes purpleTextGlow {
+  0%, 100% { text-shadow: 0 0 8px rgba(139,92,246,0.4); }
+  50%       { text-shadow: 0 0 20px rgba(139,92,246,0.7), 0 0 40px rgba(139,92,246,0.3); }
 }
 
 @keyframes vsGlow {
-  0%, 100% { text-shadow: 0 0 10px var(--orange-glow), 0 0 20px var(--orange-glow); }
-  50%       { text-shadow: 0 0 20px rgba(255,107,43,0.8), 0 0 45px rgba(255,107,43,0.4); }
+  0%, 100% { text-shadow: 0 0 12px rgba(139,92,246,0.6), 0 0 24px rgba(139,92,246,0.3); }
+  50%       { text-shadow: 0 0 24px rgba(139,92,246,0.9), 0 0 48px rgba(139,92,246,0.4); }
 }
 
 @keyframes crownFloat {
@@ -95,9 +138,52 @@ main {
   to   { transform: translateY(0);     opacity: 1; }
 }
 
+@keyframes cardLift {
+  from { transform: translateY(0) scale(1); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+  to   { transform: translateY(-4px) scale(1.02); box-shadow: 0 16px 40px rgba(0,0,0,0.5), 0 0 20px var(--purple-glow); }
+}
+
+@keyframes pulseRing {
+  0%   { transform: scale(0.9); opacity: 0.6; }
+  50%  { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.6; }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(20px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-20px); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.3; }
+  50%       { opacity: 0.6; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.85); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+@keyframes emoteFloat {
+  0%   { transform: translateY(0) scale(0.5) rotate(0deg); opacity: 1; }
+  30%  { transform: translateY(-40px) scale(1.2) rotate(-10deg); opacity: 1; }
+  100% { transform: translateY(-120px) scale(0.6) rotate(15deg); opacity: 0; }
+}
+
+@keyframes victoryBurst {
+  0%   { transform: scale(0.5); opacity: 0; }
+  60%  { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
 /* ─── Reusable game utilities ──────────────────────────────────────────────── */
 
-/* Gold CTA button */
+/* Gold CTA button — 3D press effect */
 .btn-gold {
   background: linear-gradient(175deg, #FFD700 0%, #F0C040 45%, #C09020 100%);
   color: #1A1000;
@@ -105,55 +191,101 @@ main {
   letter-spacing: 0.05em;
   text-shadow: 0 1px 0 rgba(255,255,255,0.25);
   box-shadow: 0 5px 0 #8A6010, 0 5px 20px var(--gold-glow);
-  transition: all 0.1s ease;
+  transition: all 0.12s ease;
   border: none;
   cursor: pointer;
 }
 .btn-gold:hover  { filter: brightness(1.08); transform: translateY(-2px); box-shadow: 0 7px 0 #8A6010, 0 8px 28px var(--gold-glow); }
 .btn-gold:active { transform: translateY(3px); box-shadow: 0 2px 0 #8A6010, 0 2px 10px var(--gold-glow); }
 
-/* Secondary dark button */
-.btn-dark {
-  background: linear-gradient(160deg, #1F293D, #141A2C);
-  color: #8FA0C0;
+/* Purple accent button */
+.btn-purple {
+  background: linear-gradient(175deg, #A78BFA 0%, #8B5CF6 50%, #6D28D9 100%);
+  color: #fff;
   font-weight: 800;
-  border: 1px solid #2E3D58;
-  box-shadow: 0 3px 0 #0C1020, 0 3px 12px rgba(0,0,0,0.4);
-  transition: all 0.1s ease;
+  letter-spacing: 0.04em;
+  box-shadow: 0 4px 0 #4C1D95, 0 4px 16px var(--purple-glow);
+  transition: all 0.12s ease;
+  border: none;
   cursor: pointer;
 }
-.btn-dark:hover  { background: linear-gradient(160deg, #253147, #1B2338); color: #fff; border-color: #3D5070; }
-.btn-dark:active { transform: translateY(2px); box-shadow: 0 1px 0 #0C1020; }
+.btn-purple:hover  { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 6px 0 #4C1D95, 0 6px 24px var(--purple-glow); }
+.btn-purple:active { transform: translateY(3px); box-shadow: 0 1px 0 #4C1D95, 0 1px 8px var(--purple-glow); }
+
+/* Secondary dark button */
+.btn-dark {
+  background: linear-gradient(160deg, #1A1A28, #0F0F1A);
+  color: #8888AA;
+  font-weight: 800;
+  border: 1px solid #2A2A3D;
+  box-shadow: 0 3px 0 #050508, 0 3px 12px rgba(0,0,0,0.5);
+  transition: all 0.12s ease;
+  cursor: pointer;
+}
+.btn-dark:hover  { background: linear-gradient(160deg, #222233, #1A1A28); color: #fff; border-color: #353548; }
+.btn-dark:active { transform: translateY(2px); box-shadow: 0 1px 0 #050508; }
+
+/* Glass surface — blurred translucent */
+.card-glass {
+  background: rgba(15, 15, 26, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(139, 92, 246, 0.12);
+  border-radius: 16px;
+}
 
 /* Game surface */
 .game-surface {
-  background: linear-gradient(160deg, #1B2338 0%, #141A2C 100%);
-  border: 1px solid #2E3D58;
+  background: linear-gradient(160deg, #1A1A28 0%, #0F0F1A 100%);
+  border: 1px solid #222233;
 }
 
 /* Game card panel */
 .game-card {
-  background: linear-gradient(160deg, #1F293D 0%, #141A2C 100%);
-  border: 1px solid #2E3D58;
+  background: linear-gradient(160deg, #141420 0%, #0F0F1A 100%);
+  border: 1px solid #222233;
   border-radius: 16px;
 }
 
-/* Gold text glow animation class */
-.gold-glow-text { animation: goldTextGlow 2.5s ease-in-out infinite; }
-.gold-pulse-btn { animation: goldPulse 2.2s ease-in-out infinite; }
-.vs-text        { animation: vsGlow 2s ease-in-out infinite; }
-.crown-float    { animation: crownFloat 3s ease-in-out infinite; display: inline-block; }
+/* Text gradients */
+.text-gradient-gold {
+  background: linear-gradient(90deg, #FFD700 0%, #F0C040 50%, #FF8040 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-purple {
+  background: linear-gradient(90deg, #A78BFA 0%, #8B5CF6 50%, #6D28D9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-fire {
+  background: linear-gradient(90deg, #FFD700 0%, #FF6B2B 50%, #FF4545 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glow animation classes */
+.gold-glow-text    { animation: goldTextGlow 2.5s ease-in-out infinite; }
+.purple-glow-text  { animation: purpleTextGlow 2.5s ease-in-out infinite; }
+.gold-pulse-btn    { animation: goldPulse 2.2s ease-in-out infinite; }
+.vs-text           { animation: vsGlow 2s ease-in-out infinite; }
+.crown-float       { animation: crownFloat 3s ease-in-out infinite; display: inline-block; }
 
 /* ─── Custom scrollbar ─────────────────────────────────────────────────────── */
 ::-webkit-scrollbar        { width: 4px; }
-::-webkit-scrollbar-track  { background: #0C1020; }
-::-webkit-scrollbar-thumb  { background: #2E3D58; border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: #3D5070; }
+::-webkit-scrollbar-track  { background: #0A0A12; }
+::-webkit-scrollbar-thumb  { background: #2A2A3D; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #353548; }
 
 /* ─── Input override: game dark style ──────────────────────────────────────── */
 .game-input {
-  background: #0C1020;
-  border: 1px solid #2E3D58;
+  background: #0A0A12;
+  border: 1px solid #2A2A3D;
   color: #fff;
   border-radius: 12px;
   padding: 12px 16px;
@@ -161,5 +293,57 @@ main {
   transition: border-color 0.15s;
   width: 100%;
 }
-.game-input::placeholder { color: #3D5070; }
-.game-input:focus { border-color: #F0C040; }
+.game-input::placeholder { color: #4A4A66; }
+.game-input:focus { border-color: #8B5CF6; box-shadow: 0 0 0 3px rgba(139,92,246,0.15); }
+
+/* ─── Badge & pill utilities ─────────────────────────────────────────────────── */
+.badge-gold {
+  background: linear-gradient(135deg, #FFD700, #F0C040);
+  color: #1A1000;
+  font-weight: 900;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.badge-purple {
+  background: linear-gradient(135deg, #8B5CF6, #6D28D9);
+  color: #fff;
+  font-weight: 800;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.badge-live {
+  background: #FF4545;
+  color: #fff;
+  font-weight: 900;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  animation: pulseRing 2s ease-in-out infinite;
+}
+
+/* ─── Ambient glow orbs (decorative) ──────────────────────────────────────── */
+.glow-orb-purple {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%);
+  pointer-events: none;
+  animation: glowPulse 4s ease-in-out infinite;
+}
+
+.glow-orb-gold {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(240,192,64,0.1) 0%, transparent 70%);
+  pointer-events: none;
+  animation: glowPulse 5s ease-in-out infinite;
+}

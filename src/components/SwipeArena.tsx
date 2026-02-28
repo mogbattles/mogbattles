@@ -21,6 +21,7 @@ import ProfileCard from "./ProfileCard";
 import ProfileTags from "./ProfileTags";
 import TagPopup from "./TagPopup";
 import Link from "next/link";
+import gsap from "gsap";
 
 interface SwipeArenaProps {
   arena: ArenaRow;
@@ -46,28 +47,34 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
   // ── Tags state ──────────────────────────────────────────────────────────────
   const [pairTags, setPairTags] = useState<Map<string, TagEntry[]>>(new Map());
   const [myVotedTags, setMyVotedTags] = useState<Map<string, Set<string>>>(new Map());
-  // "left" | "right" | null — which card is hovered (with popup open)
   const [hoveredCard, setHoveredCard] = useState<"left" | "right" | null>(null);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // ── Category arena map (populated when in "all" arena) ───────────────────────
-  // Maps category string (e.g. "streamers") → that arena's UUID.
-  // When voting in "all" mode we redirect the vote to the shared category arena
-  // so the ELO sync trigger (category → all) works correctly.
+  // ── Category arena map ───────────────────────────────────────────────
   const categoryArenaMap = useRef<Record<string, string>>({});
 
+  // ── Emote reactions state ──────────────────────────────────────────────────
+  const [emotes, setEmotes] = useState<{ id: number; emoji: string; x: number }[]>([]);
+  const emoteIdRef = useRef(0);
+
+  // ── GSAP card refs ─────────────────────────────────────────────────────────
+  const leftCardRef = useRef<HTMLDivElement>(null);
+  const rightCardRef = useRef<HTMLDivElement>(null);
+  const vsRef = useRef<HTMLDivElement>(null);
+
+  // ── Swipe drag state ─────────────────────────────────────────────────────
+  const dragStartX = useRef<number | null>(null);
+  const dragDelta = useRef(0);
+  const isDragging = useRef(false);
+
   // ── Image preload cache ────────────────────────────────────────────────────
-  // Tracks URLs we've already kicked off preloads for so we never double-fetch.
   const preloadedUrls = useRef<Set<string>>(new Set());
-  // The next pair to show (preloaded ahead of time)
   const nextPairRef = useRef<[ArenaProfile, ArenaProfile] | null>(null);
 
   // ── Image votes state ────────────────────────────────────────────────────────
-  // profileId → (imageUrl → count)
   const [pairImageVotes, setPairImageVotes] = useState<Map<string, Map<string, number>>>(new Map());
   const [myVotedImagesMap, setMyVotedImagesMap] = useState<Map<string, Set<string>>>(new Map());
 
-  // Preload every image URL for a profile (all 4 slots, not just primary)
   const preloadImages = useCallback((profiles: ArenaProfile[]) => {
     profiles.forEach((p) => {
       const urls = p.image_urls?.length ? p.image_urls : p.image_url ? [p.image_url] : [];
@@ -102,14 +109,12 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
         return;
       }
 
-      // If we pre-picked a next pair and it's still valid, use it
       if (nextPairRef.current) {
         const [a, b] = nextPairRef.current;
         const key = pairKey(a.id, b.id);
         if (!voted.has(key)) {
           setPair(nextPairRef.current);
           nextPairRef.current = null;
-          // Pre-pick + preload the NEXT next pair
           const remaining = available.filter(
             ([x, y]) => pairKey(x.id, y.id) !== key
           );
@@ -126,7 +131,6 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
       const chosen = available[Math.floor(Math.random() * available.length)];
       setPair(chosen);
 
-      // Pre-pick + preload the next pair so it's instantly ready
       const remaining = available.filter(
         ([a, b]) => pairKey(a.id, b.id) !== pairKey(chosen[0].id, chosen[1].id)
       );
@@ -147,13 +151,10 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
 
       const [data, voted, myProfile] = await Promise.all([
         getProfilesForArena(arena),
-        // "all" mode: fetch votes across ALL arenas so cross-category deduplication works
         user ? getVotedPairs(user.id, arena.slug === "all" ? null : arena.id) : Promise.resolve(new Set<string>()),
         user ? getMyProfile(user.id) : Promise.resolve(null),
       ]);
 
-      // Build category→arenaId map for "all" swipe mode (used to redirect votes).
-      // Awaited so the map is ready before the user can vote (prevents race condition).
       if (arena.slug === "all") {
         const allArenas = await getPublicArenas();
         const map: Record<string, string> = {};
@@ -163,7 +164,6 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
         categoryArenaMap.current = map;
       }
 
-      // Never show the logged-in user's own profile as a voting option
       const filteredData = myProfile
         ? data.filter((p) => p.id !== myProfile.id)
         : data;
@@ -183,14 +183,12 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
       pickRandomPair(filteredData, voted);
       setLoading(false);
 
-      // Preload ALL images for ALL profiles (all 4 slots, not just primary)
       preloadImages(filteredData);
     }
     init();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [arena.id, user?.id]);
 
-  // Load tags + image votes when pair changes — all fetches in parallel
   useEffect(() => {
     if (!pair) return;
     const ids = [pair[0].id, pair[1].id];
@@ -213,9 +211,34 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pair?.[0]?.id, pair?.[1]?.id, user?.id]);
 
+  // ── GSAP entrance animation when pair changes ──────────────────────────────
+  useEffect(() => {
+    if (!pair) return;
+    const left = leftCardRef.current;
+    const right = rightCardRef.current;
+    const vs = vsRef.current;
+    if (!left || !right) return;
+
+    gsap.set([left, right], { clearProps: "transform,opacity" });
+    gsap.fromTo(left,
+      { x: -50, opacity: 0, scale: 0.9 },
+      { x: 0, opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.7)" }
+    );
+    gsap.fromTo(right,
+      { x: 50, opacity: 0, scale: 0.9 },
+      { x: 0, opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.7)", delay: 0.08 }
+    );
+    if (vs) {
+      gsap.fromTo(vs,
+        { scale: 0, rotation: -15 },
+        { scale: 1, rotation: 0, duration: 0.4, ease: "back.out(2.5)", delay: 0.2 }
+      );
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pair?.[0]?.id, pair?.[1]?.id]);
+
   const handleVote = async (winner: ArenaProfile, loser: ArenaProfile) => {
     if (animating) return;
-    // Auth gate: must be signed in to vote
     if (!user) {
       setShowSignInGate(true);
       return;
@@ -227,27 +250,18 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
     newVoted.add(key);
     setVotedPairs(newVoted);
 
-    // ── Resolve effective arena for this vote ─────────────────────────────────
-    // When voting in "all" mode, redirect to a category arena so the ELO sync
-    // trigger (category → All) propagates correctly. Voting directly in "all"
-    // would be silently ignored by the trigger's recursion guard.
     let effectiveArenaId = arena.id;
     if (arena.slug === "all") {
       const sharedCat = winner.categories.find((c) => loser.categories.includes(c));
       if (sharedCat && categoryArenaMap.current[sharedCat]) {
-        // Best case: both profiles share a category
         effectiveArenaId = categoryArenaMap.current[sharedCat];
       } else {
-        // Fallback: use the winner's first known category arena, then loser's
         const fallbackCat =
           winner.categories.find((c) => categoryArenaMap.current[c]) ??
           loser.categories.find((c) => categoryArenaMap.current[c]);
         if (fallbackCat) {
           effectiveArenaId = categoryArenaMap.current[fallbackCat];
         }
-        // If still no match (uncategorized profiles), the vote goes to "all"
-        // directly. The trigger won't propagate it, but admin_fix_elo_sync can
-        // recover. This is rare and only affects uncategorized profiles.
       }
     }
 
@@ -267,6 +281,8 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
     const eloGain = newWinnerElo - (eloData?.winner_elo_before ?? winner.elo_rating);
 
     setLastResult(`${winner.name} mogs! +${eloGain} ELO`);
+    const winnerIsLeftForEmote = winner.id === pair![0].id;
+    spawnEmotes(winnerIsLeftForEmote ? "left" : "right");
 
     const updatedProfiles = profiles.map((p) => {
       if (p.id === winner.id)
@@ -279,20 +295,41 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
     setProfiles(updatedProfiles);
     setSwipeCount((c) => c + 1);
 
-    setTimeout(() => {
-      pickRandomPair(updatedProfiles, newVoted);
-      setLastResult(null);
-      setAnimating(false);
-    }, 1100);
+    // GSAP exit animation — winner scales up, loser slides away
+    const winnerIsLeft = winner.id === pair![0].id;
+    const winnerEl = winnerIsLeft ? leftCardRef.current : rightCardRef.current;
+    const loserEl = winnerIsLeft ? rightCardRef.current : leftCardRef.current;
+    const loserDir = winnerIsLeft ? 1 : -1;
+
+    if (winnerEl && loserEl) {
+      const tl = gsap.timeline({
+        onComplete: () => {
+          pickRandomPair(updatedProfiles, newVoted);
+          setLastResult(null);
+          setAnimating(false);
+        },
+      });
+      tl.to(winnerEl, { scale: 1.06, duration: 0.3, ease: "power2.out" })
+        .to(loserEl, {
+          x: loserDir * 150, opacity: 0, scale: 0.85,
+          rotation: loserDir * 6, duration: 0.45, ease: "power3.in",
+        }, "<0.05")
+        .to(winnerEl, { scale: 1, duration: 0.25, ease: "power2.inOut" }, "-=0.2")
+        .to({}, { duration: 0.15 });
+    } else {
+      setTimeout(() => {
+        pickRandomPair(updatedProfiles, newVoted);
+        setLastResult(null);
+        setAnimating(false);
+      }, 900);
+    }
   };
 
-  // Tag vote handler: optimistic update + refresh
   const handleTagVote = async (profileId: string, tag: string) => {
     if (!user) return;
     const { error: tagErr } = await voteForTag(profileId, tag, user.id);
     if (tagErr) return;
 
-    // Optimistic: mark this tag as voted by me
     setMyVotedTags((prev) => {
       const next = new Map(prev);
       const cur = new Set(next.get(profileId) ?? []);
@@ -301,7 +338,6 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
       return next;
     });
 
-    // Refresh top tags for this profile
     const refreshed = await getTopTagsForProfile(profileId, 3);
     setPairTags((prev) => {
       const next = new Map(prev);
@@ -310,12 +346,9 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
     });
   };
 
-  // Image vote handler: optimistic update
   const handleImageVote = async (profileId: string, imageUrl: string, currentlyVoted: boolean) => {
     if (!user) return;
 
-    // Optimistic update BEFORE the async call so the UI reacts instantly
-    // Update myVotedImages
     setMyVotedImagesMap((prev) => {
       const next = new Map(prev);
       const cur = new Set(next.get(profileId) ?? []);
@@ -325,7 +358,6 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
       return next;
     });
 
-    // Update vote counts — ensures the URL is in the map even if it's brand new
     setPairImageVotes((prev) => {
       const next = new Map(prev);
       const profileMap = new Map(next.get(profileId) ?? []);
@@ -335,15 +367,13 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
       return next;
     });
 
-    // Persist to DB (fire and forget — optimistic update already applied above)
     const { error: imgErr } = await toggleImageVote(profileId, imageUrl, user.id, currentlyVoted);
     if (imgErr) {
-      // Revert optimistic update on error
       setMyVotedImagesMap((prev) => {
         const next = new Map(prev);
         const cur = new Set(next.get(profileId) ?? []);
-        if (currentlyVoted) cur.add(imageUrl); // restore
-        else cur.delete(imageUrl); // restore
+        if (currentlyVoted) cur.add(imageUrl);
+        else cur.delete(imageUrl);
         next.set(profileId, cur);
         return next;
       });
@@ -358,13 +388,86 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
     }
   };
 
-  // Debounced hover helpers to prevent popup flickering
   function handleCardEnter(side: "left" | "right") {
     if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
     setHoveredCard(side);
   }
   function handleCardLeave() {
     hideTimerRef.current = setTimeout(() => setHoveredCard(null), 120);
+  }
+
+  // ── Emote burst on vote ─────────────────────────────────────────────────
+  function spawnEmotes(side: "left" | "right") {
+    const reactions = ["🔥", "💀", "👑", "⚔️", "😤", "💪"];
+    const newEmotes = Array.from({ length: 5 }, () => {
+      emoteIdRef.current += 1;
+      return {
+        id: emoteIdRef.current,
+        emoji: reactions[Math.floor(Math.random() * reactions.length)],
+        x: (side === "left" ? 25 : 75) + (Math.random() - 0.5) * 30,
+      };
+    });
+    setEmotes((prev) => [...prev, ...newEmotes]);
+    setTimeout(() => {
+      setEmotes((prev) => prev.filter((e) => !newEmotes.find((n) => n.id === e.id)));
+    }, 1200);
+  }
+
+  // ── Touch swipe handlers for mobile ──────────────────────────────────────
+  function handleSwipeStart(e: React.TouchEvent) {
+    dragStartX.current = e.touches[0].clientX;
+    isDragging.current = true;
+    dragDelta.current = 0;
+  }
+
+  function handleSwipeMove(e: React.TouchEvent) {
+    if (!isDragging.current || dragStartX.current === null || !pair) return;
+    const delta = e.touches[0].clientX - dragStartX.current;
+    dragDelta.current = delta;
+
+    const left = leftCardRef.current;
+    const right = rightCardRef.current;
+    if (!left || !right) return;
+
+    // Tilt both cards based on swipe direction
+    const norm = Math.min(Math.abs(delta) / 150, 1);
+    const dir = delta > 0 ? 1 : -1;
+    gsap.set(left, {
+      x: delta * 0.3,
+      rotation: dir * norm * 4,
+      scale: delta > 0 ? 1 + norm * 0.04 : 1 - norm * 0.03,
+    });
+    gsap.set(right, {
+      x: delta * 0.3,
+      rotation: dir * norm * 4,
+      scale: delta < 0 ? 1 + norm * 0.04 : 1 - norm * 0.03,
+    });
+  }
+
+  function handleSwipeEnd() {
+    if (!isDragging.current || !pair) return;
+    isDragging.current = false;
+    const delta = dragDelta.current;
+    const threshold = 80;
+
+    if (Math.abs(delta) > threshold && !animating) {
+      // Swipe right = pick left card, swipe left = pick right card
+      if (delta > threshold) {
+        handleVote(pair[0], pair[1]);
+        spawnEmotes("left");
+      } else if (delta < -threshold) {
+        handleVote(pair[1], pair[0]);
+        spawnEmotes("right");
+      }
+    } else {
+      // Snap back
+      const left = leftCardRef.current;
+      const right = rightCardRef.current;
+      if (left) gsap.to(left, { x: 0, rotation: 0, scale: 1, duration: 0.4, ease: "elastic.out(1,0.5)" });
+      if (right) gsap.to(right, { x: 0, rotation: 0, scale: 1, duration: 0.4, ease: "elastic.out(1,0.5)" });
+    }
+    dragStartX.current = null;
+    dragDelta.current = 0;
   }
 
   /* ── Loading ──────────────────────────────────────────── */
@@ -374,14 +477,14 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
         <div
           className="w-12 h-12 rounded-full border-4 border-transparent animate-spin"
           style={{
-            borderTopColor: "#F0C040",
-            borderRightColor: "rgba(240,192,64,0.25)",
-            boxShadow: "0 0 16px rgba(240,192,64,0.3)",
+            borderTopColor: "#8B5CF6",
+            borderRightColor: "rgba(139,92,246,0.25)",
+            boxShadow: "0 0 16px rgba(139,92,246,0.3)",
           }}
         />
         <p
           className="font-black uppercase tracking-widest text-xs"
-          style={{ color: "#3D5070" }}
+          style={{ color: "#4A4A66" }}
         >
           Loading battles…
         </p>
@@ -395,7 +498,7 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
       <div className="text-center mt-16 px-6">
         <div className="text-5xl mb-4">⚔️</div>
         <p className="font-bold text-lg mb-2 text-white">{error}</p>
-        <p className="text-sm" style={{ color: "#3D5070" }}>
+        <p className="text-sm" style={{ color: "#4A4A66" }}>
           Add profiles via the Admin panel or assign them to this category.
         </p>
       </div>
@@ -408,20 +511,20 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
       <div className="flex flex-col items-center text-center mt-12 px-4 max-w-sm mx-auto">
         <div
           className="text-7xl mb-5 crown-float"
-          style={{ filter: "drop-shadow(0 0 16px rgba(240,192,64,0.5))" }}
+          style={{ filter: "drop-shadow(0 0 16px rgba(139,92,246,0.5))" }}
         >
           🏆
         </div>
-        <h2 className="text-white font-black text-2xl mb-2 tracking-tight">
+        <h2 className="text-white font-heading tracking-wide text-4xl mb-2">
           Arena Conquered!
         </h2>
-        <p className="text-sm mb-8" style={{ color: "#4D6080" }}>
+        <p className="text-sm mb-8" style={{ color: "#4A4A66" }}>
           You&apos;ve voted on every matchup in{" "}
-          <span style={{ color: "#F0C040", fontWeight: 800 }}>{arena.name}</span>.
+          <span style={{ color: "#A78BFA", fontWeight: 800 }}>{arena.name}</span>.
         </p>
         <Link
           href="/swipe"
-          className="btn-gold rounded-xl px-8 py-4 text-base font-black uppercase tracking-wider inline-block"
+          className="btn-purple rounded-xl px-8 py-4 text-base font-black uppercase tracking-wider inline-block"
         >
           Try Another Arena →
         </Link>
@@ -431,7 +534,6 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
 
   if (!pair) return null;
 
-  /* ── Pre-compute sorted image arrays once (avoid duplicate work in JSX) ── */
   const leftVotes  = pairImageVotes.get(pair[0].id) ?? new Map<string, number>();
   const rightVotes = pairImageVotes.get(pair[1].id) ?? new Map<string, number>();
   const leftImgs   = sortImageUrlsByVotes(pair[0].image_urls, leftVotes);
@@ -445,15 +547,15 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
       <div className="text-center mb-4">
         <div
           className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full mb-3"
-          style={{ background: "#111827", border: "1px solid #1B2338" }}
+          style={{ background: "#0F0F1A", border: "1px solid #222233" }}
         >
-          <span className="text-xs font-black uppercase tracking-widest" style={{ color: "#3D5070" }}>
+          <span className="text-xs font-black uppercase tracking-widest" style={{ color: "#4A4A66" }}>
             {arena.name}
           </span>
           {swipeCount > 0 && (
             <>
-              <span style={{ color: "#1B2338", fontSize: "10px" }}>·</span>
-              <span className="text-xs font-black" style={{ color: "#253147" }}>
+              <span style={{ color: "#222233", fontSize: "10px" }}>·</span>
+              <span className="text-xs font-black" style={{ color: "#2A2A3D" }}>
                 {swipeCount} battles
               </span>
             </>
@@ -461,10 +563,10 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
         </div>
 
         <div className="flex items-center justify-center gap-2 leading-none">
-          <span className="text-2xl sm:text-3xl font-black tracking-tight text-white">WHO</span>
+          <span className="font-heading tracking-wide text-4xl sm:text-5xl text-white" style={{ lineHeight: 1 }}>WHO</span>
           <span
-            className="text-2xl sm:text-3xl font-black tracking-tight gold-glow-text"
-            style={{ color: "#F0C040" }}
+            className="font-heading tracking-wide text-4xl sm:text-5xl purple-glow-text"
+            style={{ color: "#A78BFA", lineHeight: 1 }}
           >
             MOGS?
           </span>
@@ -480,34 +582,54 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
           <span
             className="inline-block font-black px-6 py-2.5 rounded-full text-sm uppercase tracking-widest"
             style={{
-              background: "linear-gradient(160deg, #FFD700, #F0C040)",
-              color: "#1A1000",
-              boxShadow: "0 0 24px rgba(240,192,64,0.55)",
+              background: "linear-gradient(160deg, #A78BFA, #8B5CF6)",
+              color: "#fff",
+              boxShadow: "0 0 24px rgba(139,92,246,0.55)",
             }}
           >
-            👑 {lastResult}
+            {lastResult}
           </span>
         </div>
       )}
 
-      {/* Cards row — overflow-visible so TagPopup can escape */}
-      <div className="flex gap-3 sm:gap-5 items-start justify-center overflow-visible">
+      {/* Emote particles */}
+      {emotes.map((e) => (
+        <div
+          key={e.id}
+          className="fixed pointer-events-none z-50"
+          style={{
+            left: `${e.x}%`,
+            bottom: "40%",
+            fontSize: "28px",
+            animation: "emoteFloat 1.2s ease-out forwards",
+          }}
+        >
+          {e.emoji}
+        </div>
+      ))}
+
+      {/* Cards row */}
+      <div
+        className="flex gap-3 sm:gap-5 items-start justify-center overflow-visible"
+        onTouchStart={handleSwipeStart}
+        onTouchMove={handleSwipeMove}
+        onTouchEnd={handleSwipeEnd}
+      >
 
         {/* ── Left card ── */}
         <div
+          ref={leftCardRef}
           className="flex flex-col items-center"
           style={{ flex: "1 1 0", maxWidth: "220px", position: "relative" }}
           onMouseEnter={() => handleCardEnter("left")}
           onMouseLeave={handleCardLeave}
         >
-          {/* Top 3 tags */}
           <ProfileTags
             tags={pairTags.get(pair[0].id) ?? []}
             myVotedTags={myVotedTags.get(pair[0].id) ?? new Set()}
             onVote={user ? (tag) => handleTagVote(pair[0].id, tag) : null}
           />
 
-          {/* Profile card — uses vote-sorted image URLs so highest-voted photo shows first */}
           <div className="relative w-full">
             <ProfileCard
               key={pair[0].id}
@@ -524,7 +646,6 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
               side="left"
             />
 
-            {/* Tag popup — opens to the RIGHT */}
             {hoveredCard === "left" && (
               <TagPopup
                 side="left"
@@ -543,17 +664,17 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
         </div>
 
         {/* VS badge */}
-        <div className="flex flex-col items-center justify-center shrink-0 gap-2 pt-7">
+        <div ref={vsRef} className="flex flex-col items-center justify-center shrink-0 gap-2 pt-7">
           <span
-            className="font-black leading-none vs-text text-3xl sm:text-4xl"
-            style={{ color: "#FF6B2B" }}
+            className="font-heading tracking-wide leading-none vs-text text-4xl sm:text-5xl"
+            style={{ color: "#8B5CF6" }}
           >
             VS
           </span>
           {!user && (
             <span
               className="text-[9px] font-black uppercase tracking-widest"
-              style={{ color: "#1B2338" }}
+              style={{ color: "#222233" }}
             >
               tap
             </span>
@@ -562,19 +683,18 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
 
         {/* ── Right card ── */}
         <div
+          ref={rightCardRef}
           className="flex flex-col items-center"
           style={{ flex: "1 1 0", maxWidth: "220px", position: "relative" }}
           onMouseEnter={() => handleCardEnter("right")}
           onMouseLeave={handleCardLeave}
         >
-          {/* Top 3 tags */}
           <ProfileTags
             tags={pairTags.get(pair[1].id) ?? []}
             myVotedTags={myVotedTags.get(pair[1].id) ?? new Set()}
             onVote={user ? (tag) => handleTagVote(pair[1].id, tag) : null}
           />
 
-          {/* Profile card — uses vote-sorted image URLs so highest-voted photo shows first */}
           <div className="relative w-full">
             <ProfileCard
               key={pair[1].id}
@@ -591,7 +711,6 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
               side="right"
             />
 
-            {/* Tag popup — opens to the LEFT */}
             {hoveredCard === "right" && (
               <TagPopup
                 side="right"
@@ -625,33 +744,33 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
       {showSignInGate && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center px-4"
-          style={{ background: "rgba(7,9,15,0.92)", backdropFilter: "blur(8px)" }}
+          style={{ background: "rgba(5,5,8,0.92)", backdropFilter: "blur(8px)" }}
           onClick={() => setShowSignInGate(false)}
         >
           <div
             className="max-w-xs w-full rounded-2xl p-8 text-center"
             style={{
-              background: "#0D1120",
-              border: "1px solid rgba(240,192,64,0.25)",
-              boxShadow: "0 0 40px rgba(240,192,64,0.1)",
+              background: "#0F0F1A",
+              border: "1px solid rgba(139,92,246,0.25)",
+              boxShadow: "0 0 40px rgba(139,92,246,0.1)",
             }}
             onClick={(e) => e.stopPropagation()}
           >
             <div
               className="text-5xl mb-4"
-              style={{ filter: "drop-shadow(0 0 12px rgba(240,192,64,0.4))" }}
+              style={{ filter: "drop-shadow(0 0 12px rgba(139,92,246,0.4))" }}
             >
               ⚔️
             </div>
             <h2 className="text-white font-black text-xl mb-2 tracking-tight">
               Join the Arena
             </h2>
-            <p className="text-sm mb-6 leading-relaxed" style={{ color: "#4D6080" }}>
+            <p className="text-sm mb-6 leading-relaxed" style={{ color: "#4A4A66" }}>
               Sign in to vote in battles, track your history, and compete on the leaderboard.
             </p>
             <Link
               href="/profile"
-              className="block btn-gold rounded-xl px-6 py-3 text-sm font-black uppercase tracking-wider"
+              className="block btn-purple rounded-xl px-6 py-3 text-sm font-black uppercase tracking-wider"
               onClick={() => setShowSignInGate(false)}
             >
               Sign In with Google →
@@ -659,7 +778,7 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
             <button
               onClick={() => setShowSignInGate(false)}
               className="mt-4 text-xs font-bold hover:underline"
-              style={{ color: "#3D5070" }}
+              style={{ color: "#4A4A66" }}
             >
               Maybe later
             </button>

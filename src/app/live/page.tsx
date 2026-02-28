@@ -148,20 +148,11 @@ export default function LivePage() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-2xl animate-pulse">🔴</span>
-              <h1
-                className="text-2xl font-black uppercase tracking-wider"
-                style={{
-                  background:
-                    "linear-gradient(90deg, #FFD700 0%, #F0C040 50%, #FF8040 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
+              <h1 className="font-heading tracking-wide text-3xl text-gradient-fire">
                 Live Streams
               </h1>
             </div>
-            <p className="text-xs font-bold" style={{ color: "#3D5070" }}>
+            <p className="text-xs font-bold text-navy-200">
               Watch MOG battles happen in real time
             </p>
           </div>
@@ -169,26 +160,7 @@ export default function LivePage() {
           {user && !authLoading && (
             <button
               onClick={() => setShowModal(true)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-black uppercase tracking-wider transition-all duration-150"
-              style={{
-                background:
-                  "linear-gradient(160deg, #FFD700 0%, #F0C040 50%, #FF6B2B 100%)",
-                color: "#1A1000",
-                boxShadow:
-                  "0 4px 0 #8B6914, 0 4px 16px rgba(240,192,64,0.35)",
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.transform =
-                  "translateY(-1px)";
-                (e.currentTarget as HTMLElement).style.boxShadow =
-                  "0 6px 0 #8B6914, 0 6px 24px rgba(240,192,64,0.5)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.transform =
-                  "translateY(0)";
-                (e.currentTarget as HTMLElement).style.boxShadow =
-                  "0 4px 0 #8B6914, 0 4px 16px rgba(240,192,64,0.35)";
-              }}
+              className="btn-purple flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-black uppercase tracking-wider"
             >
               <span className="text-base">📡</span>
               Go Live
@@ -199,27 +171,18 @@ export default function LivePage() {
         {/* Stream grid */}
         {loading || authLoading ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <div
-              className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
-              style={{ borderColor: "#F0C040", borderTopColor: "transparent" }}
-            />
-            <p
-              className="mt-3 text-sm font-bold"
-              style={{ color: "#3D5070" }}
-            >
+            <div className="w-8 h-8 rounded-full border-2 border-purple border-t-transparent animate-spin" />
+            <p className="mt-3 text-sm font-bold text-navy-200">
               Loading streams...
             </p>
           </div>
         ) : streams.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="text-5xl mb-4 opacity-30">📡</div>
-            <h2
-              className="text-lg font-black mb-2"
-              style={{ color: "#4D6080" }}
-            >
+            <h2 className="text-lg font-black mb-2 text-navy-200">
               No one is live right now
             </h2>
-            <p className="text-xs max-w-xs" style={{ color: "#2E3D58" }}>
+            <p className="text-xs max-w-xs text-navy-400">
               {user
                 ? "Be the first to go live! Click the Go Live button to start streaming."
                 : "Sign in to start your own live stream."}
@@ -231,32 +194,10 @@ export default function LivePage() {
               <button
                 key={stream.id}
                 onClick={() => router.push(`/live/${stream.id}`)}
-                className="text-left rounded-2xl overflow-hidden transition-all duration-150 group"
-                style={{
-                  background: "#141A2C",
-                  border: "2px solid #1B2338",
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.borderColor =
-                    "rgba(240,192,64,0.4)";
-                  (e.currentTarget as HTMLElement).style.transform =
-                    "translateY(-2px)";
-                  (e.currentTarget as HTMLElement).style.boxShadow =
-                    "0 8px 24px rgba(0,0,0,0.4), 0 0 20px rgba(240,192,64,0.1)";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.borderColor =
-                    "#1B2338";
-                  (e.currentTarget as HTMLElement).style.transform =
-                    "translateY(0)";
-                  (e.currentTarget as HTMLElement).style.boxShadow = "none";
-                }}
+                className="text-left rounded-2xl overflow-hidden game-card transition-all duration-150 group hover:border-purple/40 hover:shadow-[0_8px_24px_rgba(0,0,0,0.4),0_0_20px_rgba(139,92,246,0.1)] hover:-translate-y-0.5"
               >
                 {/* Thumbnail area */}
-                <div
-                  className="relative aspect-video flex items-center justify-center"
-                  style={{ background: "#0C1020" }}
-                >
+                <div className="relative aspect-video flex items-center justify-center bg-navy-900">
                   {stream.host_image ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -269,43 +210,22 @@ export default function LivePage() {
                   )}
 
                   {/* LIVE badge */}
-                  <div
-                    className="absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 rounded-lg"
-                    style={{
-                      background: "rgba(239,68,68,0.9)",
-                      backdropFilter: "blur(4px)",
-                    }}
-                  >
-                    <span
-                      className="w-2 h-2 rounded-full animate-pulse"
-                      style={{ background: "#fff" }}
-                    />
-                    <span className="text-[10px] font-black text-white uppercase tracking-wider">
+                  <div className="absolute top-2 left-2">
+                    <span className="badge-live flex items-center gap-1.5 px-2 py-1">
+                      <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
                       Live
                     </span>
                   </div>
 
                   {/* Time since */}
-                  <div
-                    className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md text-[9px] font-bold"
-                    style={{
-                      background: "rgba(0,0,0,0.7)",
-                      color: "#8FA0C0",
-                    }}
-                  >
+                  <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md text-[9px] font-bold bg-black/70 text-navy-200">
                     {timeSince(stream.started_at)}
                   </div>
 
                   {/* Big play icon overlay */}
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div
-                      className="w-14 h-14 rounded-full flex items-center justify-center"
-                      style={{
-                        background: "rgba(240,192,64,0.9)",
-                        boxShadow: "0 0 20px rgba(240,192,64,0.5)",
-                      }}
-                    >
-                      <span className="text-xl ml-0.5">▶</span>
+                    <div className="w-14 h-14 rounded-full flex items-center justify-center bg-purple/90 shadow-[0_0_20px_rgba(139,92,246,0.5)]">
+                      <span className="text-xl ml-0.5 text-white">▶</span>
                     </div>
                   </div>
                 </div>
@@ -314,13 +234,7 @@ export default function LivePage() {
                 <div className="px-3 py-3">
                   <div className="flex items-center gap-2">
                     {/* Host avatar */}
-                    <div
-                      className="w-8 h-8 rounded-full overflow-hidden shrink-0"
-                      style={{
-                        background: "#0C1020",
-                        border: "2px solid #1B2338",
-                      }}
-                    >
+                    <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-navy-900 ring-2 ring-navy-500">
                       {stream.host_image ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -335,15 +249,10 @@ export default function LivePage() {
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h3
-                        className="text-sm font-black text-white truncate leading-tight"
-                      >
+                      <h3 className="text-sm font-black text-white truncate leading-tight">
                         {stream.title}
                       </h3>
-                      <p
-                        className="text-[10px] font-bold truncate"
-                        style={{ color: "#4D6080" }}
-                      >
+                      <p className="text-[10px] font-bold truncate text-navy-200">
                         {stream.host_name}
                       </p>
                     </div>
@@ -355,7 +264,7 @@ export default function LivePage() {
         )}
       </div>
 
-      {/* ── Go Live Modal ────────────────────────────────── */}
+      {/* ── Go Live Modal ────────────────────────────────────── */}
       {showModal && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center px-4"
@@ -365,12 +274,8 @@ export default function LivePage() {
           }}
         >
           <div
-            className="w-full max-w-md rounded-2xl p-6"
-            style={{
-              background: "#141A2C",
-              border: "2px solid #1B2338",
-              boxShadow: "0 20px 60px rgba(0,0,0,0.8)",
-            }}
+            className="w-full max-w-md rounded-2xl p-6 game-card !border-navy-400"
+            style={{ boxShadow: "0 20px 60px rgba(0,0,0,0.8)" }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-2 mb-4">
@@ -378,19 +283,13 @@ export default function LivePage() {
               <h2 className="text-lg font-black text-white">Start Streaming</h2>
             </div>
 
-            <p
-              className="text-xs font-bold mb-4"
-              style={{ color: "#3D5070" }}
-            >
+            <p className="text-xs font-bold mb-4 text-navy-200">
               Your camera and microphone will be used. Viewers can watch you
               live on MogBattles.
             </p>
 
             <label className="block mb-4">
-              <span
-                className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-                style={{ color: "#4D6080" }}
-              >
+              <span className="text-xs font-bold uppercase tracking-wider mb-1.5 block text-navy-200">
                 Stream Title
               </span>
               <input
@@ -399,18 +298,7 @@ export default function LivePage() {
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Live MOG Rating Session"
                 maxLength={100}
-                className="w-full px-4 py-3 rounded-xl text-sm font-bold text-white outline-none transition-colors"
-                style={{
-                  background: "#0C1020",
-                  border: "2px solid #1B2338",
-                }}
-                onFocus={(e) =>
-                  ((e.target as HTMLElement).style.borderColor =
-                    "rgba(240,192,64,0.4)")
-                }
-                onBlur={(e) =>
-                  ((e.target as HTMLElement).style.borderColor = "#1B2338")
-                }
+                className="game-input text-sm font-bold"
                 autoFocus
               />
             </label>
@@ -419,30 +307,14 @@ export default function LivePage() {
               <button
                 onClick={() => setShowModal(false)}
                 disabled={creating}
-                className="flex-1 px-4 py-3 rounded-xl text-sm font-bold transition-colors"
-                style={{
-                  background: "#0C1020",
-                  color: "#4D6080",
-                  border: "1px solid #1B2338",
-                }}
+                className="btn-dark flex-1 px-4 py-3 rounded-xl text-sm font-bold"
               >
                 Cancel
               </button>
               <button
                 onClick={handleGoLive}
                 disabled={!title.trim() || creating}
-                className="flex-1 px-4 py-3 rounded-xl text-sm font-black uppercase tracking-wider transition-all duration-150"
-                style={{
-                  background:
-                    title.trim() && !creating
-                      ? "linear-gradient(160deg, #FFD700 0%, #F0C040 50%, #FF6B2B 100%)"
-                      : "#1B2338",
-                  color: title.trim() && !creating ? "#1A1000" : "#3D5070",
-                  boxShadow:
-                    title.trim() && !creating
-                      ? "0 4px 0 #8B6914, 0 4px 16px rgba(240,192,64,0.25)"
-                      : "none",
-                }}
+                className="btn-purple flex-1 px-4 py-3 rounded-xl text-sm font-black uppercase tracking-wider disabled:opacity-40"
               >
                 {creating ? "Starting..." : "Go Live 🔴"}
               </button>

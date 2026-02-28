@@ -26,8 +26,6 @@ export default function ImageVotePopup({
   const filtered = images.filter(Boolean);
   if (filtered.length === 0) return null;
 
-  // Opens to the right for left card, to the left for right card (same side as TagPopup)
-  // Offset below TagPopup with a top gap
   const posStyle: React.CSSProperties =
     side === "left"
       ? { left: "calc(100% + 10px)", top: "210px" }
@@ -38,23 +36,23 @@ export default function ImageVotePopup({
       className="absolute z-50 w-44"
       style={{
         ...posStyle,
-        background: "rgba(9,12,22,0.97)",
-        border: "1px solid rgba(240,192,64,0.22)",
+        background: "rgba(10,10,18,0.97)",
+        border: "1px solid rgba(139,92,246,0.2)",
         borderRadius: "14px",
         backdropFilter: "blur(20px)",
-        boxShadow: "0 12px 40px rgba(0,0,0,0.8), 0 0 20px rgba(240,192,64,0.06)",
+        boxShadow: "0 12px 40px rgba(0,0,0,0.8), 0 0 20px rgba(139,92,246,0.06)",
         animation: "fadeSlideUp 0.16s ease-out both",
       }}
     >
       {/* Header */}
       <div
         className="px-3 pt-2.5 pb-2 border-b"
-        style={{ borderColor: "rgba(27,35,56,0.9)" }}
+        style={{ borderColor: "rgba(34,34,51,0.9)" }}
       >
-        <p className="text-[9px] font-black uppercase tracking-widest leading-tight" style={{ color: "#3D5070" }}>
-          📷 Photos
+        <p className="text-[9px] font-black uppercase tracking-widest leading-tight" style={{ color: "#4A4A66" }}>
+          Photos
         </p>
-        <p className="text-xs font-black truncate mt-0.5" style={{ color: "#F0C040" }}>
+        <p className="text-xs font-black truncate mt-0.5" style={{ color: "#A78BFA" }}>
           {profileName}
         </p>
       </div>
@@ -76,8 +74,8 @@ export default function ImageVotePopup({
               className="relative rounded-lg overflow-hidden transition-all"
               style={{
                 aspectRatio: "3/4",
-                border: `2px solid ${voted ? "rgba(240,192,64,0.7)" : "rgba(27,35,56,0.9)"}`,
-                boxShadow: voted ? "0 0 8px rgba(240,192,64,0.3)" : "none",
+                border: `2px solid ${voted ? "rgba(139,92,246,0.7)" : "rgba(34,34,51,0.9)"}`,
+                boxShadow: voted ? "0 0 8px rgba(139,92,246,0.3)" : "none",
                 cursor: userId ? "pointer" : "not-allowed",
               }}
             >
@@ -91,8 +89,8 @@ export default function ImageVotePopup({
               <div
                 className="absolute bottom-0.5 right-0.5 text-[9px] font-black px-1 rounded"
                 style={{
-                  background: voted ? "rgba(240,192,64,0.92)" : "rgba(7,9,15,0.82)",
-                  color: voted ? "#1A1000" : "#9B9B9B",
+                  background: voted ? "rgba(139,92,246,0.92)" : "rgba(5,5,8,0.82)",
+                  color: voted ? "#fff" : "#9B9B9B",
                 }}
               >
                 {voted ? "✓" : votes > 0 ? votes : ""}
@@ -103,7 +101,7 @@ export default function ImageVotePopup({
       </div>
 
       {!userId && (
-        <p className="text-[10px] text-center pb-2" style={{ color: "#253147" }}>
+        <p className="text-[10px] text-center pb-2" style={{ color: "#2A2A3D" }}>
           Sign in to vote
         </p>
       )}

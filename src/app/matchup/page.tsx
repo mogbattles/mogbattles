@@ -14,19 +14,20 @@ function ProfileAvatar({ profile, size = "md" }: { profile: SearchResult | null;
   const sz = size === "lg" ? "w-20 h-20" : size === "md" ? "w-12 h-12" : "w-8 h-8";
   if (!profile) {
     return (
-      <div className={`${sz} rounded-full bg-zinc-800 border-2 border-dashed border-zinc-700 flex items-center justify-center`}>
-        <span className="text-zinc-600 text-lg">?</span>
+      <div className={`${sz} rounded-full flex items-center justify-center`} style={{ background: "#141420", border: "2px dashed #222233" }}>
+        <span className="text-lg" style={{ color: "#2A2A3D" }}>?</span>
       </div>
     );
   }
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={profile.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name)}&background=27272a&color=888&size=80`}
+      src={profile.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name)}&background=0F0F1A&color=888&size=80`}
       alt={profile.name}
-      className={`${sz} rounded-full object-cover border-2 border-zinc-700`}
+      className={`${sz} rounded-full object-cover`}
+      style={{ border: "2px solid #222233" }}
       onError={(e) => {
-        (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name)}&background=27272a&color=888&size=80`;
+        (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name)}&background=0F0F1A&color=888&size=80`;
       }}
     />
   );
@@ -78,19 +79,19 @@ function ProfileSearch({
 
   return (
     <div ref={ref} className="flex-1 min-w-0">
-      <p className="text-zinc-500 text-xs font-bold uppercase tracking-wider mb-2">{label}</p>
+      <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "#4A4A66" }}>{label}</p>
       {value ? (
-        <div className="flex items-center gap-3 bg-zinc-900 border border-zinc-700 rounded-xl p-3">
+        <div className="flex items-center gap-3 rounded-xl p-3" style={{ background: "#0F0F1A", border: "1px solid #222233" }}>
           <ProfileAvatar profile={value} />
           <div className="flex-1 min-w-0">
             <p className="text-white font-bold truncate">{value.name}</p>
             {value.category && (
-              <p className="text-zinc-500 text-xs capitalize">{value.category.replace("_", " ")}</p>
+              <p className="text-xs capitalize" style={{ color: "#4A4A66" }}>{value.category.replace("_", " ")}</p>
             )}
           </div>
           <button
             onClick={() => onSelect({ id: "", name: "", image_url: null, category: null })}
-            className="text-zinc-600 hover:text-white text-sm shrink-0"
+            className="text-sm shrink-0" style={{ color: "#4A4A66" }}
           >
             ✕
           </button>
@@ -102,26 +103,31 @@ function ProfileSearch({
             placeholder="Search by name…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-3 text-white placeholder:text-zinc-600 text-sm focus:outline-none focus:border-orange-500 transition-colors"
+            className="w-full rounded-xl px-3 py-3 text-white text-sm focus:outline-none transition-colors"
+            style={{ background: "#0F0F1A", border: "1px solid #222233", caretColor: "#8B5CF6" }}
+            onFocus={(e) => { (e.target as HTMLElement).style.borderColor = "rgba(139,92,246,0.5)"; }}
+            onBlur={(e) => { (e.target as HTMLElement).style.borderColor = "#222233"; }}
           />
           {loading && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 text-xs animate-pulse">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs animate-pulse" style={{ color: "#4A4A66" }}>
               …
             </div>
           )}
           {open && results.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-zinc-900 border border-zinc-700 rounded-xl shadow-xl overflow-hidden">
+            <div className="absolute top-full left-0 right-0 mt-1 z-50 rounded-xl shadow-xl overflow-hidden" style={{ background: "#0F0F1A", border: "1px solid #222233" }}>
               {results.map((p) => (
                 <button
                   key={p.id}
                   onClick={() => select(p)}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-zinc-800 transition-colors text-left"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 transition-colors text-left"
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#141420"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                 >
                   <ProfileAvatar profile={p} size="sm" />
                   <div>
                     <p className="text-white text-sm font-semibold">{p.name}</p>
                     {p.category && (
-                      <p className="text-zinc-500 text-xs capitalize">{p.category.replace("_", " ")}</p>
+                      <p className="text-xs capitalize" style={{ color: "#4A4A66" }}>{p.category.replace("_", " ")}</p>
                     )}
                   </div>
                 </button>
@@ -168,7 +174,7 @@ export default function MatchupPage() {
       {/* Header */}
       <div className="text-center mb-8">
         <h1 className="text-3xl font-black text-white mb-1">🥊 Head-to-Head</h1>
-        <p className="text-zinc-500 text-sm">
+        <p className="text-sm" style={{ color: "#4A4A66" }}>
           See how the community voted between any two people
         </p>
       </div>
@@ -182,7 +188,7 @@ export default function MatchupPage() {
           exclude={profileB?.id}
         />
         <div className="pt-8 shrink-0">
-          <span className="text-2xl font-black text-orange-500">VS</span>
+          <span className="text-2xl font-black" style={{ color: "#8B5CF6" }}>VS</span>
         </div>
         <ProfileSearch
           label="Person 2"
@@ -195,7 +201,7 @@ export default function MatchupPage() {
       {/* Loading */}
       {loading && (
         <div className="text-center py-12">
-          <div className="text-zinc-400 animate-pulse text-sm">Loading matchup data…</div>
+          <div className="text-sm animate-pulse" style={{ color: "#4A4A66" }}>Loading matchup data…</div>
         </div>
       )}
 
@@ -203,8 +209,8 @@ export default function MatchupPage() {
       {!profileA && !profileB && !loading && (
         <div className="text-center py-12">
           <div className="text-5xl mb-4">🔍</div>
-          <p className="text-zinc-400">Search for two people to see how voters compare them</p>
-          <p className="text-zinc-600 text-sm mt-2">
+          <p style={{ color: "#4A4A66" }}>Search for two people to see how voters compare them</p>
+          <p className="text-sm mt-2" style={{ color: "#2A2A3D" }}>
             e.g. search &ldquo;Cristiano&rdquo; vs &ldquo;Beckham&rdquo;
           </p>
         </div>
@@ -214,28 +220,28 @@ export default function MatchupPage() {
       {stats && !loading && (
         <div className="space-y-6">
           {/* Big stat */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+          <div className="rounded-2xl p-6" style={{ background: "#0F0F1A", border: "1px solid #222233" }}>
             <div className="flex items-center justify-between mb-6">
               {/* Profile A */}
               <div className="text-center flex-1">
                 <ProfileAvatar profile={profileA} size="lg" />
                 <p className="text-white font-black text-base mt-2 truncate">{stats.profile_a.name}</p>
-                <p className="text-orange-400 font-black text-3xl mt-1">{aWinPct}%</p>
-                <p className="text-zinc-500 text-xs">{stats.a_wins} wins</p>
+                <p className="font-black text-3xl mt-1" style={{ color: "#A78BFA" }}>{aWinPct}%</p>
+                <p className="text-xs" style={{ color: "#4A4A66" }}>{stats.a_wins} wins</p>
               </div>
 
               {/* VS divider */}
               <div className="text-center px-4">
-                <span className="text-zinc-600 font-black text-xl">VS</span>
-                <p className="text-zinc-600 text-xs mt-1">{stats.total} votes</p>
+                <span className="font-black text-xl" style={{ color: "#2A2A3D" }}>VS</span>
+                <p className="text-xs mt-1" style={{ color: "#2A2A3D" }}>{stats.total} votes</p>
               </div>
 
               {/* Profile B */}
               <div className="text-center flex-1">
                 <ProfileAvatar profile={profileB} size="lg" />
                 <p className="text-white font-black text-base mt-2 truncate">{stats.profile_b.name}</p>
-                <p className="text-orange-400 font-black text-3xl mt-1">{bWinPct}%</p>
-                <p className="text-zinc-500 text-xs">{stats.b_wins} wins</p>
+                <p className="font-black text-3xl mt-1" style={{ color: "#A78BFA" }}>{bWinPct}%</p>
+                <p className="text-xs" style={{ color: "#4A4A66" }}>{stats.b_wins} wins</p>
               </div>
             </div>
 
@@ -244,23 +250,23 @@ export default function MatchupPage() {
               <div>
                 <div className="flex rounded-full overflow-hidden h-3 gap-0.5">
                   <div
-                    className="bg-orange-500 transition-all duration-700"
-                    style={{ width: `${aWinPct}%` }}
+                    className="transition-all duration-700"
+                    style={{ width: `${aWinPct}%`, background: "linear-gradient(90deg, #8B5CF6, #A78BFA)" }}
                   />
                   <div
-                    className="bg-zinc-700 transition-all duration-700"
-                    style={{ width: `${bWinPct}%` }}
+                    className="transition-all duration-700"
+                    style={{ width: `${bWinPct}%`, background: "#222233" }}
                   />
                 </div>
                 <div className="flex justify-between mt-1.5">
-                  <span className="text-zinc-500 text-xs">{stats.profile_a.name}</span>
-                  <span className="text-zinc-500 text-xs">{stats.profile_b.name}</span>
+                  <span className="text-xs" style={{ color: "#4A4A66" }}>{stats.profile_a.name}</span>
+                  <span className="text-xs" style={{ color: "#4A4A66" }}>{stats.profile_b.name}</span>
                 </div>
               </div>
             ) : (
               <div className="text-center py-4">
-                <p className="text-zinc-500 text-sm">No head-to-head battles yet</p>
-                <p className="text-zinc-600 text-xs mt-1">
+                <p className="text-sm" style={{ color: "#4A4A66" }}>No head-to-head battles yet</p>
+                <p className="text-xs mt-1" style={{ color: "#2A2A3D" }}>
                   These two haven&apos;t been matched up in the swipe arena yet
                 </p>
               </div>
@@ -271,40 +277,40 @@ export default function MatchupPage() {
           {stats.total > 0 && (
             <div className="text-center">
               {aWinPct > bWinPct ? (
-                <p className="text-zinc-300 text-sm">
+                <p className="text-sm" style={{ color: "#ccc" }}>
                   <span className="text-white font-bold">{aWinPct}%</span> of voters think{" "}
-                  <span className="text-orange-400 font-bold">{stats.profile_a.name}</span> mogs{" "}
+                  <span className="font-bold" style={{ color: "#A78BFA" }}>{stats.profile_a.name}</span> mogs{" "}
                   {stats.profile_b.name}
                 </p>
               ) : bWinPct > aWinPct ? (
-                <p className="text-zinc-300 text-sm">
+                <p className="text-sm" style={{ color: "#ccc" }}>
                   <span className="text-white font-bold">{bWinPct}%</span> of voters think{" "}
-                  <span className="text-orange-400 font-bold">{stats.profile_b.name}</span> mogs{" "}
+                  <span className="font-bold" style={{ color: "#A78BFA" }}>{stats.profile_b.name}</span> mogs{" "}
                   {stats.profile_a.name}
                 </p>
               ) : (
-                <p className="text-zinc-300 text-sm">
+                <p className="text-sm" style={{ color: "#ccc" }}>
                   The community is{" "}
-                  <span className="text-orange-400 font-bold">perfectly split</span> on this one!
+                  <span className="font-bold" style={{ color: "#A78BFA" }}>perfectly split</span> on this one!
                 </p>
               )}
             </div>
           )}
 
           {/* ELO comparison */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
-            <p className="text-zinc-500 text-xs font-bold uppercase tracking-wider mb-3">
+          <div className="rounded-2xl p-4" style={{ background: "#0F0F1A", border: "1px solid #222233" }}>
+            <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: "#4A4A66" }}>
               Global ELO
             </p>
             <div className="flex items-center gap-4">
               <div className="flex-1 text-center">
-                <p className="text-orange-400 font-black text-2xl">{stats.a_elo}</p>
-                <p className="text-zinc-500 text-xs truncate">{stats.profile_a.name}</p>
+                <p className="font-black text-2xl" style={{ color: "#F0C040" }}>{stats.a_elo}</p>
+                <p className="text-xs truncate" style={{ color: "#4A4A66" }}>{stats.profile_a.name}</p>
               </div>
-              <div className="text-zinc-700 font-bold">vs</div>
+              <div className="font-bold" style={{ color: "#2A2A3D" }}>vs</div>
               <div className="flex-1 text-center">
-                <p className="text-orange-400 font-black text-2xl">{stats.b_elo}</p>
-                <p className="text-zinc-500 text-xs truncate">{stats.profile_b.name}</p>
+                <p className="font-black text-2xl" style={{ color: "#F0C040" }}>{stats.b_elo}</p>
+                <p className="text-xs truncate" style={{ color: "#4A4A66" }}>{stats.profile_b.name}</p>
               </div>
             </div>
           </div>

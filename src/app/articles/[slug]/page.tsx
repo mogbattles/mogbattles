@@ -42,19 +42,19 @@ export default function ArticleDetailPage() {
 
   if (loading) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
-        <div className="h-8 rounded-xl animate-pulse" style={{ background: "#111827" }} />
-        <div className="h-64 rounded-2xl animate-pulse" style={{ background: "#111827" }} />
+      <div className="max-w-2xl mx-auto px-4 pt-20 pb-28 space-y-4">
+        <div className="h-8 rounded-xl animate-pulse bg-navy-800" />
+        <div className="h-64 rounded-2xl animate-pulse bg-navy-800" />
       </div>
     );
   }
 
   if (!article) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-6 text-center">
-        <div className="text-5xl mb-4">📝</div>
-        <p className="text-zinc-400 font-semibold">Article not found</p>
-        <Link href="/articles" className="text-xs font-bold mt-4 inline-block" style={{ color: "#4D9FFF" }}>
+      <div className="max-w-2xl mx-auto px-4 pt-20 pb-28 text-center">
+        <div className="text-5xl mb-4 opacity-30">📝</div>
+        <p className="font-black text-navy-200">Article not found</p>
+        <Link href="/articles" className="text-xs font-bold mt-4 inline-block text-purple-bright hover:text-white transition-colors">
           ← Back to Articles
         </Link>
       </div>
@@ -62,8 +62,8 @@ export default function ArticleDetailPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6">
-      <Link href="/articles" className="inline-flex items-center gap-1 text-xs font-bold mb-6 transition-colors" style={{ color: "#3D5070" }}>
+    <div className="max-w-2xl mx-auto px-4 pt-20 pb-28">
+      <Link href="/articles" className="inline-flex items-center gap-1 text-xs font-bold mb-6 transition-colors text-navy-200 hover:text-white">
         ← Articles
       </Link>
 
@@ -76,7 +76,7 @@ export default function ArticleDetailPage() {
 
       <h1 className="text-3xl font-black text-white leading-snug mb-3">{article.title}</h1>
 
-      <div className="flex items-center gap-3 mb-8 text-xs font-bold" style={{ color: "#3D5070" }}>
+      <div className="flex items-center gap-3 mb-8 text-xs font-bold text-navy-200">
         {article.author_display && <span>By {article.author_display}</span>}
         <span>{new Date(article.published_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</span>
       </div>
@@ -84,13 +84,13 @@ export default function ArticleDetailPage() {
       {article.content && (
         <div className="space-y-4">
           {article.content.split("\n\n").map((para, i) => (
-            <p key={i} className="text-base leading-relaxed" style={{ color: "#8096B0" }}>{para}</p>
+            <p key={i} className="text-base leading-relaxed text-navy-100">{para}</p>
           ))}
         </div>
       )}
 
-      <div className="mt-12 pt-6 border-t" style={{ borderColor: "#1B2338" }}>
-        <Link href="/articles" className="text-xs font-bold transition-colors" style={{ color: "#4D9FFF" }}>
+      <div className="mt-12 pt-6 border-t border-navy-500">
+        <Link href="/articles" className="text-xs font-bold transition-colors text-purple-bright hover:text-white">
           ← More Articles
         </Link>
       </div>

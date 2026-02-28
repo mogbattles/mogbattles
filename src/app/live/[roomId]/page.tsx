@@ -31,21 +31,15 @@ function ViewerCount() {
   const participants = useParticipants();
   return (
     <div
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg"
-      style={{
-        background: "rgba(7,9,15,0.8)",
-        border: "1px solid rgba(240,192,64,0.15)",
-        backdropFilter: "blur(4px)",
-      }}
+      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-navy-950/80 border border-gold/15 backdrop-blur-sm"
     >
       <span className="text-xs">👁</span>
       <span
-        className="text-xs font-black"
-        style={{ color: "#F0C040" }}
+        className="text-xs font-black text-gold"
       >
         {participants.length}
       </span>
-      <span className="text-[10px] font-bold" style={{ color: "#4D6080" }}>
+      <span className="text-[10px] font-bold text-navy-200">
         watching
       </span>
     </div>
@@ -90,6 +84,7 @@ export default function StreamRoomPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [ending, setEnding] = useState(false);
+  const [mediaError, setMediaError] = useState<string | null>(null);
 
   const isHost = user && stream ? user.id === stream.host_id : false;
 
@@ -249,7 +244,7 @@ export default function StreamRoomPage() {
           className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
           style={{ borderColor: "#F0C040", borderTopColor: "transparent" }}
         />
-        <p className="mt-3 text-sm font-bold" style={{ color: "#3D5070" }}>
+        <p className="mt-3 text-sm font-bold" style={{ color: "var(--text-muted)" }}>
           Connecting to stream...
         </p>
       </div>
@@ -261,14 +256,14 @@ export default function StreamRoomPage() {
       <div className="min-h-screen flex flex-col items-center justify-center px-4 text-center">
         <div className="text-5xl mb-4">📡</div>
         <h1 className="text-xl font-black text-white mb-2">{error}</h1>
-        <p className="text-xs mb-6" style={{ color: "#3D5070" }}>
+        <p className="text-xs mb-6" style={{ color: "var(--text-muted)" }}>
           The stream may have ended or the link might be invalid.
         </p>
         <button
           onClick={() => router.push("/live")}
           className="px-5 py-2.5 rounded-xl text-sm font-bold transition-colors"
           style={{
-            background: "#141A2C",
+            background: "#0F0F1A",
             color: "#F0C040",
             border: "1px solid rgba(240,192,64,0.2)",
           }}
@@ -286,7 +281,7 @@ export default function StreamRoomPage() {
         <h1 className="text-xl font-black text-white mb-2">
           Sign in to watch
         </h1>
-        <p className="text-xs mb-6" style={{ color: "#3D5070" }}>
+        <p className="text-xs mb-6" style={{ color: "var(--text-muted)" }}>
           You need an account to watch live streams.
         </p>
         <button
@@ -310,7 +305,7 @@ export default function StreamRoomPage() {
           className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
           style={{ borderColor: "#F0C040", borderTopColor: "transparent" }}
         />
-        <p className="mt-3 text-sm font-bold" style={{ color: "#3D5070" }}>
+        <p className="mt-3 text-sm font-bold" style={{ color: "var(--text-muted)" }}>
           Joining stream...
         </p>
       </div>
@@ -325,7 +320,7 @@ export default function StreamRoomPage() {
         <h1 className="text-xl font-black text-white mb-2">
           Streaming Not Configured
         </h1>
-        <p className="text-xs" style={{ color: "#3D5070" }}>
+        <p className="text-xs" style={{ color: "var(--text-muted)" }}>
           LiveKit environment variables are not set. Contact the site admin.
         </p>
       </div>
@@ -342,7 +337,7 @@ export default function StreamRoomPage() {
           height: "56px",
           background:
             "linear-gradient(180deg, rgba(7,9,15,0.97) 0%, rgba(12,16,32,0.85) 100%)",
-          borderBottom: "1px solid #1B2338",
+          borderBottom: "1px solid #222233",
           backdropFilter: "blur(16px)",
         }}
       >
@@ -350,7 +345,7 @@ export default function StreamRoomPage() {
           <button
             onClick={() => router.push("/live")}
             className="text-xs font-bold px-2 py-1 rounded-lg transition-colors"
-            style={{ color: "#4D6080", background: "rgba(255,255,255,0.03)" }}
+            style={{ color: "#4A4A66", background: "rgba(255,255,255,0.03)" }}
           >
             ← Back
           </button>
@@ -378,7 +373,7 @@ export default function StreamRoomPage() {
             <h1 className="text-sm font-black text-white truncate leading-tight">
               {stream.title}
             </h1>
-            <p className="text-[10px] font-bold" style={{ color: "#4D6080" }}>
+            <p className="text-[10px] font-bold" style={{ color: "var(--text-muted)" }}>
               {stream.host_name} · {timeSince(stream.started_at)}
             </p>
           </div>
@@ -410,6 +405,23 @@ export default function StreamRoomPage() {
           connect={true}
           video={isHost}
           audio={isHost}
+          onMediaDeviceFailure={(failure) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const kind = (failure as any)?.kind;
+            if (kind === "videoinput") {
+              setMediaError(
+                "Camera access failed. If you're already streaming on another app (OBS, Twitch, YouTube, etc.), your camera may be locked to that app. Try closing the other app first, or use Screen Share instead."
+              );
+            } else if (kind === "audioinput") {
+              setMediaError(
+                "Microphone access failed. Another app may be using your mic exclusively, or browser permissions were denied. Check your browser settings."
+              );
+            } else {
+              setMediaError(
+                "Could not access your camera or microphone. Make sure browser permissions are allowed and no other app is locking the device."
+              );
+            }
+          }}
           onDisconnected={() => {
             if (!isHost) {
               setError("Disconnected from stream");
@@ -418,6 +430,44 @@ export default function StreamRoomPage() {
           style={{ height: "100%" }}
           data-lk-theme="default"
         >
+          {/* Camera/mic error banner for host */}
+          {isHost && mediaError && (
+            <div
+              className="absolute top-0 left-0 right-0 z-40 px-4 py-3"
+              style={{
+                background: "rgba(239,68,68,0.12)",
+                borderBottom: "1px solid rgba(239,68,68,0.3)",
+                backdropFilter: "blur(8px)",
+              }}
+            >
+              <div className="max-w-2xl mx-auto flex items-start gap-3">
+                <span className="text-lg shrink-0 mt-0.5">⚠️</span>
+                <div className="flex-1 min-w-0">
+                  <p
+                    className="text-xs font-bold leading-relaxed"
+                    style={{ color: "#F0A0A0" }}
+                  >
+                    {mediaError}
+                  </p>
+                  <p
+                    className="text-[10px] font-bold mt-1.5"
+                    style={{ color: "#6B3030" }}
+                  >
+                    Tip: You can still use Screen Share from the controls below to
+                    stream your screen instead of your camera.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setMediaError(null)}
+                  className="text-xs font-bold shrink-0 px-2 py-1 rounded-lg"
+                  style={{ color: "#EF4444", background: "rgba(239,68,68,0.1)" }}
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
+
           {isHost ? (
             /* Host sees full video conference controls */
             <VideoConference />

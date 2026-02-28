@@ -20,7 +20,7 @@ function timeAgo(iso: string): string {
 }
 
 function Avatar({ src, name, size = 44 }: { src: string | null; name: string; size?: number }) {
-  const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=111827&color=888&size=${size * 2}&bold=true`;
+  const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0F0F1A&color=888&size=${size * 2}&bold=true`;
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
@@ -28,7 +28,7 @@ function Avatar({ src, name, size = 44 }: { src: string | null; name: string; si
       alt={name}
       width={size}
       height={size}
-      className="rounded-full object-cover shrink-0"
+      className="rounded-full object-cover shrink-0 ring-2 ring-navy-500"
       style={{ width: size, height: size }}
       onError={(e) => { (e.target as HTMLImageElement).src = fallback; }}
     />
@@ -72,36 +72,36 @@ export default function MessagesPage() {
   if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
-        <div
-          className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
-          style={{ borderColor: "#F0C040", borderTopColor: "transparent" }}
-        />
+        <div className="w-8 h-8 rounded-full border-2 border-purple border-t-transparent animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-8">
-      <h1 className="text-2xl font-black text-white mb-6">💬 Messages</h1>
+    <div className="max-w-lg mx-auto px-4 pt-20 pb-28">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-6">
+        <span className="text-2xl">💬</span>
+        <div>
+          <h1 className="font-heading tracking-wide text-3xl text-gradient-purple">
+            Messages
+          </h1>
+          <p className="text-[11px] font-bold text-navy-200">
+            Direct messages with friends
+          </p>
+        </div>
+      </div>
 
       {convos.length === 0 ? (
-        <div
-          className="rounded-2xl p-8 text-center"
-          style={{ background: "#111827", border: "1px solid #1B2338" }}
-        >
-          <p className="text-4xl mb-3">💬</p>
-          <p className="font-bold text-white mb-1">No conversations yet</p>
-          <p className="text-sm mb-5" style={{ color: "#3D5070" }}>
+        <div className="game-card rounded-2xl p-8 text-center">
+          <p className="text-4xl mb-3 opacity-30">💬</p>
+          <p className="font-black text-white mb-1">No conversations yet</p>
+          <p className="text-sm mb-5 text-navy-200">
             Follow someone and have them follow you back to start chatting.
           </p>
           <Link
             href="/leaderboard/members"
-            className="inline-block py-2.5 px-5 rounded-xl font-black text-sm uppercase tracking-wide"
-            style={{
-              background: "rgba(240,192,64,0.15)",
-              border: "1px solid rgba(240,192,64,0.4)",
-              color: "#F0C040",
-            }}
+            className="btn-purple inline-block py-2.5 px-5 rounded-xl text-sm uppercase tracking-wide"
           >
             Browse Players
           </Link>
@@ -112,22 +112,13 @@ export default function MessagesPage() {
             <Link
               key={c.id}
               href={`/messages/${c.other_user_id}`}
-              className="flex items-center gap-3 p-3.5 rounded-2xl transition-colors hover:bg-white/5"
-              style={{ background: "#111827", border: "1px solid #1B2338" }}
+              className="flex items-center gap-3 p-3.5 rounded-2xl game-card transition-all duration-150 hover:border-purple/40 hover:shadow-[0_0_20px_rgba(139,92,246,0.06)] active:scale-[0.98]"
             >
               <div className="relative">
                 <Avatar src={c.other_user_image} name={c.other_user_name} size={46} />
                 {c.unread_count > 0 && (
-                  <span
-                    className="absolute -top-1 -right-1 text-xs font-black rounded-full flex items-center justify-center"
-                    style={{
-                      background: "#EF4444",
-                      color: "#fff",
-                      minWidth: "18px",
-                      height: "18px",
-                      padding: "0 4px",
-                      fontSize: "10px",
-                    }}
+                  <span className="absolute -top-1 -right-1 badge-purple flex items-center justify-center"
+                    style={{ minWidth: 18, height: 18, padding: "0 4px", fontSize: 10 }}
                   >
                     {c.unread_count > 99 ? "99+" : c.unread_count}
                   </span>
@@ -140,7 +131,7 @@ export default function MessagesPage() {
                     {c.other_user_name}
                   </p>
                   {c.last_message_at && (
-                    <p className="text-xs shrink-0" style={{ color: "#3D5070" }}>
+                    <p className="text-[10px] font-bold shrink-0 text-navy-200">
                       {timeAgo(c.last_message_at)}
                     </p>
                   )}

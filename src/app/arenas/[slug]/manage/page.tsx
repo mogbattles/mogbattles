@@ -110,7 +110,10 @@ export default function ManageArenaPage() {
   if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
-        <div className="text-zinc-400 animate-pulse">Loading…</div>
+        <div
+          className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
+          style={{ borderColor: "#8B5CF6", borderTopColor: "transparent" }}
+        />
       </div>
     );
   }
@@ -118,8 +121,8 @@ export default function ManageArenaPage() {
   if (message && !arena) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] px-4 text-center gap-4">
-        <p className="text-red-400 font-bold">{message}</p>
-        <Link href="/swipe" className="text-zinc-500 hover:text-white text-sm underline">
+        <p className="font-bold" style={{ color: "#EF4444" }}>{message}</p>
+        <Link href="/swipe" className="text-sm underline" style={{ color: "#4A4A66" }}>
           ← Go back
         </Link>
       </div>
@@ -132,13 +135,13 @@ export default function ManageArenaPage() {
     <div className="max-w-2xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-6">
-        <Link href={`/swipe/${arena.slug}`} className="text-zinc-500 hover:text-zinc-300 text-xs">
+        <Link href={`/swipe/${arena.slug}`} className="text-xs" style={{ color: "#4A4A66" }}>
           ← View arena
         </Link>
         <h1 className="text-2xl font-black text-white mt-2">
           Manage: {arena.name}
         </h1>
-        <p className="text-zinc-500 text-sm mt-1">
+        <p className="text-sm mt-1" style={{ color: "#4A4A66" }}>
           {members.length} members ·{" "}
           <span className="capitalize">{arena.visibility}</span> ·{" "}
           <span className="capitalize">{arena.arena_type}</span>
@@ -147,24 +150,25 @@ export default function ManageArenaPage() {
 
       {/* Feedback message */}
       {message && (
-        <div className="mb-4 bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-zinc-300">
+        <div className="mb-4 rounded-xl px-4 py-3 text-sm" style={{ background: "#141420", border: "1px solid #222233", color: "#ccc" }}>
           {message}
         </div>
       )}
 
       {/* Invite link (for private arenas) */}
       {arena.visibility === "private" && (
-        <div className="mb-6 bg-zinc-900 border border-zinc-700 rounded-xl p-4">
+        <div className="mb-6 rounded-xl p-4" style={{ background: "#0F0F1A", border: "1px solid #222233" }}>
           <h3 className="text-white font-bold text-sm mb-2">🔒 Invite Link</h3>
           <div className="flex gap-2">
-            <code className="flex-1 bg-zinc-800 text-zinc-400 text-xs rounded-lg px-3 py-2 truncate">
+            <code className="flex-1 text-xs rounded-lg px-3 py-2 truncate" style={{ background: "#141420", color: "#4A4A66" }}>
               {typeof window !== "undefined"
                 ? `${window.location.origin}/join/${arena.invite_token}`
                 : `…/join/${arena.invite_token}`}
             </code>
             <button
               onClick={handleCopyInviteLink}
-              className="bg-zinc-700 hover:bg-orange-500 text-white text-xs font-bold px-3 py-2 rounded-lg transition-colors shrink-0"
+              className="text-xs font-bold px-3 py-2 rounded-lg transition-colors shrink-0"
+              style={{ background: "rgba(139,92,246,0.15)", border: "1px solid rgba(139,92,246,0.3)", color: "#A78BFA" }}
             >
               {copied ? "Copied!" : "Copy"}
             </button>
@@ -181,41 +185,48 @@ export default function ManageArenaPage() {
             placeholder="Search by name…"
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
-            className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder:text-zinc-600 focus:outline-none focus:border-orange-500 transition-colors text-sm"
+            className="w-full rounded-xl px-4 py-3 text-white text-sm focus:outline-none transition-colors"
+            style={{ background: "#0F0F1A", border: "1px solid #222233", caretColor: "#8B5CF6" }}
+            onFocus={(e) => { (e.target as HTMLElement).style.borderColor = "rgba(139,92,246,0.5)"; }}
+            onBlur={(e) => { (e.target as HTMLElement).style.borderColor = "#222233"; }}
           />
           {searching && (
-            <span className="absolute right-3 top-3 text-zinc-500 text-xs">
+            <span className="absolute right-3 top-3 text-xs" style={{ color: "#4A4A66" }}>
               Searching…
             </span>
           )}
         </div>
 
         {searchResults.length > 0 && (
-          <div className="mt-2 bg-zinc-900 border border-zinc-700 rounded-xl overflow-hidden">
+          <div className="mt-2 rounded-xl overflow-hidden" style={{ background: "#0F0F1A", border: "1px solid #222233" }}>
             {searchResults.map((r) => (
               <button
                 key={r.id}
                 onClick={() => handleAdd(r.id, r.name)}
-                className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-zinc-800 transition-colors text-left border-b border-zinc-800 last:border-b-0"
+                className="w-full flex items-center gap-3 px-4 py-2.5 transition-colors text-left"
+                style={{ borderBottom: "1px solid #141420" }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#141420"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={
                     r.image_url ||
-                    `https://ui-avatars.com/api/?name=${encodeURIComponent(r.name)}&background=27272a&color=555&size=64`
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(r.name)}&background=0F0F1A&color=555&size=64`
                   }
                   alt={r.name}
-                  className="w-8 h-8 rounded-full object-cover border border-zinc-700 shrink-0"
+                  className="w-8 h-8 rounded-full object-cover shrink-0"
+                  style={{ border: "1px solid #222233" }}
                 />
                 <div>
                   <p className="text-white text-sm font-semibold">{r.name}</p>
                   {r.category && (
-                    <p className="text-zinc-500 text-xs capitalize">
+                    <p className="text-xs capitalize" style={{ color: "#4A4A66" }}>
                       {r.category.replace("_", " ")}
                     </p>
                   )}
                 </div>
-                <span className="ml-auto text-orange-500 text-xs font-bold">Add +</span>
+                <span className="ml-auto text-xs font-bold" style={{ color: "#A78BFA" }}>Add +</span>
               </button>
             ))}
           </div>
@@ -228,7 +239,7 @@ export default function ManageArenaPage() {
           Members ({members.length})
         </h3>
         {members.length === 0 ? (
-          <p className="text-zinc-600 text-sm">
+          <p className="text-sm" style={{ color: "#2A2A3D" }}>
             No members yet. Search above to add profiles.
           </p>
         ) : (
@@ -236,28 +247,33 @@ export default function ManageArenaPage() {
             {members.map((m) => (
               <div
                 key={m.id}
-                className="flex items-center gap-3 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3"
+                className="flex items-center gap-3 rounded-xl px-4 py-3"
+                style={{ background: "#0F0F1A", border: "1px solid #222233" }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={
                     m.image_url ||
-                    `https://ui-avatars.com/api/?name=${encodeURIComponent(m.name)}&background=27272a&color=555&size=80`
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(m.name)}&background=0F0F1A&color=555&size=80`
                   }
                   alt={m.name}
-                  className="w-10 h-10 rounded-full object-cover border border-zinc-700 shrink-0"
+                  className="w-10 h-10 rounded-full object-cover shrink-0"
+                  style={{ border: "1px solid #222233" }}
                 />
                 <div className="flex-1 min-w-0">
                   <p className="text-white font-semibold text-sm truncate">
                     {m.name}
                   </p>
-                  <p className="text-zinc-500 text-xs">
+                  <p className="text-xs" style={{ color: "#4A4A66" }}>
                     {m.elo_rating} ELO · {m.wins}W {m.losses}L
                   </p>
                 </div>
                 <button
                   onClick={() => handleRemove(m.id, m.name)}
-                  className="text-zinc-600 hover:text-red-400 text-xs font-bold transition-colors shrink-0"
+                  className="text-xs font-bold transition-colors shrink-0"
+                  style={{ color: "#4A4A66" }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "#EF4444"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "#4A4A66"; }}
                 >
                   Remove
                 </button>
@@ -268,10 +284,10 @@ export default function ManageArenaPage() {
       </div>
 
       {/* Battle this arena link */}
-      <div className="mt-8 pt-6 border-t border-zinc-800">
+      <div className="mt-8 pt-6" style={{ borderTop: "1px solid #222233" }}>
         <Link
           href={`/swipe/${arena.slug}`}
-          className="block text-center bg-orange-500 hover:bg-orange-400 text-white font-black py-3 rounded-xl transition-colors"
+          className="btn-purple gold-pulse-btn block text-center font-black py-3 rounded-xl"
         >
           ⚔️ Battle this arena →
         </Link>

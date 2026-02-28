@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { countryFlagByName } from "@/lib/countries";
+import gsap from "gsap";
 
 interface ProfileCardProps {
   name: string;
@@ -24,7 +25,7 @@ function fmtHeight(totalIn: number): string {
 }
 
 function fallback(name: string) {
-  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=141A2C&color=8FA0C0&size=400&bold=true`;
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0F0F1A&color=8888AA&size=400&bold=true`;
 }
 
 export default function ProfileCard({
@@ -54,8 +55,34 @@ export default function ProfileCard({
   const hasMultiple = images.length > 1;
   const currentImage = images[currentIdx] ?? null;
 
+  const cardRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const touchStartX = useRef<number | null>(null);
+
+  // GSAP hover lift effect
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    if (hovered && !pressed) {
+      gsap.to(el, {
+        y: -4, scale: 1.03, duration: 0.25, ease: "power2.out",
+        boxShadow: "0 12px 0 #050508, 0 0 32px rgba(139,92,246,0.35), 0 0 60px rgba(139,92,246,0.12)",
+        borderColor: "rgba(139,92,246,0.6)",
+      });
+    } else if (pressed) {
+      gsap.to(el, {
+        y: 3, scale: 0.97, duration: 0.1, ease: "power2.in",
+        boxShadow: "0 2px 0 #050508, 0 2px 8px rgba(0,0,0,0.6)",
+        borderColor: "rgba(139,92,246,0.8)",
+      });
+    } else {
+      gsap.to(el, {
+        y: 0, scale: 1, duration: 0.3, ease: "power2.out",
+        boxShadow: "0 6px 0 #050508, 0 4px 20px rgba(0,0,0,0.5)",
+        borderColor: "#222233",
+      });
+    }
+  }, [hovered, pressed]);
 
   const resetTimer = useCallback(() => {
     if (!hasMultiple) return;
@@ -100,32 +127,20 @@ export default function ProfileCard({
   const winRate =
     wins + losses > 0 ? Math.round((wins / (wins + losses)) * 100) : null;
 
-  /* Dynamic styles based on hover/press state */
   const cardStyle = {
     maxWidth: "240px",
     borderRadius: "20px",
     overflow: "hidden" as const,
-    border: hovered ? "2px solid #F0C040" : "2px solid #1B2338",
-    boxShadow: pressed
-      ? "0 2px 0 #040609, 0 2px 8px rgba(0,0,0,0.6)"
-      : hovered
-      ? "0 6px 0 #040609, 0 0 28px rgba(240,192,64,0.35), 0 0 60px rgba(240,192,64,0.12)"
-      : "0 6px 0 #040609, 0 4px 20px rgba(0,0,0,0.5)",
-    transform: pressed
-      ? "scale(0.97) translateY(3px)"
-      : hovered
-      ? "scale(1.025) translateY(-2px)"
-      : "scale(1)",
-    transition: "all 0.14s ease",
-    background: "#141A2C",
+    border: "2px solid #222233",
+    boxShadow: "0 6px 0 #050508, 0 4px 20px rgba(0,0,0,0.5)",
+    background: "#0F0F1A",
     cursor: "pointer",
     userSelect: "none" as const,
   };
 
   return (
-    // div instead of button to prevent nested-button hydration error
-    // (photo arrows + dot indicators are <button> elements inside)
     <div
+      ref={cardRef}
       role="button"
       tabIndex={0}
       onClick={onClick}
@@ -142,9 +157,9 @@ export default function ProfileCard({
       {/* ── Photo area ───────────────────────────────────── */}
       <div
         className="aspect-[3/4] relative select-none"
-        style={{ background: "#0C1020" }}
+        style={{ background: "#050508" }}
       >
-        {/* Hidden preload: ensure all carousel images are in browser cache */}
+        {/* Hidden preload */}
         {images.map((url, i) =>
           i !== currentIdx && url ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -168,19 +183,19 @@ export default function ProfileCard({
           {...({ fetchPriority: "high" } as any)}
           onError={(e) => {
             const img = e.target as HTMLImageElement;
-            img.onerror = null; // prevent infinite loop if fallback also fails
+            img.onerror = null;
             img.src = fallback(name);
           }}
           draggable={false}
         />
 
-        {/* Bottom gradient bleeds into info panel */}
+        {/* Bottom gradient */}
         <div
           className="absolute bottom-0 left-0 right-0 pointer-events-none"
           style={{
             height: "50%",
             background:
-              "linear-gradient(to top, rgba(8,10,20,0.97) 0%, rgba(8,10,20,0.6) 55%, transparent 100%)",
+              "linear-gradient(to top, rgba(5,5,8,0.97) 0%, rgba(5,5,8,0.6) 55%, transparent 100%)",
           }}
         />
 
@@ -188,8 +203,8 @@ export default function ProfileCard({
         <div
           className="absolute top-2 right-2 z-20 flex items-center gap-1 px-2 py-0.5 rounded-lg"
           style={{
-            background: "rgba(7,9,15,0.8)",
-            border: `1px solid ${hovered ? "rgba(240,192,64,0.5)" : "rgba(240,192,64,0.15)"}`,
+            background: "rgba(5,5,8,0.85)",
+            border: `1px solid ${hovered ? "rgba(139,92,246,0.5)" : "rgba(139,92,246,0.15)"}`,
             backdropFilter: "blur(4px)",
           }}
         >
@@ -212,8 +227,8 @@ export default function ProfileCard({
               }}
               className="absolute left-1.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 flex items-center justify-center rounded-full"
               style={{
-                background: "rgba(7,9,15,0.72)",
-                border: "1px solid rgba(240,192,64,0.25)",
+                background: "rgba(5,5,8,0.72)",
+                border: "1px solid rgba(139,92,246,0.25)",
                 color: "rgba(255,255,255,0.9)",
                 fontSize: "17px",
                 lineHeight: 1,
@@ -230,8 +245,8 @@ export default function ProfileCard({
               }}
               className="absolute right-1.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 flex items-center justify-center rounded-full"
               style={{
-                background: "rgba(7,9,15,0.72)",
-                border: "1px solid rgba(240,192,64,0.25)",
+                background: "rgba(5,5,8,0.72)",
+                border: "1px solid rgba(139,92,246,0.25)",
                 color: "rgba(255,255,255,0.9)",
                 fontSize: "17px",
                 lineHeight: 1,
@@ -243,7 +258,7 @@ export default function ProfileCard({
           </>
         )}
 
-        {/* Photo indicators — gold pills */}
+        {/* Photo indicators — purple pills */}
         {hasMultiple && (
           <div className="absolute bottom-[46px] left-0 right-0 flex justify-center gap-1.5 z-20">
             {images.map((_, i) => (
@@ -257,11 +272,11 @@ export default function ProfileCard({
                   borderRadius: "2px",
                   background:
                     i === currentIdx
-                      ? "#F0C040"
-                      : "rgba(240,192,64,0.25)",
+                      ? "#8B5CF6"
+                      : "rgba(139,92,246,0.25)",
                   boxShadow:
                     i === currentIdx
-                      ? "0 0 6px rgba(240,192,64,0.7)"
+                      ? "0 0 6px rgba(139,92,246,0.7)"
                       : "none",
                   transition: "width 0.25s ease, background 0.25s ease",
                 }}
@@ -287,7 +302,7 @@ export default function ProfileCard({
               boxShadow: "0 0 16px rgba(240,192,64,0.7), 0 2px 6px rgba(0,0,0,0.4)",
             }}
           >
-            👑 MOGS
+            MOGS
           </span>
         </div>
       </div>
@@ -296,7 +311,7 @@ export default function ProfileCard({
       <div
         className="px-3 pb-3 pt-1.5 text-left"
         style={{
-          background: "linear-gradient(160deg, #111827 0%, #0C1020 100%)",
+          background: "linear-gradient(160deg, #141420 0%, #0A0A12 100%)",
         }}
       >
         {/* Name + flag */}
@@ -316,15 +331,15 @@ export default function ProfileCard({
         {(heightIn || weightLbs) && (
           <div className="flex items-center gap-1.5 mt-0.5">
             {heightIn && (
-              <span style={{ color: "#4D6080", fontSize: "10px", fontWeight: 700 }}>
+              <span style={{ color: "#4A4A66", fontSize: "10px", fontWeight: 700 }}>
                 {fmtHeight(heightIn)}
               </span>
             )}
             {heightIn && weightLbs && (
-              <span style={{ color: "#2E3D58", fontSize: "10px" }}>·</span>
+              <span style={{ color: "#353548", fontSize: "10px" }}>·</span>
             )}
             {weightLbs && (
-              <span style={{ color: "#4D6080", fontSize: "10px", fontWeight: 700 }}>
+              <span style={{ color: "#4A4A66", fontSize: "10px", fontWeight: 700 }}>
                 {weightLbs} lbs
               </span>
             )}
@@ -333,15 +348,15 @@ export default function ProfileCard({
 
         {/* Stats row */}
         <div className="flex items-center justify-between mt-0.5">
-          <p style={{ color: "#3D5070", fontSize: "11px", fontWeight: 700 }}>
+          <p style={{ color: "#4A4A66", fontSize: "11px", fontWeight: 700 }}>
             {wins}W–{losses}L
             {winRate !== null && (
-              <span style={{ color: "#2E3D58" }}> · {winRate}%</span>
+              <span style={{ color: "#353548" }}> · {winRate}%</span>
             )}
           </p>
           <span
             style={{
-              color: "#1B2338",
+              color: "#222233",
               fontSize: "10px",
               fontWeight: 900,
               letterSpacing: "0.08em",

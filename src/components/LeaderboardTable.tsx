@@ -11,7 +11,7 @@ interface LeaderboardEntry extends ArenaProfile {
 }
 
 function avatarUrl(name: string) {
-  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=111827&color=555&size=96&bold=true`;
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0F0F1A&color=555&size=96&bold=true`;
 }
 
 function RankLabel({ rank }: { rank: number }) {
@@ -19,7 +19,7 @@ function RankLabel({ rank }: { rank: number }) {
   if (rank === 2) return <span className="text-lg">🥈</span>;
   if (rank === 3) return <span className="text-lg">🥉</span>;
   return (
-    <span className="font-black text-xs" style={{ color: "#253147" }}>
+    <span className="font-black text-xs" style={{ color: "#2A2A3D" }}>
       #{rank}
     </span>
   );
@@ -36,7 +36,6 @@ export default function LeaderboardTable({ arenaId, arenaSlug }: { arenaId: stri
     setEntries(data);
     setLoading(false);
 
-    // Batch-load top 3 tags for all profiles in one query
     if (data.length > 0) {
       const tagMap = await getTopTagsForProfiles(data.map((e) => e.id));
       setTopTags(tagMap);
@@ -64,7 +63,7 @@ export default function LeaderboardTable({ arenaId, arenaSlug }: { arenaId: stri
       <div className="flex items-center justify-center h-[50vh]">
         <div
           className="w-8 h-8 rounded-full border-2 animate-spin"
-          style={{ borderColor: "#F0C040", borderTopColor: "transparent" }}
+          style={{ borderColor: "#8B5CF6", borderTopColor: "transparent" }}
         />
       </div>
     );
@@ -74,7 +73,7 @@ export default function LeaderboardTable({ arenaId, arenaSlug }: { arenaId: stri
     return (
       <div className="text-center mt-16">
         <p className="text-lg font-bold text-white mb-1">No battles yet.</p>
-        <p className="text-sm" style={{ color: "#3D5070" }}>Be the first to vote!</p>
+        <p className="text-sm" style={{ color: "#4A4A66" }}>Be the first to vote!</p>
       </div>
     );
   }
@@ -88,13 +87,13 @@ export default function LeaderboardTable({ arenaId, arenaSlug }: { arenaId: stri
         onChange={(e) => setSearch(e.target.value)}
         placeholder="Search by name or country…"
         className="w-full rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none transition-colors"
-        style={{ background: "#111827", border: "1px solid #1B2338" }}
-        onFocus={(e) => { e.target.style.borderColor = "#F0C040"; }}
-        onBlur={(e) => { e.target.style.borderColor = "#1B2338"; }}
+        style={{ background: "#0F0F1A", border: "1px solid #222233" }}
+        onFocus={(e) => { e.target.style.borderColor = "#8B5CF6"; }}
+        onBlur={(e) => { e.target.style.borderColor = "#222233"; }}
       />
 
       {filtered.length === 0 && (
-        <p className="text-center text-sm py-8" style={{ color: "#253147" }}>
+        <p className="text-center text-sm py-8" style={{ color: "#2A2A3D" }}>
           No results for &ldquo;{search}&rdquo;
         </p>
       )}
@@ -115,18 +114,18 @@ export default function LeaderboardTable({ arenaId, arenaSlug }: { arenaId: stri
               href={`/players/${entry.id}`}
               className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl transition-all"
               style={{
-                background: entry.rank === 1 ? "rgba(240,192,64,0.06)"
-                  : entry.rank === 2 ? "rgba(192,192,192,0.05)"
-                  : entry.rank === 3 ? "rgba(180,100,40,0.05)"
-                  : "#111827",
-                border: `1px solid ${isTop ? topBorder : "#1B2338"}`,
+                background: entry.rank === 1 ? "rgba(240,192,64,0.04)"
+                  : entry.rank === 2 ? "rgba(192,192,192,0.03)"
+                  : entry.rank === 3 ? "rgba(180,100,40,0.03)"
+                  : "#0F0F1A",
+                border: `1px solid ${isTop ? topBorder : "#222233"}`,
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.borderColor = "#F0C040";
-                (e.currentTarget as HTMLElement).style.boxShadow = "0 0 14px rgba(240,192,64,0.07)";
+                (e.currentTarget as HTMLElement).style.borderColor = "rgba(139,92,246,0.5)";
+                (e.currentTarget as HTMLElement).style.boxShadow = "0 0 14px rgba(139,92,246,0.07)";
               }}
               onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.borderColor = isTop ? topBorder : "#1B2338";
+                (e.currentTarget as HTMLElement).style.borderColor = isTop ? topBorder : "#222233";
                 (e.currentTarget as HTMLElement).style.boxShadow = "none";
               }}
             >
@@ -146,7 +145,7 @@ export default function LeaderboardTable({ arenaId, arenaSlug }: { arenaId: stri
                   height: "44px",
                   border: entry.rank === 1
                     ? "2px solid rgba(240,192,64,0.5)"
-                    : "2px solid #1B2338",
+                    : "2px solid #222233",
                 }}
                 onError={(e) => {
                   const img = e.target as HTMLImageElement;
@@ -164,7 +163,6 @@ export default function LeaderboardTable({ arenaId, arenaSlug }: { arenaId: stri
                   {flag && <span className="text-base shrink-0">{flag}</span>}
                 </div>
 
-                {/* Top 3 tag pills */}
                 {tags.length > 0 && (
                   <div className="flex gap-1 mt-1 flex-wrap">
                     {tags.map(({ tag }) => (
@@ -172,9 +170,9 @@ export default function LeaderboardTable({ arenaId, arenaSlug }: { arenaId: stri
                         key={tag}
                         className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
                         style={{
-                          color: "#3D5070",
-                          background: "#1B2338",
-                          border: "1px solid #253147",
+                          color: "#4A4A66",
+                          background: "#1A1A28",
+                          border: "1px solid #2A2A3D",
                         }}
                       >
                         {tag}
@@ -183,7 +181,7 @@ export default function LeaderboardTable({ arenaId, arenaSlug }: { arenaId: stri
                   </div>
                 )}
 
-                <p className="text-xs mt-0.5" style={{ color: "#253147" }}>
+                <p className="text-xs mt-0.5" style={{ color: "#2A2A3D" }}>
                   {entry.wins}W – {entry.losses}L · {entry.matches} battles
                 </p>
               </div>
@@ -192,13 +190,13 @@ export default function LeaderboardTable({ arenaId, arenaSlug }: { arenaId: stri
               <div className="text-right shrink-0">
                 <span
                   className="font-black text-lg sm:text-xl"
-                  style={{ color: entry.rank === 1 ? "#F0C040" : "#8B7030" }}
+                  style={{ color: entry.rank === 1 ? "#F0C040" : "#6D28D9" }}
                 >
                   {entry.elo_rating}
                 </span>
                 <p
                   className="text-[10px] font-black uppercase tracking-widest"
-                  style={{ color: "#253147" }}
+                  style={{ color: "#2A2A3D" }}
                 >
                   ELO
                 </p>

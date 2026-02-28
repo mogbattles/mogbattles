@@ -20,7 +20,7 @@ export default async function LeaderboardArenaPage({
         <Link
           href="/leaderboard"
           className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest transition-colors hover:underline"
-          style={{ color: "#4D6080" }}
+          style={{ color: "#4A4A66" }}
         >
           ← All Leaderboards
         </Link>
@@ -30,9 +30,9 @@ export default async function LeaderboardArenaPage({
       <div className="text-center mb-6">
         <div
           className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-3"
-          style={{ background: "#111827", border: "1px solid #1B2338" }}
+          style={{ background: "#0F0F1A", border: "1px solid #222233" }}
         >
-          <span className="text-xs font-black uppercase tracking-widest" style={{ color: "#4D6080" }}>
+          <span className="text-xs font-black uppercase tracking-widest" style={{ color: "#4A4A66" }}>
             Rankings
           </span>
           {arena.is_verified && (
@@ -42,16 +42,16 @@ export default async function LeaderboardArenaPage({
         <h1
           className="text-3xl sm:text-4xl font-black tracking-tight"
           style={{
-            background: "linear-gradient(165deg, #FFD700, #F0C040, #FF7040)",
+            background: "linear-gradient(165deg, #A78BFA, #8B5CF6, #F0C040)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             backgroundClip: "text",
           }}
         >
-          🏆 {arena.name.toUpperCase()}
+          {arena.name.toUpperCase()}
         </h1>
         {arena.description && (
-          <p className="text-sm mt-1" style={{ color: "#4D6080" }}>
+          <p className="text-sm mt-1" style={{ color: "#4A4A66" }}>
             {arena.description}
           </p>
         )}

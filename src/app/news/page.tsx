@@ -92,20 +92,22 @@ export default function NewsPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6">
+    <div className="max-w-3xl mx-auto px-4 pt-20 pb-28">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-black text-white flex items-center gap-2">
-            📰 <span>News</span>
-          </h1>
-          <p className="text-zinc-500 text-sm mt-1">Latest updates from the MogBattles team</p>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-2xl">📰</span>
+            <h1 className="font-heading tracking-wide text-3xl text-gradient-gold">
+              News
+            </h1>
+          </div>
+          <p className="text-xs font-bold text-navy-200">Latest updates from the MogBattles team</p>
         </div>
         {perms.canManageNews && (
           <button
             onClick={() => setShowForm((v) => !v)}
-            className="text-xs font-black px-4 py-2 rounded-xl transition-colors"
-            style={{ background: "rgba(240,192,64,0.1)", color: "#F0C040", border: "1px solid rgba(240,192,64,0.2)" }}
+            className="btn-dark text-xs font-black px-4 py-2 rounded-xl"
           >
             {showForm ? "Cancel" : "＋ Post News"}
           </button>
@@ -113,42 +115,41 @@ export default function NewsPage() {
       </div>
 
       {msg && (
-        <div className="mb-4 px-4 py-2 rounded-xl text-sm font-bold" style={{ background: "#141A2C", color: msg.startsWith("✅") ? "#22C55E" : "#EF4444" }}>
+        <div className={`mb-4 px-4 py-2 rounded-xl text-sm font-bold bg-navy-700 ${msg.startsWith("✅") ? "text-game-green" : "text-game-red"}`}>
           {msg}
         </div>
       )}
 
       {/* Admin: post form */}
       {showForm && perms.canManageNews && (
-        <div className="mb-6 rounded-2xl p-5 space-y-3" style={{ background: "#0D1120", border: "1px solid rgba(240,192,64,0.2)" }}>
-          <p className="text-xs font-black uppercase tracking-widest" style={{ color: "#F0C040" }}>New Post</p>
+        <div className="mb-6 game-card rounded-2xl p-5 space-y-3 !border-purple/25">
+          <p className="text-xs font-black uppercase tracking-widest text-purple-bright">New Post</p>
           <input
             type="text"
             placeholder="Headline *"
             value={form.title}
             onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-            className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-600 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-yellow-500"
+            className="game-input text-sm"
           />
           <textarea
             placeholder="Body text (optional)"
             value={form.content}
             onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
             rows={4}
-            className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-600 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-yellow-500 resize-none"
+            className="game-input text-sm resize-none"
           />
           <input
             type="text"
             placeholder="Image URL (optional)"
             value={form.image_url}
             onChange={(e) => setForm((f) => ({ ...f, image_url: e.target.value }))}
-            className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-600 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-yellow-500"
+            className="game-input text-sm"
           />
           <div className="flex justify-end">
             <button
               onClick={publishNews}
               disabled={saving || !form.title.trim()}
-              className="px-6 py-2 rounded-xl text-sm font-black disabled:opacity-50 transition-colors"
-              style={{ background: "#F0C040", color: "#07090F" }}
+              className="btn-purple px-6 py-2 rounded-xl text-sm font-black disabled:opacity-50 transition-colors"
             >
               {saving ? "Publishing…" : "Publish"}
             </button>
@@ -160,22 +161,21 @@ export default function NewsPage() {
       {loading ? (
         <div className="space-y-4">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="rounded-2xl h-32 animate-pulse" style={{ background: "#111827" }} />
+            <div key={i} className="rounded-2xl h-32 animate-pulse bg-navy-800" />
           ))}
         </div>
       ) : posts.length === 0 ? (
         <div className="text-center py-24">
-          <div className="text-5xl mb-4">📰</div>
-          <p className="text-zinc-400 font-semibold">No news yet</p>
-          <p className="text-zinc-600 text-sm mt-1">Check back soon for updates from the team</p>
+          <div className="text-5xl mb-4 opacity-30">📰</div>
+          <p className="font-black text-navy-200">No news yet</p>
+          <p className="text-sm mt-1 text-navy-400">Check back soon for updates from the team</p>
         </div>
       ) : (
         <div className="space-y-4">
           {posts.map((post, i) => (
             <article
               key={post.id}
-              className="rounded-2xl overflow-hidden"
-              style={{ background: "#0D1120", border: "1px solid #1B2338" }}
+              className="rounded-2xl overflow-hidden game-card"
             >
               {post.image_url && (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -187,28 +187,24 @@ export default function NewsPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     {i === 0 && (
-                      <span
-                        className="inline-block text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full mb-3"
-                        style={{ background: "rgba(240,192,64,0.12)", color: "#F0C040", border: "1px solid rgba(240,192,64,0.2)" }}
-                      >
+                      <span className="badge-purple !text-[9px] mb-3 inline-block">
                         Latest
                       </span>
                     )}
                     <h2 className="text-white font-black text-lg leading-snug mb-2">{post.title}</h2>
                     {post.content && (
-                      <p className="text-sm leading-relaxed mb-3" style={{ color: "#4D6080" }}>
+                      <p className="text-sm leading-relaxed mb-3 text-navy-200">
                         {post.content}
                       </p>
                     )}
-                    <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "#253147" }}>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-navy-400">
                       {timeAgo(post.published_at)}
                     </p>
                   </div>
                   {perms.canManageNews && (
                     <button
                       onClick={() => setConfirmDelete({ id: post.id, title: post.title })}
-                      className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-sm transition-colors"
-                      style={{ background: "rgba(239,68,68,0.08)", color: "#EF4444", border: "1px solid rgba(239,68,68,0.2)" }}
+                      className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-sm transition-colors bg-game-red/10 text-game-red border border-game-red/20 hover:bg-game-red/20"
                       title="Delete post"
                     >
                       🗑
@@ -229,27 +225,24 @@ export default function NewsPage() {
           onClick={() => setConfirmDelete(null)}
         >
           <div
-            className="w-80 rounded-2xl p-6 space-y-4"
-            style={{ background: "#0D1120", border: "1px solid rgba(239,68,68,0.3)" }}
+            className="w-80 rounded-2xl p-6 space-y-4 bg-navy-800 border border-game-red/30"
             onClick={(e) => e.stopPropagation()}
           >
             <p className="text-white font-black text-base">Delete this post?</p>
-            <p className="text-sm leading-snug" style={{ color: "#4D6080" }}>
+            <p className="text-sm leading-snug text-navy-200">
               &ldquo;{confirmDelete.title}&rdquo; will be permanently removed. This cannot be undone.
             </p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setConfirmDelete(null)}
-                className="px-4 py-2 rounded-xl text-sm font-bold"
-                style={{ color: "#3D5070" }}
+                className="px-4 py-2 rounded-xl text-sm font-bold text-navy-200 hover:text-white transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={() => deletePost(confirmDelete.id)}
                 disabled={deleting}
-                className="px-4 py-2 rounded-xl text-sm font-black disabled:opacity-50 transition-colors"
-                style={{ background: "#EF4444", color: "#fff" }}
+                className="px-4 py-2 rounded-xl text-sm font-black disabled:opacity-50 transition-colors bg-game-red text-white"
               >
                 {deleting ? "Deleting…" : "Delete"}
               </button>

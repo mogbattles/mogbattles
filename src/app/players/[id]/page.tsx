@@ -26,11 +26,11 @@ function RankBadge({ rank }: { rank: number }) {
       style={{
         background: rank === 1
           ? "rgba(240,192,64,0.15)"
-          : "rgba(255,255,255,0.08)",
+          : "rgba(139,92,246,0.08)",
         border: rank === 1
           ? "1px solid rgba(240,192,64,0.4)"
-          : "1px solid rgba(255,255,255,0.12)",
-        color: rank === 1 ? "#F0C040" : "#aaa",
+          : "1px solid rgba(139,92,246,0.2)",
+        color: rank === 1 ? "#F0C040" : "#A78BFA",
       }}
     >
       {label}
@@ -39,7 +39,7 @@ function RankBadge({ rank }: { rank: number }) {
 }
 
 function fallback(name: string) {
-  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=111827&color=888&size=400&bold=true`;
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0F0F1A&color=888&size=400&bold=true`;
 }
 
 export default function PlayerPage() {
@@ -52,7 +52,6 @@ export default function PlayerPage() {
   const [currentIdx, setCurrentIdx] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Follow state
   const [following, setFollowing] = useState(false);
   const [mutual, setMutual] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
@@ -67,7 +66,6 @@ export default function PlayerPage() {
     });
   }, [id]);
 
-  // Load follow state when we have both current user and target user_id
   useEffect(() => {
     const targetUserId = (profile && profile !== "loading") ? profile.user_id ?? null : null;
     if (!user || !targetUserId || user.id === targetUserId) return;
@@ -92,7 +90,6 @@ export default function PlayerPage() {
     if (!error) {
       setFollowing(true);
       setFollowerCount((c) => c + 1);
-      // Re-check mutual
       const m = await isMutualFollow(user.id, targetUserId);
       setMutual(m);
     }
@@ -141,7 +138,7 @@ export default function PlayerPage() {
       <div className="flex items-center justify-center h-[60vh]">
         <div
           className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
-          style={{ borderColor: "#F0C040", borderTopColor: "transparent" }}
+          style={{ borderColor: "#8B5CF6", borderTopColor: "transparent" }}
         />
       </div>
     );
@@ -150,8 +147,8 @@ export default function PlayerPage() {
   if (!profile) {
     return (
       <div className="text-center py-20">
-        <p className="text-lg mb-3" style={{ color: "#3D5070" }}>Player not found.</p>
-        <Link href="/leaderboard" className="text-sm underline" style={{ color: "#F0C040" }}>
+        <p className="text-lg mb-3" style={{ color: "#4A4A66" }}>Player not found.</p>
+        <Link href="/leaderboard" className="text-sm underline" style={{ color: "#A78BFA" }}>
           ← Back to leaderboard
         </Link>
       </div>
@@ -162,7 +159,6 @@ export default function PlayerPage() {
   const currentImage = images[currentIdx] ?? null;
   const winRate = profile.matches > 0 ? Math.round((profile.wins / profile.matches) * 100) : 0;
 
-  // Is this a registered user profile (not a celebrity)?
   const targetUserId = profile.user_id ?? null;
   const isOwnProfile = user?.id === targetUserId;
   const canFollow = !!(user && permissions.isMember && targetUserId && !isOwnProfile);
@@ -173,7 +169,7 @@ export default function PlayerPage() {
       <Link
         href="/leaderboard"
         className="inline-flex items-center gap-1.5 text-xs font-bold mb-6 transition-opacity hover:opacity-70"
-        style={{ color: "#3D5070" }}
+        style={{ color: "#4A4A66" }}
       >
         ← All Leaderboards
       </Link>
@@ -181,7 +177,7 @@ export default function PlayerPage() {
       {/* Photo card */}
       <div
         className="relative rounded-2xl overflow-hidden mb-5"
-        style={{ aspectRatio: "3/4", background: "#111827" }}
+        style={{ aspectRatio: "3/4", background: "#0A0A12" }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -191,68 +187,44 @@ export default function PlayerPage() {
           onError={(e) => { (e.target as HTMLImageElement).src = fallback(profile.name); }}
         />
 
-        {/* Bottom gradient */}
         <div
           className="absolute inset-x-0 bottom-0 h-24 pointer-events-none"
-          style={{ background: "linear-gradient(to top, rgba(7,9,15,0.85) 0%, transparent 100%)" }}
+          style={{ background: "linear-gradient(to top, rgba(5,5,8,0.85) 0%, transparent 100%)" }}
         />
 
-        {/* Rank badge */}
         {rank !== null && (
           <div
             className="absolute top-3 left-3 text-sm font-black px-3 py-1.5 rounded-full"
             style={{
-              background: "rgba(7,9,15,0.8)",
-              border: rank === 1 ? "1px solid rgba(240,192,64,0.5)" : "1px solid rgba(255,255,255,0.15)",
+              background: "rgba(5,5,8,0.8)",
+              border: rank === 1 ? "1px solid rgba(240,192,64,0.5)" : "1px solid rgba(139,92,246,0.25)",
               backdropFilter: "blur(8px)",
-              color: rank === 1 ? "#F0C040" : "#fff",
+              color: rank === 1 ? "#F0C040" : "#A78BFA",
             }}
           >
             {rank === 1 ? "👑 #1" : rank === 2 ? "🥈 #2" : rank === 3 ? "🥉 #3" : `#${rank}`}
           </div>
         )}
 
-        {/* Left / right photo navigation arrows */}
         {hasMultiple && (
           <>
             <button
-              onClick={() => {
-                setCurrentIdx((prev) => (prev - 1 + images.length) % images.length);
-                resetTimer();
-              }}
+              onClick={() => { setCurrentIdx((prev) => (prev - 1 + images.length) % images.length); resetTimer(); }}
               className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center rounded-full"
-              style={{
-                background: "rgba(7,9,15,0.72)",
-                border: "1px solid rgba(240,192,64,0.25)",
-                color: "rgba(255,255,255,0.9)",
-                fontSize: "18px",
-                lineHeight: 1,
-                backdropFilter: "blur(6px)",
-              }}
+              style={{ background: "rgba(5,5,8,0.72)", border: "1px solid rgba(139,92,246,0.25)", color: "rgba(255,255,255,0.9)", fontSize: "18px", lineHeight: 1, backdropFilter: "blur(6px)" }}
             >
               ‹
             </button>
             <button
-              onClick={() => {
-                setCurrentIdx((prev) => (prev + 1) % images.length);
-                resetTimer();
-              }}
+              onClick={() => { setCurrentIdx((prev) => (prev + 1) % images.length); resetTimer(); }}
               className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center rounded-full"
-              style={{
-                background: "rgba(7,9,15,0.72)",
-                border: "1px solid rgba(240,192,64,0.25)",
-                color: "rgba(255,255,255,0.9)",
-                fontSize: "18px",
-                lineHeight: 1,
-                backdropFilter: "blur(6px)",
-              }}
+              style={{ background: "rgba(5,5,8,0.72)", border: "1px solid rgba(139,92,246,0.25)", color: "rgba(255,255,255,0.9)", fontSize: "18px", lineHeight: 1, backdropFilter: "blur(6px)" }}
             >
               ›
             </button>
           </>
         )}
 
-        {/* Image dots */}
         {hasMultiple && (
           <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-10">
             {images.map((_, i) => (
@@ -263,7 +235,7 @@ export default function PlayerPage() {
                 style={{
                   width: i === currentIdx ? "18px" : "6px",
                   height: "6px",
-                  background: i === currentIdx ? "#F0C040" : "rgba(255,255,255,0.3)",
+                  background: i === currentIdx ? "#8B5CF6" : "rgba(255,255,255,0.3)",
                 }}
               />
             ))}
@@ -281,9 +253,9 @@ export default function PlayerPage() {
                 key={cat}
                 className="text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wide"
                 style={{
-                  color: "#3D5070",
-                  background: "rgba(61,80,112,0.15)",
-                  border: "1px solid rgba(61,80,112,0.25)",
+                  color: "#4A4A66",
+                  background: "rgba(74,74,102,0.15)",
+                  border: "1px solid rgba(74,74,102,0.25)",
                 }}
               >
                 {cat.replace(/_/g, " ")}
@@ -296,26 +268,26 @@ export default function PlayerPage() {
         </div>
         <div className="text-right shrink-0">
           <p className="text-2xl font-black" style={{ color: "#F0C040" }}>{profile.elo_rating}</p>
-          <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "#253147" }}>ELO</p>
+          <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "#2A2A3D" }}>ELO</p>
         </div>
       </div>
 
-      {/* Follower counts (only for registered user profiles) */}
+      {/* Follower counts */}
       {targetUserId && (
         <div className="flex items-center gap-4 mb-4">
-          <span className="text-sm" style={{ color: "#3D5070" }}>
+          <span className="text-sm" style={{ color: "#4A4A66" }}>
             <span className="font-black text-white">{followerCount}</span> followers
           </span>
-          <span className="text-sm" style={{ color: "#3D5070" }}>
+          <span className="text-sm" style={{ color: "#4A4A66" }}>
             <span className="font-black text-white">{followingCount}</span> following
           </span>
           {mutual && (
             <span
               className="text-xs font-bold px-2 py-0.5 rounded-full"
               style={{
-                background: "rgba(240,192,64,0.12)",
-                border: "1px solid rgba(240,192,64,0.25)",
-                color: "#F0C040",
+                background: "rgba(139,92,246,0.12)",
+                border: "1px solid rgba(139,92,246,0.25)",
+                color: "#A78BFA",
               }}
             >
               🤝 Friends
@@ -336,9 +308,9 @@ export default function PlayerPage() {
               border: "1px solid rgba(255,255,255,0.12)",
               color: "#aaa",
             } : {
-              background: "rgba(240,192,64,0.15)",
-              border: "1px solid rgba(240,192,64,0.4)",
-              color: "#F0C040",
+              background: "rgba(139,92,246,0.15)",
+              border: "1px solid rgba(139,92,246,0.4)",
+              color: "#A78BFA",
             }}
           >
             {followLoading ? "…" : following ? "✓ Following" : "+ Follow"}
@@ -349,9 +321,9 @@ export default function PlayerPage() {
               href={`/messages/${targetUserId}`}
               className="flex-1 py-2.5 rounded-xl font-black text-sm uppercase tracking-wide text-center transition-opacity hover:opacity-80"
               style={{
-                background: "rgba(61,80,112,0.15)",
-                border: "1px solid rgba(61,80,112,0.4)",
-                color: "#3D7FBF",
+                background: "rgba(139,92,246,0.1)",
+                border: "1px solid rgba(139,92,246,0.3)",
+                color: "#A78BFA",
               }}
             >
               💬 Message
@@ -370,14 +342,14 @@ export default function PlayerPage() {
       {/* Stats grid */}
       <div className="grid grid-cols-3 gap-3 mb-5">
         {[
-          { label: "Wins", value: profile.wins, color: "#22C55E" },
-          { label: "Losses", value: profile.losses, color: "#EF4444" },
-          { label: "Battles", value: profile.matches, color: "#F0C040" },
+          { label: "Wins", value: profile.wins, color: "#3DD68C" },
+          { label: "Losses", value: profile.losses, color: "#FF4545" },
+          { label: "Battles", value: profile.matches, color: "#A78BFA" },
         ].map(({ label, value, color }) => (
           <div
             key={label}
             className="rounded-xl p-3 text-center"
-            style={{ background: "#111827", border: "1px solid #1B2338" }}
+            style={{ background: "#0F0F1A", border: "1px solid #222233" }}
           >
             <p className="font-black text-xl text-white">{value}</p>
             <p className="text-xs font-bold uppercase tracking-wide mt-0.5" style={{ color }}>{label}</p>
@@ -389,20 +361,20 @@ export default function PlayerPage() {
       {profile.matches > 0 && (
         <div
           className="rounded-xl p-4 mb-5"
-          style={{ background: "#111827", border: "1px solid #1B2338" }}
+          style={{ background: "#0F0F1A", border: "1px solid #222233" }}
         >
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-black uppercase tracking-widest" style={{ color: "#3D5070" }}>
+            <p className="text-xs font-black uppercase tracking-widest" style={{ color: "#4A4A66" }}>
               Win Rate
             </p>
             <span className="font-black text-white text-sm">{winRate}%</span>
           </div>
-          <div className="h-2 rounded-full overflow-hidden" style={{ background: "#1B2338" }}>
+          <div className="h-2 rounded-full overflow-hidden" style={{ background: "#1A1A28" }}>
             <div
               className="h-full rounded-full transition-all"
               style={{
                 width: `${winRate}%`,
-                background: "linear-gradient(90deg, #F0C040 0%, #FFD96A 100%)",
+                background: "linear-gradient(90deg, #8B5CF6 0%, #A78BFA 100%)",
               }}
             />
           </div>
@@ -413,15 +385,15 @@ export default function PlayerPage() {
       {(profile.height_in || profile.weight_lbs || profile.country) && (
         <div
           className="rounded-xl p-4 mb-6"
-          style={{ background: "#111827", border: "1px solid #1B2338" }}
+          style={{ background: "#0F0F1A", border: "1px solid #222233" }}
         >
-          <p className="text-xs font-black uppercase tracking-widest mb-3" style={{ color: "#3D5070" }}>
+          <p className="text-xs font-black uppercase tracking-widest mb-3" style={{ color: "#4A4A66" }}>
             Stats
           </p>
           <div className="space-y-2.5">
             {profile.country && (
               <div className="flex justify-between items-center">
-                <span className="text-sm" style={{ color: "#3D5070" }}>Country</span>
+                <span className="text-sm" style={{ color: "#4A4A66" }}>Country</span>
                 <span className="text-white text-sm font-semibold">
                   {flag} {profile.country}
                 </span>
@@ -429,7 +401,7 @@ export default function PlayerPage() {
             )}
             {profile.height_in != null && (
               <div className="flex justify-between items-center">
-                <span className="text-sm" style={{ color: "#3D5070" }}>Height</span>
+                <span className="text-sm" style={{ color: "#4A4A66" }}>Height</span>
                 <span className="text-white text-sm font-semibold">
                   {inchesToDisplay(profile.height_in)}
                 </span>
@@ -437,7 +409,7 @@ export default function PlayerPage() {
             )}
             {profile.weight_lbs != null && (
               <div className="flex justify-between items-center">
-                <span className="text-sm" style={{ color: "#3D5070" }}>Weight</span>
+                <span className="text-sm" style={{ color: "#4A4A66" }}>Weight</span>
                 <span className="text-white text-sm font-semibold">
                   {profile.weight_lbs} lbs
                 </span>
@@ -449,7 +421,7 @@ export default function PlayerPage() {
 
       <Link
         href="/swipe"
-        className="btn-gold gold-pulse-btn block text-center w-full py-3.5 rounded-xl font-black text-base uppercase tracking-wider"
+        className="btn-purple gold-pulse-btn block text-center w-full py-3.5 rounded-xl font-black text-base uppercase tracking-wider"
       >
         ⚔️ Battle in Arena
       </Link>

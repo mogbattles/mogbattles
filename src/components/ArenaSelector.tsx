@@ -38,7 +38,7 @@ export default function ArenaSelector({ mode }: ArenaSelectorProps) {
     <div className="max-w-2xl mx-auto px-4 py-8">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-black text-white">{heading}</h1>
-        <p className="text-zinc-500 mt-1 text-sm">{subheading}</p>
+        <p className="text-navy-200 mt-1 text-sm">{subheading}</p>
       </div>
 
       {loading && (
@@ -46,18 +46,18 @@ export default function ArenaSelector({ mode }: ArenaSelectorProps) {
           {[...Array(8)].map((_, i) => (
             <div
               key={i}
-              className="rounded-2xl border-2 border-zinc-800 bg-zinc-900 p-4 h-32 animate-pulse"
+              className="rounded-2xl border border-navy-500 bg-navy-800 p-4 h-32 animate-pulse"
             />
           ))}
           {/* skeleton for More card */}
-          <div className="col-span-2 rounded-2xl border-2 border-zinc-800 bg-zinc-900 p-4 h-20 animate-pulse" />
+          <div className="col-span-2 rounded-2xl border border-navy-500 bg-navy-800 p-4 h-20 animate-pulse" />
         </div>
       )}
 
       {error && (
         <div className="text-center py-12">
-          <p className="text-red-400 font-bold">{error}</p>
-          <p className="text-zinc-600 text-sm mt-2">
+          <p className="text-game-red font-bold">{error}</p>
+          <p className="text-navy-400 text-sm mt-2">
             Run the SQL migration in your Supabase dashboard.
           </p>
         </div>

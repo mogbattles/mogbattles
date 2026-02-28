@@ -92,21 +92,29 @@ function CountryPicker({
           onFocus={() => setOpen(true)}
           placeholder="Search country…"
           disabled={disabled}
-          className={`w-full bg-zinc-900 border border-zinc-700 rounded-xl py-3 text-white placeholder:text-zinc-600 focus:outline-none focus:border-orange-500 transition-colors disabled:opacity-50 ${value ? "pl-10 pr-4" : "px-4"}`}
+          className={`w-full rounded-xl py-3 text-white focus:outline-none transition-colors disabled:opacity-50 ${value ? "pl-10 pr-4" : "px-4"}`}
+          style={{ background: "#0F0F1A", border: "1px solid #222233", caretColor: "#8B5CF6" }}
+          onFocusCapture={(e) => { (e.target as HTMLElement).style.borderColor = "rgba(139,92,246,0.5)"; }}
+          onBlurCapture={(e) => { (e.target as HTMLElement).style.borderColor = "#222233"; }}
         />
       </div>
 
       {open && filtered.length > 0 && (
-        <ul className="absolute z-50 mt-1 w-full bg-zinc-900 border border-zinc-700 rounded-xl overflow-hidden shadow-xl max-h-64 overflow-y-auto">
+        <ul className="absolute z-50 mt-1 w-full rounded-xl overflow-hidden shadow-xl max-h-64 overflow-y-auto"
+          style={{ background: "#0F0F1A", border: "1px solid #222233" }}
+        >
           {filtered.map((c) => (
             <li key={c.code}>
               <button
                 type="button"
                 onMouseDown={() => select(c.name)}
-                className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-zinc-800 transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors"
+                style={{ color: "#fff" }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#141420"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
               >
                 <span className="text-xl shrink-0">{codeToFlag(c.code)}</span>
-                <span className="text-white text-sm">{c.name}</span>
+                <span className="text-sm">{c.name}</span>
               </button>
             </li>
           ))}
@@ -276,7 +284,10 @@ export default function OnboardingPage() {
   if (authLoading || checking) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
-        <div className="text-zinc-400 animate-pulse text-sm">Loading…</div>
+        <div
+          className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
+          style={{ borderColor: "#8B5CF6", borderTopColor: "transparent" }}
+        />
       </div>
     );
   }
@@ -286,8 +297,17 @@ export default function OnboardingPage() {
       {/* Header */}
       <div className="text-center mb-8">
         <div className="text-5xl mb-3">⚔️</div>
-        <h1 className="text-3xl font-black text-white mb-1">Enter the Arena</h1>
-        <p className="text-zinc-500 text-sm">
+        <h1
+          className="text-3xl font-black mb-1"
+          style={{
+            background: "linear-gradient(90deg, #A78BFA 0%, #8B5CF6 50%, #F0C040 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+          }}
+        >
+          Enter the Arena
+        </h1>
+        <p className="text-sm" style={{ color: "#4A4A66" }}>
           Set up your profile to join the battles and rankings
         </p>
       </div>
@@ -296,8 +316,8 @@ export default function OnboardingPage() {
 
         {/* ── Display Name ─────────────────────────────────────────────────── */}
         <div>
-          <label className="block text-zinc-400 text-xs font-bold uppercase tracking-wider mb-2">
-            Display Name <span className="text-orange-400">*</span>
+          <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "#4A4A66" }}>
+            Display Name <span style={{ color: "#A78BFA" }}>*</span>
           </label>
           <input
             type="text"
@@ -306,14 +326,17 @@ export default function OnboardingPage() {
             placeholder="How you appear in battles"
             maxLength={60}
             disabled={uploading}
-            className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder:text-zinc-600 focus:outline-none focus:border-orange-500 transition-colors disabled:opacity-50"
+            className="w-full rounded-xl px-4 py-3 text-white focus:outline-none transition-colors disabled:opacity-50"
+            style={{ background: "#0F0F1A", border: "1px solid #222233", caretColor: "#8B5CF6" }}
+            onFocus={(e) => { (e.target as HTMLElement).style.borderColor = "rgba(139,92,246,0.5)"; }}
+            onBlur={(e) => { (e.target as HTMLElement).style.borderColor = "#222233"; }}
           />
         </div>
 
         {/* ── Gender ───────────────────────────────────────────────────────── */}
         <div>
-          <label className="block text-zinc-400 text-xs font-bold uppercase tracking-wider mb-2">
-            Gender <span className="text-orange-400">*</span>
+          <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "#4A4A66" }}>
+            Gender <span style={{ color: "#A78BFA" }}>*</span>
           </label>
           <div className="flex gap-3">
             {(["male", "female", "other"] as const).map((g) => (
@@ -322,11 +345,12 @@ export default function OnboardingPage() {
                 type="button"
                 onClick={() => setGender(g)}
                 disabled={uploading}
-                className={`flex-1 py-3 rounded-xl border font-bold text-sm transition-colors capitalize disabled:opacity-50 ${
+                className="flex-1 py-3 rounded-xl border font-bold text-sm transition-colors capitalize disabled:opacity-50"
+                style={
                   gender === g
-                    ? "bg-orange-500 border-orange-500 text-white"
-                    : "bg-zinc-900 border-zinc-700 text-zinc-400 hover:border-zinc-500"
-                }`}
+                    ? { background: "rgba(139,92,246,0.15)", border: "1px solid rgba(139,92,246,0.5)", color: "#A78BFA" }
+                    : { background: "#0F0F1A", border: "1px solid #222233", color: "#4A4A66" }
+                }
               >
                 {g}
               </button>
@@ -336,10 +360,10 @@ export default function OnboardingPage() {
 
         {/* ── Height ───────────────────────────────────────────────────────── */}
         <div>
-          <label className="block text-zinc-400 text-xs font-bold uppercase tracking-wider mb-2">
-            Height <span className="text-orange-400">*</span>
+          <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "#4A4A66" }}>
+            Height <span style={{ color: "#A78BFA" }}>*</span>
             {" "}
-            <span className="text-zinc-600 font-normal normal-case">
+            <span className="font-normal normal-case" style={{ color: "#2A2A3D" }}>
               — {inchesToDisplay(totalHeightIn)}
             </span>
           </label>
@@ -349,7 +373,8 @@ export default function OnboardingPage() {
                 value={heightFt}
                 onChange={(e) => setHeightFt(Number(e.target.value))}
                 disabled={uploading}
-                className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-colors disabled:opacity-50"
+                className="w-full rounded-xl px-4 py-3 text-white focus:outline-none transition-colors disabled:opacity-50"
+                style={{ background: "#0F0F1A", border: "1px solid #222233" }}
               >
                 {FEET_OPTIONS.map((f) => (
                   <option key={f} value={f}>{f} ft</option>
@@ -361,7 +386,8 @@ export default function OnboardingPage() {
                 value={heightIn}
                 onChange={(e) => setHeightIn(Number(e.target.value))}
                 disabled={uploading}
-                className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-colors disabled:opacity-50"
+                className="w-full rounded-xl px-4 py-3 text-white focus:outline-none transition-colors disabled:opacity-50"
+                style={{ background: "#0F0F1A", border: "1px solid #222233" }}
               >
                 {INCH_OPTIONS.map((i) => (
                   <option key={i} value={i}>{i} in</option>
@@ -373,8 +399,8 @@ export default function OnboardingPage() {
 
         {/* ── Weight ───────────────────────────────────────────────────────── */}
         <div>
-          <label className="block text-zinc-400 text-xs font-bold uppercase tracking-wider mb-2">
-            Weight (lbs) <span className="text-orange-400">*</span>
+          <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "#4A4A66" }}>
+            Weight (lbs) <span style={{ color: "#A78BFA" }}>*</span>
           </label>
           <input
             type="number"
@@ -384,14 +410,17 @@ export default function OnboardingPage() {
             min={50}
             max={500}
             disabled={uploading}
-            className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder:text-zinc-600 focus:outline-none focus:border-orange-500 transition-colors disabled:opacity-50"
+            className="w-full rounded-xl px-4 py-3 text-white focus:outline-none transition-colors disabled:opacity-50"
+            style={{ background: "#0F0F1A", border: "1px solid #222233", caretColor: "#8B5CF6" }}
+            onFocus={(e) => { (e.target as HTMLElement).style.borderColor = "rgba(139,92,246,0.5)"; }}
+            onBlur={(e) => { (e.target as HTMLElement).style.borderColor = "#222233"; }}
           />
         </div>
 
         {/* ── Country ──────────────────────────────────────────────────────── */}
         <div>
-          <label className="block text-zinc-400 text-xs font-bold uppercase tracking-wider mb-2">
-            Country <span className="text-orange-400">*</span>
+          <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "#4A4A66" }}>
+            Country <span style={{ color: "#A78BFA" }}>*</span>
           </label>
           <CountryPicker
             value={country}
@@ -402,9 +431,9 @@ export default function OnboardingPage() {
 
         {/* ── Photos ───────────────────────────────────────────────────────── */}
         <div>
-          <label className="block text-zinc-400 text-xs font-bold uppercase tracking-wider mb-2">
-            Photos <span className="text-orange-400">*</span>{" "}
-            <span className="text-zinc-600 font-normal normal-case">
+          <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "#4A4A66" }}>
+            Photos <span style={{ color: "#A78BFA" }}>*</span>{" "}
+            <span className="font-normal normal-case" style={{ color: "#2A2A3D" }}>
               1–4 photos · clear face shots work best
             </span>
           </label>
@@ -426,7 +455,8 @@ export default function OnboardingPage() {
                       <img
                         src={slot.preview}
                         alt={`Photo ${idx + 1}`}
-                        className="w-full h-full object-cover rounded-xl border border-zinc-700"
+                        className="w-full h-full object-cover rounded-xl"
+                        style={{ border: "1px solid #222233" }}
                       />
                       <div className="absolute bottom-1 left-1 bg-black/70 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full">
                         {idx + 1}
@@ -434,7 +464,8 @@ export default function OnboardingPage() {
                       <button
                         onClick={() => removePhoto(idx)}
                         disabled={uploading}
-                        className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-600 hover:bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-md transition-colors disabled:opacity-40"
+                        className="absolute -top-1.5 -right-1.5 w-5 h-5 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-md transition-colors disabled:opacity-40"
+                        style={{ background: "#EF4444" }}
                       >
                         ×
                       </button>
@@ -443,14 +474,21 @@ export default function OnboardingPage() {
                     <button
                       onClick={() => !isLocked && !uploading && fileRefs.current[idx]?.click()}
                       disabled={isLocked || uploading}
-                      className={`w-full h-full rounded-xl border-2 border-dashed transition-colors flex flex-col items-center justify-center gap-1 ${
+                      className="w-full h-full rounded-xl border-2 border-dashed transition-colors flex flex-col items-center justify-center gap-1"
+                      style={
                         isLocked || uploading
-                          ? "border-zinc-800 opacity-30 cursor-not-allowed"
-                          : "border-zinc-700 hover:border-orange-500 cursor-pointer"
-                      }`}
+                          ? { borderColor: "#141420", opacity: 0.3, cursor: "not-allowed" }
+                          : { borderColor: "#222233", cursor: "pointer" }
+                      }
+                      onMouseEnter={(e) => {
+                        if (!isLocked && !uploading) (e.currentTarget as HTMLElement).style.borderColor = "rgba(139,92,246,0.5)";
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isLocked && !uploading) (e.currentTarget as HTMLElement).style.borderColor = "#222233";
+                      }}
                     >
-                      <span className="text-zinc-500 text-2xl">+</span>
-                      <span className="text-zinc-600 text-[10px] font-semibold">{idx + 1}</span>
+                      <span className="text-2xl" style={{ color: "#4A4A66" }}>+</span>
+                      <span className="text-[10px] font-semibold" style={{ color: "#2A2A3D" }}>{idx + 1}</span>
                     </button>
                   )}
                 </div>
@@ -461,7 +499,7 @@ export default function OnboardingPage() {
 
         {/* ── Error ────────────────────────────────────────────────────────── */}
         {error && (
-          <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+          <p className="text-sm rounded-xl px-4 py-3" style={{ color: "#EF4444", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)" }}>
             {error}
           </p>
         )}
@@ -470,12 +508,12 @@ export default function OnboardingPage() {
         <button
           onClick={handleSubmit}
           disabled={uploading || !name.trim() || !gender || !country.trim() || !hasPhoto}
-          className="w-full bg-orange-500 hover:bg-orange-400 disabled:bg-orange-500/40 text-white font-black py-4 rounded-xl transition-colors text-lg"
+          className="btn-purple gold-pulse-btn w-full font-black py-4 rounded-xl transition-colors text-lg disabled:opacity-40"
         >
           {uploading ? uploadStep || "Uploading…" : "Enter the Arena ⚔️"}
         </button>
 
-        <p className="text-zinc-600 text-xs text-center">
+        <p className="text-xs text-center" style={{ color: "#2A2A3D" }}>
           Your profile will be visible to all voters. Use photos of yourself that you own.
         </p>
       </div>

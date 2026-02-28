@@ -15,7 +15,7 @@ export default function ProfileTags({ tags, myVotedTags, onVote }: ProfileTagsPr
       <div className="flex justify-center mb-1.5 min-h-[22px]">
         <span
           className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full opacity-30"
-          style={{ color: "#3D5070", background: "#111827", border: "1px solid #1B2338" }}
+          style={{ color: "#4A4A66", background: "#0F0F1A", border: "1px solid #222233" }}
         >
           hover to tag
         </span>
@@ -38,16 +38,16 @@ export default function ProfileTags({ tags, myVotedTags, onVote }: ProfileTagsPr
             disabled={!onVote}
             className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold transition-all"
             style={{
-              background: voted ? "rgba(240,192,64,0.12)" : "rgba(17,24,39,0.9)",
-              border: `1px solid ${voted ? "rgba(240,192,64,0.4)" : "#1B2338"}`,
-              color: voted ? "#F0C040" : "#3D5070",
+              background: voted ? "rgba(139,92,246,0.12)" : "rgba(15,15,26,0.9)",
+              border: `1px solid ${voted ? "rgba(139,92,246,0.4)" : "#222233"}`,
+              color: voted ? "#A78BFA" : "#4A4A66",
               cursor: onVote ? "pointer" : "default",
             }}
           >
             {tag}
             <span
               className="text-[8px] font-black"
-              style={{ color: voted ? "#C8A030" : "#253147" }}
+              style={{ color: voted ? "#8B5CF6" : "#2A2A3D" }}
             >
               {votes}
             </span>

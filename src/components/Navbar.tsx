@@ -10,7 +10,6 @@ import { createClient } from "@/lib/supabase";
 const NAV_LINKS = [
   { href: "/explore",     label: "Explore",      icon: "🧭" },
   { href: "/swipe",       label: "Battle",        icon: "⚔️" },
-  { href: "/live",        label: "Live",          icon: "🔴" },
   { href: "/leaderboard", label: "Leaderboards",  icon: "🏆" },
   { href: "/messages",    label: "Messages",      icon: "💬" },
   { href: "/profile",     label: "Profile",       icon: "👤" },
@@ -19,7 +18,7 @@ const NAV_LINKS = [
 const MENU_ITEMS = [
   { href: "/news",     label: "News",            icon: "📰", desc: "Latest MogBattles updates" },
   { href: "/articles", label: "Articles",        icon: "📝", desc: "In-depth pieces by mods & admins" },
-  { href: "/forum",    label: "Forum",           icon: "💬", desc: "4chan-style community boards" },
+  { href: "/forum",    label: "Forum",           icon: "💬", desc: "Community boards" },
   { href: "/about",    label: "About MogBattles",icon: "ℹ️", desc: "What is this place?" },
 ];
 
@@ -71,21 +70,24 @@ export default function Navbar() {
       className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4"
       style={{
         height: "56px",
-        background: "linear-gradient(180deg, rgba(7,9,15,0.97) 0%, rgba(12,16,32,0.85) 100%)",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
-        borderBottom: "1px solid #1B2338",
+        background: "linear-gradient(180deg, rgba(10,10,18,0.98) 0%, rgba(10,10,18,0.92) 100%)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        borderBottom: "1px solid rgba(139,92,246,0.12)",
       }}
     >
       {/* Logo */}
       <Link href="/explore" className="flex items-center gap-2 shrink-0">
-        <span className="text-xl leading-none" style={{ filter: "drop-shadow(0 0 6px rgba(240,192,64,0.5))" }}>
+        <span className="text-xl leading-none" style={{ filter: "drop-shadow(0 0 8px rgba(139,92,246,0.5))" }}>
           ⚔️
         </span>
         <span
           className="text-base font-black tracking-widest uppercase"
           style={{
-            background: "linear-gradient(90deg, #FFD700 0%, #F0C040 50%, #FF8040 100%)",
+            fontFamily: "'Bebas Neue', sans-serif",
+            fontSize: "20px",
+            letterSpacing: "0.15em",
+            background: "linear-gradient(90deg, #FFD700 0%, #F0C040 40%, #A78BFA 100%)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             backgroundClip: "text",
@@ -109,9 +111,9 @@ export default function Navbar() {
               href={link.href}
               className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-bold transition-all duration-150"
               style={{
-                color: isActive ? "#F0C040" : "#4D6080",
-                background: isActive ? "rgba(240,192,64,0.08)" : "transparent",
-                border: isActive ? "1px solid rgba(240,192,64,0.15)" : "1px solid transparent",
+                color: isActive ? "#F0C040" : "#4A4A66",
+                background: isActive ? "rgba(139,92,246,0.1)" : "transparent",
+                border: isActive ? "1px solid rgba(139,92,246,0.25)" : "1px solid transparent",
               }}
             >
               <span className="text-sm leading-none">{link.icon}</span>
@@ -120,11 +122,12 @@ export default function Navbar() {
                 <span
                   className="absolute -top-1 -right-1 text-[9px] font-black rounded-full flex items-center justify-center"
                   style={{
-                    background: "#EF4444",
+                    background: "#FF4545",
                     color: "#fff",
                     minWidth: "16px",
                     height: "16px",
                     padding: "0 3px",
+                    boxShadow: "0 0 8px rgba(255,69,69,0.5)",
                   }}
                 >
                   {unreadCount > 9 ? "9+" : unreadCount}
@@ -141,13 +144,13 @@ export default function Navbar() {
           onClick={() => setMenuOpen((v) => !v)}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-bold transition-all duration-150"
           style={{
-            color: menuOpen ? "#F0C040" : "#4D6080",
-            background: menuOpen ? "rgba(240,192,64,0.08)" : "#141A2C",
-            border: menuOpen ? "1px solid rgba(240,192,64,0.2)" : "1px solid #1B2338",
+            color: menuOpen ? "#A78BFA" : "#4A4A66",
+            background: menuOpen ? "rgba(139,92,246,0.1)" : "rgba(255,255,255,0.03)",
+            border: menuOpen ? "1px solid rgba(139,92,246,0.25)" : "1px solid #1A1A28",
           }}
         >
           <span className="text-sm leading-none">☰</span>
-          <span className="hidden sm:inline text-xs">Community</span>
+          <span className="hidden sm:inline text-xs">More</span>
         </button>
 
         {/* Dropdown */}
@@ -155,10 +158,11 @@ export default function Navbar() {
           <div
             className="absolute right-0 top-full mt-2 w-60 rounded-2xl overflow-hidden z-50"
             style={{
-              background: "rgba(9,12,22,0.98)",
-              border: "1px solid #1B2338",
-              boxShadow: "0 20px 50px rgba(0,0,0,0.8)",
-              backdropFilter: "blur(20px)",
+              background: "rgba(10,10,18,0.98)",
+              border: "1px solid rgba(139,92,246,0.15)",
+              boxShadow: "0 20px 50px rgba(0,0,0,0.8), 0 0 30px rgba(139,92,246,0.08)",
+              backdropFilter: "blur(24px)",
+              animation: "scaleIn 0.15s ease-out",
             }}
           >
             <div className="p-1.5">
@@ -170,10 +174,10 @@ export default function Navbar() {
                     href={item.href}
                     className="flex items-start gap-3 px-3 py-2.5 rounded-xl transition-colors"
                     style={{
-                      background: isActive ? "rgba(240,192,64,0.08)" : "transparent",
+                      background: isActive ? "rgba(139,92,246,0.1)" : "transparent",
                     }}
                     onMouseEnter={(e) => {
-                      if (!isActive) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)";
+                      if (!isActive) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.03)";
                     }}
                     onMouseLeave={(e) => {
                       if (!isActive) (e.currentTarget as HTMLElement).style.background = "transparent";
@@ -183,11 +187,11 @@ export default function Navbar() {
                     <div className="min-w-0">
                       <p
                         className="text-sm font-bold leading-tight"
-                        style={{ color: isActive ? "#F0C040" : "#C8D8E8" }}
+                        style={{ color: isActive ? "#A78BFA" : "#C8C8E0" }}
                       >
                         {item.label}
                       </p>
-                      <p className="text-[10px] leading-tight mt-0.5" style={{ color: "#3D5070" }}>
+                      <p className="text-[10px] leading-tight mt-0.5" style={{ color: "#4A4A66" }}>
                         {item.desc}
                       </p>
                     </div>
@@ -199,9 +203,9 @@ export default function Navbar() {
             {/* Footer hint */}
             <div
               className="px-4 py-2 border-t text-[9px] font-bold uppercase tracking-widest"
-              style={{ borderColor: "#1B2338", color: "#253147" }}
+              style={{ borderColor: "#1A1A28", color: "#2A2A3D" }}
             >
-              ELO-rated · Real faces · Open battles
+              ELO-rated battles
             </div>
           </div>
         )}

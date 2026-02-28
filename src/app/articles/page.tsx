@@ -92,20 +92,22 @@ export default function ArticlesPage() {
     text ? (text.length > max ? text.slice(0, max) + "…" : text) : null;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6">
+    <div className="max-w-3xl mx-auto px-4 pt-20 pb-28">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-black text-white flex items-center gap-2">
-            📝 <span>Articles</span>
-          </h1>
-          <p className="text-zinc-500 text-sm mt-1">In-depth pieces by moderators &amp; admins</p>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-2xl">📝</span>
+            <h1 className="font-heading tracking-wide text-3xl text-gradient-purple">
+              Articles
+            </h1>
+          </div>
+          <p className="text-xs font-bold text-navy-200">In-depth pieces by moderators &amp; admins</p>
         </div>
         {perms.canWriteArticles && (
           <button
             onClick={() => setShowForm((v) => !v)}
-            className="text-xs font-black px-4 py-2 rounded-xl transition-colors"
-            style={{ background: "rgba(77,159,255,0.1)", color: "#4D9FFF", border: "1px solid rgba(77,159,255,0.2)" }}
+            className="btn-dark text-xs font-black px-4 py-2 rounded-xl"
           >
             {showForm ? "Cancel" : "✍️ Write Article"}
           </button>
@@ -113,32 +115,31 @@ export default function ArticlesPage() {
       </div>
 
       {msg && (
-        <div className="mb-4 px-4 py-2 rounded-xl text-sm font-bold" style={{ background: "#141A2C", color: msg.startsWith("✅") ? "#22C55E" : "#EF4444" }}>
+        <div className={`mb-4 px-4 py-2 rounded-xl text-sm font-bold bg-navy-700 ${msg.startsWith("✅") ? "text-game-green" : "text-game-red"}`}>
           {msg}
         </div>
       )}
 
       {/* Write form */}
       {showForm && perms.canWriteArticles && (
-        <div className="mb-6 rounded-2xl p-5 space-y-3" style={{ background: "#0D1120", border: "1px solid rgba(77,159,255,0.2)" }}>
-          <p className="text-xs font-black uppercase tracking-widest" style={{ color: "#4D9FFF" }}>New Article</p>
+        <div className="mb-6 game-card rounded-2xl p-5 space-y-3 !border-purple/25">
+          <p className="text-xs font-black uppercase tracking-widest text-purple-bright">New Article</p>
           <input type="text" placeholder="Title *" value={form.title}
             onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-            className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-600 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+            className="game-input text-sm"
           />
           <textarea placeholder="Article body *" value={form.content}
             onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
             rows={8}
-            className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-600 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 resize-none"
+            className="game-input text-sm resize-none"
           />
           <input type="text" placeholder="Cover image URL (optional)" value={form.image_url}
             onChange={(e) => setForm((f) => ({ ...f, image_url: e.target.value }))}
-            className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-600 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+            className="game-input text-sm"
           />
           <div className="flex justify-end">
             <button onClick={publishArticle} disabled={saving || !form.title.trim() || !form.content.trim()}
-              className="px-6 py-2 rounded-xl text-sm font-black disabled:opacity-50"
-              style={{ background: "#4D9FFF", color: "#07090F" }}
+              className="btn-purple px-6 py-2 rounded-xl text-sm font-black disabled:opacity-50"
             >
               {saving ? "Publishing…" : "Publish Article"}
             </button>
@@ -150,15 +151,15 @@ export default function ArticlesPage() {
       {loading ? (
         <div className="space-y-4">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="rounded-2xl h-28 animate-pulse" style={{ background: "#111827" }} />
+            <div key={i} className="rounded-2xl h-28 animate-pulse bg-navy-800" />
           ))}
         </div>
       ) : articles.length === 0 ? (
         <div className="text-center py-24">
-          <div className="text-5xl mb-4">📝</div>
-          <p className="text-zinc-400 font-semibold">No articles yet</p>
+          <div className="text-5xl mb-4 opacity-30">📝</div>
+          <p className="font-black text-navy-200">No articles yet</p>
           {perms.canWriteArticles && (
-            <p className="text-zinc-600 text-sm mt-1">Be the first to write one</p>
+            <p className="text-sm mt-1 text-navy-400">Be the first to write one</p>
           )}
         </div>
       ) : (
@@ -167,16 +168,7 @@ export default function ArticlesPage() {
             <Link
               key={article.id}
               href={`/articles/${article.slug}`}
-              className="block rounded-2xl overflow-hidden transition-all duration-200"
-              style={{ background: "#0D1120", border: "1px solid #1B2338" }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.borderColor = "rgba(77,159,255,0.3)";
-                (e.currentTarget as HTMLElement).style.boxShadow = "0 0 20px rgba(77,159,255,0.06)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.borderColor = "#1B2338";
-                (e.currentTarget as HTMLElement).style.boxShadow = "none";
-              }}
+              className="block rounded-2xl overflow-hidden game-card transition-all duration-200 hover:border-purple/40 hover:shadow-[0_0_20px_rgba(139,92,246,0.06)]"
             >
               <div className="flex gap-4 p-4">
                 {article.image_url && (
@@ -188,11 +180,11 @@ export default function ArticlesPage() {
                 <div className="min-w-0">
                   <h2 className="text-white font-black text-base leading-snug mb-1 line-clamp-2">{article.title}</h2>
                   {preview(article.content) && (
-                    <p className="text-xs leading-relaxed line-clamp-2 mb-2" style={{ color: "#4D6080" }}>
+                    <p className="text-xs leading-relaxed line-clamp-2 mb-2 text-navy-200">
                       {preview(article.content)}
                     </p>
                   )}
-                  <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-wide" style={{ color: "#253147" }}>
+                  <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-wide text-navy-400">
                     {article.author_display && <span>{article.author_display}</span>}
                     <span>{timeAgo(article.published_at)}</span>
                   </div>
