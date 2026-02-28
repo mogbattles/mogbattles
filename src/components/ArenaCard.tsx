@@ -211,12 +211,20 @@ export default function ArenaCard({
               {player_count} players
             </span>
           </div>
-          {/* Official badge */}
+          {/* Tier badge */}
           {is_verified && (
             <div className="absolute top-2 right-2 z-10">
               <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full"
                 style={{ color: "#F0C040", background: "rgba(0,0,0,0.6)", border: "1px solid rgba(240,192,64,0.3)" }}>
                 {"\u2713"} OFFICIAL
+              </span>
+            </div>
+          )}
+          {!is_verified && arena_tier === "moderator" && (
+            <div className="absolute top-2 right-2 z-10">
+              <span className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full"
+                style={{ color: "#60A5FA", background: "rgba(0,0,0,0.6)", border: "1px solid rgba(59,130,246,0.3)" }}>
+                {"\uD83D\uDEE1\uFE0F"} MOD
               </span>
             </div>
           )}

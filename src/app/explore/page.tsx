@@ -10,6 +10,7 @@ import {
   getHeadToHead,
   getUserVoteForFeaturedPair,
   getSharedArenaId,
+  getTopProfilesForArena,
   type ArenaWithCount,
   type FeaturedBattle,
   type HeadToHeadStats,
@@ -57,6 +58,16 @@ type ArticlePreview = {
   slug: string;
   author_display: string | null;
 };
+
+type NewsPost = {
+  id: string;
+  title: string;
+  content: string | null;
+  image_url: string | null;
+  published_at: string;
+};
+
+type TopPlayer = { id: string; name: string; image_url: string | null; elo_rating: number };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -320,6 +331,8 @@ export default function ExplorePage() {
   const [arenaResults, setArenaResults] = useState<ArenaWithCount[]>([]);
   const [topThread, setTopThread] = useState<ForumThread | null>(null);
   const [latestArticle, setLatestArticle] = useState<ArticlePreview | null>(null);
+  const [newsPosts, setNewsPosts] = useState<NewsPost[]>([]);
+  const [topPlayersMap, setTopPlayersMap] = useState<Record<string, TopPlayer[]>>({});
   const [selectedCategory, setSelectedCategory] = useState<CategoryRow | null>(null);
   const [rootCategory, setRootCategory] = useState<CategoryRow | null>(null);
   const [categoryChildren, setCategoryChildren] = useState<CategoryRow[]>([]);
@@ -328,15 +341,17 @@ export default function ExplorePage() {
   const searchRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const officialScrollRef = useRef<HTMLDivElement>(null);
+  const moderatorScrollRef = useRef<HTMLDivElement>(null);
   const customScrollRef = useRef<HTMLDivElement>(null);
 
-  // Split arenas: highlighted (All + Members), official (rest), custom
+  // Split arenas: highlighted (All + Members), official, moderator, custom
   const HIGHLIGHTED_SLUGS = ["all", "members"];
   const highlightedArenas = HIGHLIGHTED_SLUGS
     .map((slug) => arenas.find((a) => a.slug === slug))
     .filter(Boolean) as ArenaWithCount[];
   const officialArenas = arenas.filter((a) => a.is_official && !HIGHLIGHTED_SLUGS.includes(a.slug));
-  const customArenas = arenas.filter((a) => !a.is_official);
+  const moderatorArenas = arenas.filter((a) => (a as ArenaWithCount & { arena_tier?: string }).arena_tier === "moderator");
+  const customArenas = arenas.filter((a) => !a.is_official && (a as ArenaWithCount & { arena_tier?: string }).arena_tier !== "moderator");
 
   // Load initial categories — find root "Humans" and show its sub-categories
   useEffect(() => {
@@ -389,8 +404,18 @@ export default function ExplorePage() {
 
   useEffect(() => {
     const db = supabase();
-    // Arenas
-    getExploreArenas({ sort: "popular" }).then((data) => { setArenas(data); setArenasLoading(false); });
+    // Arenas — then fetch top 3 players for highlighted arenas
+    getExploreArenas({ sort: "popular" }).then((data) => {
+      setArenas(data);
+      setArenasLoading(false);
+      // Fetch top 3 leaderboard for "All" and "Members"
+      const highlighted = data.filter((a) => HIGHLIGHTED_SLUGS.includes(a.slug));
+      highlighted.forEach((arena) => {
+        getTopProfilesForArena(arena.id, 3).then((players) => {
+          setTopPlayersMap((prev) => ({ ...prev, [arena.id]: players }));
+        });
+      });
+    });
     // Featured battles
     getFeaturedBattles().then((battles) => {
       const bod = battles.find((b) => b.type === "battle_of_day") ?? null;
@@ -415,12 +440,22 @@ export default function ExplorePage() {
       .then(({ data }) => {
         if (data && data.length > 0) setLatestArticle(data[0] as ArticlePreview);
       });
+    // News posts
+    db.from("news_posts")
+      .select("id, title, content, image_url, published_at")
+      .eq("is_published", true)
+      .order("published_at", { ascending: false })
+      .limit(3)
+      .then(({ data }) => {
+        if (data) setNewsPosts(data as NewsPost[]);
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // GSAP stagger for arena cards (horizontal slide-in)
   useEffect(() => {
     if (arenasLoading) return;
-    [officialScrollRef, customScrollRef].forEach((ref) => {
+    [officialScrollRef, moderatorScrollRef, customScrollRef].forEach((ref) => {
       if (!ref.current) return;
       const cards = ref.current.children;
       if (cards.length === 0) return;
@@ -480,88 +515,123 @@ export default function ExplorePage() {
         </div>
       )}
 
-      {/* News section */}
-      <div>
-        <p className="text-[9px] font-black uppercase tracking-widest mb-2 px-1" style={{ color: "#2A2A3D" }}>
-          {"\uD83D\uDCF0"} NEWS
-        </p>
-
-        <div className="space-y-3">
-          {/* Top Forum Post */}
-          {topThread && (
-            <Link href={`/forum/${topThread.id}`}
-              className="block rounded-xl p-3 transition-all hover:scale-[1.01]"
-              style={{ background: "#0F0F1A", border: "1px solid #222233" }}>
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full"
-                  style={{ color: "#22C55E", background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.15)" }}>
-                  {"\uD83D\uDCAC"} FORUM
-                </span>
-                <span className="text-[9px] font-bold" style={{ color: "#2A2A3D" }}>
-                  {topThread.reply_count} {topThread.reply_count === 1 ? "reply" : "replies"}
-                </span>
-              </div>
-              <p className="text-white text-xs font-bold leading-snug line-clamp-2 mb-1">{topThread.title}</p>
-              {topThread.content && (
-                <p className="text-[10px] leading-snug line-clamp-2 mb-1.5" style={{ color: "#4A4A66" }}>
-                  {topThread.content.slice(0, 120)}
-                </p>
-              )}
-              <p className="text-[9px] font-bold" style={{ color: "#2A2A3D" }}>
-                {topThread.author_name ?? "Anon"} {"\u2022"} {timeAgo(topThread.created_at)}
-              </p>
-            </Link>
-          )}
-
-          {/* Latest Article */}
-          {latestArticle && (
-            <Link href={`/articles/${latestArticle.slug}`}
-              className="block rounded-xl overflow-hidden transition-all hover:scale-[1.01]"
-              style={{ background: "#0F0F1A", border: "1px solid #222233" }}>
-              {latestArticle.image_url && (
-                <div className="relative" style={{ aspectRatio: "16/8" }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={latestArticle.image_url} alt={latestArticle.title}
-                    className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 pointer-events-none" style={{
-                    background: "linear-gradient(to top, rgba(15,15,26,1) 0%, transparent 60%)"
-                  }} />
-                </div>
-              )}
-              <div className="p-3">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full"
-                    style={{ color: "#A78BFA", background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.15)" }}>
-                    {"\uD83D\uDCDD"} ARTICLE
-                  </span>
-                </div>
-                <p className="text-white text-xs font-bold leading-snug line-clamp-2 mb-1">{latestArticle.title}</p>
-                {latestArticle.content && (
-                  <p className="text-[10px] leading-snug line-clamp-2 mb-1.5" style={{ color: "#4A4A66" }}>
-                    {latestArticle.content.slice(0, 120)}
+      {/* News Posts */}
+      {newsPosts.length > 0 && (
+        <div>
+          <p className="text-[9px] font-black uppercase tracking-widest mb-2 px-1" style={{ color: "#2A2A3D" }}>
+            {"\uD83D\uDCE2"} NEWS
+          </p>
+          <div className="space-y-2">
+            {newsPosts.map((post) => (
+              <Link key={post.id} href="/news"
+                className="block rounded-xl p-3 transition-all hover:scale-[1.01]"
+                style={{ background: "#0F0F1A", border: "1px solid #222233" }}>
+                {post.image_url && (
+                  <div className="relative rounded-lg overflow-hidden mb-2" style={{ aspectRatio: "16/8" }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={post.image_url} alt={post.title} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 pointer-events-none" style={{
+                      background: "linear-gradient(to top, rgba(15,15,26,0.8) 0%, transparent 60%)"
+                    }} />
+                  </div>
+                )}
+                <p className="text-white text-xs font-bold leading-snug line-clamp-2 mb-1">{post.title}</p>
+                {post.content && (
+                  <p className="text-[10px] leading-snug line-clamp-2 mb-1" style={{ color: "#4A4A66" }}>
+                    {post.content.slice(0, 100)}
                   </p>
                 )}
                 <p className="text-[9px] font-bold" style={{ color: "#2A2A3D" }}>
-                  {latestArticle.author_display ?? "MogBattles"} {"\u2022"} {timeAgo(latestArticle.published_at)}
+                  {timeAgo(post.published_at)}
                 </p>
-              </div>
-            </Link>
-          )}
-
-          {/* View all links */}
-          <div className="flex gap-2">
-            <Link href="/forum"
-              className="flex-1 text-center py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all hover:scale-[1.02]"
+              </Link>
+            ))}
+            <Link href="/news"
+              className="block text-center py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all hover:scale-[1.02]"
               style={{ color: "#4A4A66", background: "#0F0F1A", border: "1px solid #222233" }}>
-              All Posts {"\u2192"}
-            </Link>
-            <Link href="/articles"
-              className="flex-1 text-center py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all hover:scale-[1.02]"
-              style={{ color: "#4A4A66", background: "#0F0F1A", border: "1px solid #222233" }}>
-              All Articles {"\u2192"}
+              All News {"\u2192"}
             </Link>
           </div>
         </div>
+      )}
+
+      {/* Top Forum Post */}
+      {topThread && (
+        <div>
+          <p className="text-[9px] font-black uppercase tracking-widest mb-2 px-1" style={{ color: "#2A2A3D" }}>
+            {"\uD83D\uDCAC"} TOP POST
+          </p>
+          <Link href={`/forum/${topThread.id}`}
+            className="block rounded-xl p-3 transition-all hover:scale-[1.01]"
+            style={{ background: "#0F0F1A", border: "1px solid #222233" }}>
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full"
+                style={{ color: "#22C55E", background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.15)" }}>
+                FORUM
+              </span>
+              <span className="text-[9px] font-bold" style={{ color: "#2A2A3D" }}>
+                {topThread.reply_count} {topThread.reply_count === 1 ? "reply" : "replies"}
+              </span>
+            </div>
+            <p className="text-white text-xs font-bold leading-snug line-clamp-2 mb-1">{topThread.title}</p>
+            {topThread.content && (
+              <p className="text-[10px] leading-snug line-clamp-2 mb-1.5" style={{ color: "#4A4A66" }}>
+                {topThread.content.slice(0, 120)}
+              </p>
+            )}
+            <p className="text-[9px] font-bold" style={{ color: "#2A2A3D" }}>
+              {topThread.author_name ?? "Anon"} {"\u2022"} {timeAgo(topThread.created_at)}
+            </p>
+          </Link>
+        </div>
+      )}
+
+      {/* Latest Article */}
+      {latestArticle && (
+        <div>
+          <p className="text-[9px] font-black uppercase tracking-widest mb-2 px-1" style={{ color: "#2A2A3D" }}>
+            {"\uD83D\uDCDD"} LATEST ARTICLE
+          </p>
+          <Link href={`/articles/${latestArticle.slug}`}
+            className="block rounded-xl overflow-hidden transition-all hover:scale-[1.01]"
+            style={{ background: "#0F0F1A", border: "1px solid #222233" }}>
+            {latestArticle.image_url && (
+              <div className="relative" style={{ aspectRatio: "16/8" }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={latestArticle.image_url} alt={latestArticle.title}
+                  className="w-full h-full object-cover" />
+                <div className="absolute inset-0 pointer-events-none" style={{
+                  background: "linear-gradient(to top, rgba(15,15,26,1) 0%, transparent 60%)"
+                }} />
+              </div>
+            )}
+            <div className="p-3">
+              <p className="text-white text-xs font-bold leading-snug line-clamp-2 mb-1">{latestArticle.title}</p>
+              {latestArticle.content && (
+                <p className="text-[10px] leading-snug line-clamp-2 mb-1.5" style={{ color: "#4A4A66" }}>
+                  {latestArticle.content.slice(0, 120)}
+                </p>
+              )}
+              <p className="text-[9px] font-bold" style={{ color: "#2A2A3D" }}>
+                {latestArticle.author_display ?? "MogBattles"} {"\u2022"} {timeAgo(latestArticle.published_at)}
+              </p>
+            </div>
+          </Link>
+        </div>
+      )}
+
+      {/* View all links */}
+      <div className="flex gap-2">
+        <Link href="/forum"
+          className="flex-1 text-center py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all hover:scale-[1.02]"
+          style={{ color: "#4A4A66", background: "#0F0F1A", border: "1px solid #222233" }}>
+          All Posts {"\u2192"}
+        </Link>
+        <Link href="/articles"
+          className="flex-1 text-center py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all hover:scale-[1.02]"
+          style={{ color: "#4A4A66", background: "#0F0F1A", border: "1px solid #222233" }}>
+          All Articles {"\u2192"}
+        </Link>
       </div>
     </div>
   );
@@ -673,31 +743,80 @@ export default function ExplorePage() {
         {/* ── LEFT: Arenas ── */}
         <div className="flex-1 min-w-0">
 
-          {/* Highlighted Arenas: All + Members */}
+          {/* Highlighted Arenas: All + Members — compact with leaderboard preview */}
           {!arenasLoading && (highlightedArenas.length > 0) && (
-            <div className="mb-8">
-              <div className="flex gap-4">
-                {highlightedArenas.map((arena) => (
-                  <ArenaCard
-                    key={arena.id}
-                    name={arena.name}
-                    slug={arena.slug}
-                    description={arena.description}
-                    is_official={arena.is_official}
-                    is_verified={arena.is_verified}
-                    player_count={arena.player_count}
-                    mode="explore"
-                    variant="highlighted"
-                    thumbnail_url={arena.thumbnail_url}
-                  />
-                ))}
+            <div className="mb-6">
+              <div className="flex gap-3">
+                {highlightedArenas.map((arena) => {
+                  const topPlayers = topPlayersMap[arena.id] ?? [];
+                  const icon = ARENA_EMOJIS[arena.slug] ?? "\u2694\uFE0F";
+                  return (
+                    <div key={arena.id}
+                      className="group flex-1 min-w-0 rounded-xl overflow-hidden transition-all duration-200 hover:scale-[1.02]"
+                      style={{ background: "#0F0F1A", border: "1px solid rgba(139,92,246,0.2)" }}>
+                      <div className="px-4 py-3">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-lg shrink-0">{icon}</span>
+                            <div className="min-w-0">
+                              <h3 className="text-white font-black text-sm leading-tight truncate">{arena.name}</h3>
+                              <p className="text-[10px] font-bold" style={{ color: "#4A4A66" }}>{arena.player_count} players</p>
+                            </div>
+                          </div>
+                          {arena.is_verified && (
+                            <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full shrink-0"
+                              style={{ color: "#F0C040", background: "rgba(240,192,64,0.1)", border: "1px solid rgba(240,192,64,0.2)" }}>
+                              {"\u2713"}
+                            </span>
+                          )}
+                        </div>
+                        {/* Top 3 leaderboard preview */}
+                        {topPlayers.length > 0 && (
+                          <div className="space-y-1.5 mb-3">
+                            {topPlayers.map((player, i) => (
+                              <div key={player.id} className="flex items-center gap-2">
+                                <span className="text-[10px] font-black w-4 text-center" style={{ color: i === 0 ? "#F0C040" : i === 1 ? "#C0C0C0" : "#CD7F32" }}>
+                                  {i + 1}
+                                </span>
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={player.image_url ?? `https://ui-avatars.com/api/?name=${encodeURIComponent(player.name)}&background=0F0F1A&color=888&size=48&bold=true`}
+                                  alt={player.name}
+                                  className="w-6 h-6 rounded-full object-cover shrink-0"
+                                  style={{ border: "1px solid #222233" }}
+                                  onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(player.name)}&background=0F0F1A&color=888&size=48&bold=true`; }}
+                                />
+                                <span className="text-[11px] font-bold text-white truncate flex-1">{player.name}</span>
+                                <span className="text-[10px] font-bold shrink-0" style={{ color: "#A78BFA" }}>{player.elo_rating}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {topPlayers.length === 0 && <div className="mb-3" />}
+                        {/* Action buttons */}
+                        <div className="flex gap-2">
+                          <Link href={`/swipe/${arena.slug}`}
+                            className="flex-1 text-center py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wide transition-all"
+                            style={{ background: "rgba(139,92,246,0.1)", color: "#A78BFA", border: "1px solid rgba(139,92,246,0.25)" }}>
+                            {"\u2694\uFE0F"} Battle
+                          </Link>
+                          <Link href={`/leaderboard/${arena.slug}`}
+                            className="flex-1 text-center py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wide transition-all"
+                            style={{ background: "rgba(240,192,64,0.08)", color: "#F0C040", border: "1px solid rgba(240,192,64,0.25)" }}>
+                            {"\uD83C\uDFC6"} Ranks
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
           {arenasLoading && (
-            <div className="flex gap-4 mb-8">
+            <div className="flex gap-3 mb-6">
               {[0, 1].map((i) => (
-                <div key={i} className="flex-1 rounded-2xl animate-pulse" style={{ height: "260px", background: "#0F0F1A", border: "1px solid #222233" }} />
+                <div key={i} className="flex-1 rounded-xl animate-pulse" style={{ height: "160px", background: "#0F0F1A", border: "1px solid #222233" }} />
               ))}
             </div>
           )}
@@ -748,6 +867,48 @@ export default function ExplorePage() {
               </div>
             )}
           </div>
+
+          {/* Moderator Arenas (horizontal scroll) */}
+          {!arenasLoading && moderatorArenas.length > 0 && (
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <h2 className="font-heading tracking-wide text-xl sm:text-2xl text-white">MODERATOR ARENAS</h2>
+                  <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full hidden sm:inline"
+                    style={{ color: "#60A5FA", background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)" }}>
+                    {"\uD83D\uDEE1\uFE0F"} TRUSTED
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => scrollSection(moderatorScrollRef, "left")}
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all hover:scale-110 active:scale-95"
+                    style={{ background: "#1A1A28", border: "1px solid #2A2A3D", color: "#888" }}>{"\u2039"}</button>
+                  <button onClick={() => scrollSection(moderatorScrollRef, "right")}
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all hover:scale-110 active:scale-95"
+                    style={{ background: "#1A1A28", border: "1px solid #2A2A3D", color: "#888" }}>{"\u203A"}</button>
+                </div>
+              </div>
+              <div ref={moderatorScrollRef}
+                className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory arena-scroll-hide"
+                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+                {moderatorArenas.map((arena) => (
+                  <div key={arena.id} className="snap-start">
+                    <ArenaCard
+                      name={arena.name}
+                      slug={arena.slug}
+                      description={arena.description}
+                      is_official={arena.is_official}
+                      is_verified={arena.is_verified}
+                      player_count={arena.player_count}
+                      mode="explore"
+                      thumbnail_url={arena.thumbnail_url}
+                      arena_tier="moderator"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Custom Arenas (horizontal scroll) */}
           {(arenasLoading || customArenas.length > 0) && (

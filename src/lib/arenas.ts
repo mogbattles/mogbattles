@@ -334,6 +334,38 @@ export async function getLeaderboardForArena(
     });
 }
 
+// ─── Fetch top N profiles for an arena (lightweight leaderboard preview) ──────
+
+export async function getTopProfilesForArena(
+  arenaId: string,
+  limit = 3
+): Promise<{ id: string; name: string; image_url: string | null; elo_rating: number }[]> {
+  const client = db();
+  const { data, error } = await client
+    .from("arena_profile_stats")
+    .select("elo_rating, profile_id, profiles(id, name, image_url)")
+    .eq("arena_id", arenaId)
+    .order("elo_rating", { ascending: false })
+    .limit(limit);
+
+  if (error || !data) return [];
+
+  type Row = {
+    elo_rating: number;
+    profile_id: string;
+    profiles: { id: string; name: string; image_url: string | null } | null;
+  };
+
+  return (data as unknown as Row[])
+    .filter((r) => r.profiles)
+    .map((r) => ({
+      id: r.profiles!.id,
+      name: r.profiles!.name,
+      image_url: r.profiles!.image_url,
+      elo_rating: r.elo_rating,
+    }));
+}
+
 // ─── Featured battles (Battle of the Day / Coming Up) ────────────────────────
 
 export interface FeaturedBattle {
