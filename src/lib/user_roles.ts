@@ -67,6 +67,10 @@ export interface UserPermissions {
   canEditAbout: boolean;             // admin only
   canAccessAdmin: boolean;           // admin only
   canGrantRoles: boolean;            // admin only
+  canCreateOfficialArena: boolean;   // admin only
+  canCreateModeratorArena: boolean;  // moderator + admin
+  canCreateProfile: boolean;         // moderator + admin (real profiles)
+  canCreateSeedProfile: boolean;     // admin only (test/seed profiles)
 }
 
 function client() {
@@ -134,6 +138,10 @@ export function buildPermissions(
     canEditAbout:        isAdmin,
     canAccessAdmin:      isAdmin,
     canGrantRoles:       isAdmin,
+    canCreateOfficialArena:  isAdmin,
+    canCreateModeratorArena: isModerator || isAdmin,
+    canCreateProfile:        isModerator || isAdmin,
+    canCreateSeedProfile:    isAdmin,
   };
 }
 

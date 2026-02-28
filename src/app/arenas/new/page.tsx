@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth, usePermissions } from "@/context/AuthContext";
 import { createArena } from "@/lib/arenas";
 import { getCategoryChildren } from "@/lib/categories";
 import type { CategoryRow } from "@/lib/supabase";
@@ -10,6 +10,7 @@ import Link from "next/link";
 
 export default function NewArenaPage() {
   const { user, loading } = useAuth();
+  const permissions = usePermissions();
   const router = useRouter();
 
   const [name, setName] = useState("");
@@ -19,6 +20,7 @@ export default function NewArenaPage() {
   const [arenaType, setArenaType] = useState<"fixed" | "open" | "request">("fixed");
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [categoryOptions, setCategoryOptions] = useState<CategoryRow[]>([]);
+  const [arenaTier, setArenaTier] = useState<"official" | "moderator" | "custom">("custom");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -80,6 +82,7 @@ export default function NewArenaPage() {
       creator_id: user.id,
       thumbnail_url: thumbnailUrl.trim() || null,
       category_id: categoryId,
+      arena_tier: arenaTier,
     });
 
     if (createError || !data) {
@@ -215,6 +218,70 @@ export default function NewArenaPage() {
             <p className="text-[10px] mt-1.5" style={{ color: "#2A2A3D" }}>
               Pick a category so people can find your arena when browsing.
             </p>
+          </div>
+        )}
+
+        {/* Arena Tier (only for moderator+ users) */}
+        {(permissions.canCreateOfficialArena || permissions.canCreateModeratorArena) && (
+          <div>
+            <label className="block font-semibold text-sm mb-3" style={{ color: "#ccc" }}>
+              Arena Tier
+            </label>
+            <div className="space-y-2">
+              {permissions.canCreateOfficialArena && (
+                <button
+                  type="button"
+                  onClick={() => setArenaTier("official")}
+                  className="w-full text-left py-3 px-4 rounded-xl border-2 text-sm transition-all"
+                  style={
+                    arenaTier === "official"
+                      ? { borderColor: "rgba(240,192,64,0.5)", background: "rgba(240,192,64,0.1)" }
+                      : { borderColor: "#222233", background: "#0F0F1A" }
+                  }
+                >
+                  <span className="font-bold" style={{ color: arenaTier === "official" ? "#F0C040" : "#ccc" }}>
+                    👑 Official
+                  </span>
+                  <span className="block text-xs mt-0.5" style={{ color: arenaTier === "official" ? "rgba(240,192,64,0.7)" : "#2A2A3D" }}>
+                    Admin-created. Always affects global ELO economy.
+                  </span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setArenaTier("moderator")}
+                className="w-full text-left py-3 px-4 rounded-xl border-2 text-sm transition-all"
+                style={
+                  arenaTier === "moderator"
+                    ? { borderColor: "rgba(59,130,246,0.5)", background: "rgba(59,130,246,0.1)" }
+                    : { borderColor: "#222233", background: "#0F0F1A" }
+                }
+              >
+                <span className="font-bold" style={{ color: arenaTier === "moderator" ? "#60A5FA" : "#ccc" }}>
+                  🛡️ Moderator
+                </span>
+                <span className="block text-xs mt-0.5" style={{ color: arenaTier === "moderator" ? "rgba(96,165,250,0.7)" : "#2A2A3D" }}>
+                  Trusted arena. Affects category-level ELO economy.
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setArenaTier("custom")}
+                className="w-full text-left py-3 px-4 rounded-xl border-2 text-sm transition-all"
+                style={
+                  arenaTier === "custom"
+                    ? { borderColor: "rgba(139,92,246,0.5)", background: "rgba(139,92,246,0.1)" }
+                    : { borderColor: "#222233", background: "#0F0F1A" }
+                }
+              >
+                <span className="font-bold" style={{ color: arenaTier === "custom" ? "#A78BFA" : "#ccc" }}>
+                  🎮 Custom
+                </span>
+                <span className="block text-xs mt-0.5" style={{ color: arenaTier === "custom" ? "rgba(167,139,250,0.7)" : "#2A2A3D" }}>
+                  Community arena. Affects ELO when using existing profiles.
+                </span>
+              </button>
+            </div>
           </div>
         )}
 

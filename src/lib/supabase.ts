@@ -90,6 +90,8 @@ export interface Database {
           is_official: boolean;
           category: string | null;
           category_id: string | null;
+          arena_tier: ArenaTier;
+          affects_elo: boolean;
           visibility: "public" | "private";
           arena_type: "fixed" | "open" | "request";
           creator_id: string | null;
@@ -106,6 +108,8 @@ export interface Database {
           is_official?: boolean;
           category?: string | null;
           category_id?: string | null;
+          arena_tier?: ArenaTier;
+          affects_elo?: boolean;
           visibility?: "public" | "private";
           arena_type?: "fixed" | "open" | "request";
           creator_id?: string | null;
@@ -117,6 +121,8 @@ export interface Database {
           slug?: string;
           description?: string | null;
           category_id?: string | null;
+          arena_tier?: ArenaTier;
+          affects_elo?: boolean;
           visibility?: "public" | "private";
           arena_type?: "fixed" | "open" | "request";
           is_verified?: boolean;
@@ -371,6 +377,10 @@ export interface Database {
     };
   };
 }
+
+// ─── Arena tier type ──────────────────────────────────────────────────────────
+
+export type ArenaTier = "official" | "moderator" | "custom";
 
 // ─── Convenience type aliases ─────────────────────────────────────────────────
 

@@ -13,6 +13,7 @@ interface ArenaCardProps {
   emoji?: string;
   variant?: "default" | "more" | "highlighted";
   thumbnail_url?: string | null;
+  arena_tier?: "official" | "moderator" | "custom";
 }
 
 export const ARENA_EMOJIS: Record<string, string> = {
@@ -54,6 +55,7 @@ export default function ArenaCard({
   emoji,
   variant = "default",
   thumbnail_url,
+  arena_tier,
 }: ArenaCardProps) {
   const icon = emoji ?? ARENA_EMOJIS[slug] ?? "\u2694\uFE0F";
   const gradient = ARENA_GRADIENTS[slug] ?? ARENA_GRADIENTS.default;
@@ -285,7 +287,11 @@ export default function ArenaCard({
               {"\u2713"} OFFICIAL
             </span>
           )}
-          {!is_official && (
+          {arena_tier === "moderator" && (
+            <span className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full"
+              style={{ color: "#60A5FA", background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)" }}>MOD</span>
+          )}
+          {!is_official && arena_tier !== "moderator" && (
             <span className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full"
               style={{ color: "#4A4A66", background: "#1A1A28", border: "1px solid #2A2A3D" }}>CUSTOM</span>
           )}

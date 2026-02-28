@@ -369,9 +369,9 @@ export default function AdminPage() {
   const [categoryMsg, setCategoryMsg] = useState<string | null>(null);
 
   // Arena management (all arenas)
-  type AdminArena = { id: string; name: string; slug: string; description: string | null; is_official: boolean; is_verified: boolean; category: string | null; category_id: string | null; visibility: string; arena_type: string; creator_id: string | null; thumbnail_url: string | null; created_at: string };
+  type AdminArena = { id: string; name: string; slug: string; description: string | null; is_official: boolean; is_verified: boolean; category: string | null; category_id: string | null; arena_tier: "official" | "moderator" | "custom"; affects_elo: boolean; visibility: string; arena_type: string; creator_id: string | null; thumbnail_url: string | null; created_at: string };
   const [allArenas, setAllArenas] = useState<AdminArena[]>([]);
-  const [arenaFilter, setArenaFilter] = useState<"all" | "official" | "custom">("all");
+  const [arenaFilter, setArenaFilter] = useState<"all" | "official" | "moderator" | "custom">("all");
   const [arenaSearch, setArenaSearch] = useState("");
   const [editingArena, setEditingArena] = useState<string | null>(null);
   const [arenaEdits, setArenaEdits] = useState<Record<string, Partial<AdminArena>>>({});
@@ -467,7 +467,7 @@ export default function AdminPage() {
     async function loadAllArenas() {
       const { data } = await supabase
         .from("arenas")
-        .select("id, name, slug, description, is_official, is_verified, category, category_id, visibility, arena_type, creator_id, thumbnail_url, created_at")
+        .select("id, name, slug, description, is_official, is_verified, category, category_id, arena_tier, affects_elo, visibility, arena_type, creator_id, thumbnail_url, created_at")
         .order("is_official", { ascending: false })
         .order("created_at", { ascending: true });
       if (data) setAllArenas(data as AdminArena[]);
@@ -656,7 +656,8 @@ export default function AdminPage() {
     if (edits.name !== undefined) updatePayload.name = edits.name;
     if (edits.description !== undefined) updatePayload.description = edits.description || null;
     if (edits.thumbnail_url !== undefined) updatePayload.thumbnail_url = edits.thumbnail_url || null;
-    if (edits.is_official !== undefined) updatePayload.is_official = edits.is_official;
+    if (edits.arena_tier !== undefined) updatePayload.arena_tier = edits.arena_tier;
+    if (edits.affects_elo !== undefined) updatePayload.affects_elo = edits.affects_elo;
     if (edits.is_verified !== undefined) updatePayload.is_verified = edits.is_verified;
     if (edits.category_id !== undefined) updatePayload.category_id = edits.category_id || null;
     if (edits.visibility !== undefined) updatePayload.visibility = edits.visibility;
@@ -681,8 +682,9 @@ export default function AdminPage() {
   }
 
   const filteredArenas = allArenas.filter((a) => {
-    if (arenaFilter === "official" && !a.is_official) return false;
-    if (arenaFilter === "custom" && a.is_official) return false;
+    if (arenaFilter === "official" && a.arena_tier !== "official") return false;
+    if (arenaFilter === "moderator" && a.arena_tier !== "moderator") return false;
+    if (arenaFilter === "custom" && a.arena_tier !== "custom") return false;
     if (arenaSearch.trim()) {
       const q = arenaSearch.toLowerCase();
       return a.name.toLowerCase().includes(q) || a.slug.toLowerCase().includes(q);
@@ -1605,7 +1607,7 @@ export default function AdminPage() {
         {/* Filters */}
         <div className="flex items-center gap-3">
           <div className="flex gap-1.5">
-            {(["all", "official", "custom"] as const).map((f) => (
+            {(["all", "official", "moderator", "custom"] as const).map((f) => (
               <button key={f} onClick={() => setArenaFilter(f)}
                 className="text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-lg transition-colors"
                 style={arenaFilter === f
@@ -1639,10 +1641,22 @@ export default function AdminPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
                       <span className="text-white text-sm font-bold truncate">{arena.name}</span>
-                      {arena.is_official && (
+                      {arena.arena_tier === "official" && (
                         <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full"
                           style={{ color: "#F0C040", background: "rgba(240,192,64,0.1)", border: "1px solid rgba(240,192,64,0.2)" }}>
                           OFFICIAL
+                        </span>
+                      )}
+                      {arena.arena_tier === "moderator" && (
+                        <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full"
+                          style={{ color: "#60A5FA", background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)" }}>
+                          MOD
+                        </span>
+                      )}
+                      {arena.arena_tier === "custom" && (
+                        <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full"
+                          style={{ color: "#4A4A66", background: "#1A1A28", border: "1px solid #2A2A3D" }}>
+                          CUSTOM
                         </span>
                       )}
                       {arena.is_verified && (
@@ -1651,10 +1665,10 @@ export default function AdminPage() {
                           VERIFIED
                         </span>
                       )}
-                      {!arena.is_official && (
+                      {!arena.affects_elo && (
                         <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full"
-                          style={{ color: "#4A4A66", background: "#1A1A28", border: "1px solid #2A2A3D" }}>
-                          CUSTOM
+                          style={{ color: "#EF4444", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)" }}>
+                          NO ELO
                         </span>
                       )}
                     </div>
@@ -1750,15 +1764,26 @@ export default function AdminPage() {
                           className="w-full bg-zinc-800 border border-zinc-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500" />
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <label className="flex items-center gap-2 cursor-pointer">
+                    <div className="flex items-center gap-4 flex-wrap">
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Tier</label>
+                        <select
+                          value={edits.arena_tier ?? arena.arena_tier}
+                          onChange={(e) => setArenaEdit(arena.id, "arena_tier", e.target.value)}
+                          className="bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
+                          <option value="official">Official</option>
+                          <option value="moderator">Moderator</option>
+                          <option value="custom">Custom</option>
+                        </select>
+                      </div>
+                      <label className="flex items-center gap-2 cursor-pointer pt-4">
                         <input type="checkbox"
-                          checked={edits.is_official !== undefined ? !!edits.is_official : arena.is_official}
-                          onChange={(e) => setArenaEdit(arena.id, "is_official", e.target.checked)}
+                          checked={edits.affects_elo !== undefined ? !!edits.affects_elo : arena.affects_elo}
+                          onChange={(e) => setArenaEdit(arena.id, "affects_elo", e.target.checked)}
                           className="accent-blue-500 w-3.5 h-3.5" />
-                        <span className="text-zinc-300 text-xs">Official</span>
+                        <span className="text-zinc-300 text-xs">Affects ELO</span>
                       </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
+                      <label className="flex items-center gap-2 cursor-pointer pt-4">
                         <input type="checkbox"
                           checked={edits.is_verified !== undefined ? !!edits.is_verified : arena.is_verified}
                           onChange={(e) => setArenaEdit(arena.id, "is_verified", e.target.checked)}

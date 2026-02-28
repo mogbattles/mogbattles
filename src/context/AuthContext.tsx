@@ -24,6 +24,10 @@ const GUEST_PERMISSIONS: UserPermissions = {
   canEditAbout: false,
   canAccessAdmin: false,
   canGrantRoles: false,
+  canCreateOfficialArena: false,
+  canCreateModeratorArena: false,
+  canCreateProfile: false,
+  canCreateSeedProfile: false,
 };
 
 // ─── Context shape ────────────────────────────────────────────────────────────

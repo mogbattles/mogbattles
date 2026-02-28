@@ -621,6 +621,7 @@ export async function createArena(input: {
   creator_id: string;
   thumbnail_url?: string | null;
   category_id?: string | null;
+  arena_tier?: "official" | "moderator" | "custom";
 }): Promise<{ data: ArenaRow | null; error: string | null }> {
   const client = db();
 
