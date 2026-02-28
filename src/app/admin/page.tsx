@@ -1081,7 +1081,7 @@ export default function AdminPage() {
       total_wins: 0,
       total_losses: 0,
       total_matches: 0,
-      user_id: crypto.randomUUID(),
+      user_id: null,
       is_test_profile: false,
       gender: seedGender || null,
       height_in: heightVal,
