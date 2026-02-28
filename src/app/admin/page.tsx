@@ -554,6 +554,28 @@ export default function AdminPage() {
         .select("*")
         .order("name");
       const profs = (data ?? []) as Profile[];
+
+      // Fetch authoritative categories from junction table (source of truth for arenas)
+      const { data: pcRows } = await supabase
+        .from("profile_categories")
+        .select("profile_id, categories(slug)");
+      const catsByProfile: Record<string, string[]> = {};
+      for (const row of (pcRows ?? []) as { profile_id: string; categories: { slug: string } | null }[]) {
+        if (!row.categories?.slug) continue;
+        if (!catsByProfile[row.profile_id]) catsByProfile[row.profile_id] = [];
+        catsByProfile[row.profile_id].push(row.categories.slug);
+      }
+
+      // Override profiles.categories with junction table data
+      profs.forEach((p) => {
+        if (catsByProfile[p.id]) {
+          p.categories = catsByProfile[p.id];
+          p.category = (p.categories[0] ?? null) as Category;
+        } else if (!p.categories || p.categories.length === 0) {
+          p.categories = p.category ? [p.category] : [];
+        }
+      });
+
       setProfiles(profs);
 
       const imgs: Record<string, string[]> = {};
@@ -571,10 +593,6 @@ export default function AdminPage() {
           country: p.country ?? "",
         };
         elos[p.id] = p.elo_rating.toString();
-        // Backfill categories from single category if needed
-        if (!p.categories || p.categories.length === 0) {
-          p.categories = p.category ? [p.category] : [];
-        }
       });
       setImageInputs(imgs);
       setSlugInputs(slugs);
@@ -1295,6 +1313,27 @@ export default function AdminPage() {
     const { data: fresh } = await supabase.from("profiles").select("*").order("name");
     if (fresh) {
       const profs = fresh as Profile[];
+
+      // Fetch authoritative categories from junction table
+      const { data: pcRows } = await supabase
+        .from("profile_categories")
+        .select("profile_id, categories(slug)");
+      const catsByProfile: Record<string, string[]> = {};
+      for (const row of (pcRows ?? []) as { profile_id: string; categories: { slug: string } | null }[]) {
+        if (!row.categories?.slug) continue;
+        if (!catsByProfile[row.profile_id]) catsByProfile[row.profile_id] = [];
+        catsByProfile[row.profile_id].push(row.categories.slug);
+      }
+
+      profs.forEach((p) => {
+        if (catsByProfile[p.id]) {
+          p.categories = catsByProfile[p.id];
+          p.category = (p.categories[0] ?? null) as Category;
+        } else if (!p.categories || p.categories.length === 0) {
+          p.categories = p.category ? [p.category] : [];
+        }
+      });
+
       setProfiles(profs);
       const imgs: Record<string, string[]> = {};
       const slugs: Record<string, string> = {};
@@ -1306,9 +1345,6 @@ export default function AdminPage() {
         slugs[p.id] = p.wikipedia_slug ?? "";
         stats[p.id] = { height: p.height_in ? inchesToDisplay(p.height_in) : "", weight: p.weight_lbs?.toString() ?? "", country: p.country ?? "" };
         elos[p.id] = p.elo_rating.toString();
-        if (!p.categories || p.categories.length === 0) {
-          p.categories = p.category ? [p.category] : [];
-        }
       });
       setImageInputs(imgs);
       setSlugInputs(slugs);
