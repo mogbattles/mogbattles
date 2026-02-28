@@ -610,6 +610,7 @@ export async function createArena(input: {
   visibility: "public" | "private";
   arena_type: "fixed" | "open" | "request";
   creator_id: string;
+  thumbnail_url?: string | null;
 }): Promise<{ data: ArenaRow | null; error: string | null }> {
   const client = db();
 

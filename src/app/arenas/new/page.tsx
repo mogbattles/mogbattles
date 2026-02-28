@@ -12,6 +12,7 @@ export default function NewArenaPage() {
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [thumbnailUrl, setThumbnailUrl] = useState("");
   const [visibility, setVisibility] = useState<"public" | "private">("public");
   const [arenaType, setArenaType] = useState<"fixed" | "open" | "request">("fixed");
   const [submitting, setSubmitting] = useState(false);
@@ -61,6 +62,7 @@ export default function NewArenaPage() {
       visibility,
       arena_type: arenaType,
       creator_id: user.id,
+      thumbnail_url: thumbnailUrl.trim() || null,
     });
 
     if (createError || !data) {
@@ -118,6 +120,38 @@ export default function NewArenaPage() {
             onFocus={(e) => { (e.target as HTMLElement).style.borderColor = "rgba(139,92,246,0.5)"; }}
             onBlur={(e) => { (e.target as HTMLElement).style.borderColor = "#222233"; }}
           />
+        </div>
+
+        {/* Thumbnail URL */}
+        <div>
+          <label className="block font-semibold text-sm mb-2" style={{ color: "#ccc" }}>
+            Cover Image URL
+          </label>
+          <input
+            type="url"
+            value={thumbnailUrl}
+            onChange={(e) => setThumbnailUrl(e.target.value)}
+            placeholder="https://example.com/image.jpg"
+            className="w-full rounded-xl px-4 py-3 text-white focus:outline-none transition-colors text-sm"
+            style={{ background: "#0F0F1A", border: "1px solid #222233", caretColor: "#8B5CF6" }}
+            onFocus={(e) => { (e.target as HTMLElement).style.borderColor = "rgba(139,92,246,0.5)"; }}
+            onBlur={(e) => { (e.target as HTMLElement).style.borderColor = "#222233"; }}
+          />
+          <p className="text-[10px] mt-1.5" style={{ color: "#2A2A3D" }}>
+            Paste an image URL for the arena card thumbnail. Leave blank for default.
+          </p>
+          {thumbnailUrl && (
+            <div className="mt-3 rounded-xl overflow-hidden" style={{ border: "1px solid #222233", maxHeight: "140px" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={thumbnailUrl}
+                alt="Preview"
+                className="w-full h-full object-cover"
+                style={{ maxHeight: "140px" }}
+                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+              />
+            </div>
+          )}
         </div>
 
         {/* Visibility */}

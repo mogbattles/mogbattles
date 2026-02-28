@@ -95,6 +95,7 @@ export interface Database {
           is_verified: boolean;
           invite_token: string;
           created_at: string;
+          thumbnail_url: string | null;
         };
         Insert: {
           id?: string;
@@ -107,6 +108,7 @@ export interface Database {
           arena_type?: "fixed" | "open" | "request";
           creator_id?: string | null;
           is_verified?: boolean;
+          thumbnail_url?: string | null;
         };
         Update: {
           name?: string;
@@ -115,6 +117,7 @@ export interface Database {
           visibility?: "public" | "private";
           arena_type?: "fixed" | "open" | "request";
           is_verified?: boolean;
+          thumbnail_url?: string | null;
         };
       };
       arena_profile_stats: {

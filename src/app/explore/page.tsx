@@ -33,6 +33,38 @@ type ProfileHit = {
   category: string | null;
 };
 
+type ForumThread = {
+  id: string;
+  title: string;
+  content: string | null;
+  reply_count: number;
+  author_name: string | null;
+  created_at: string;
+};
+
+type ArticlePreview = {
+  id: string;
+  title: string;
+  content: string | null;
+  image_url: string | null;
+  published_at: string;
+  slug: string;
+  author_display: string | null;
+};
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 30) return `${days}d ago`;
+  return new Date(dateStr).toLocaleDateString();
+}
+
 // ─── Countdown Timer ─────────────────────────────────────────────────────────
 
 function CountdownTimer() {
@@ -53,13 +85,13 @@ function CountdownTimer() {
     return () => clearInterval(interval);
   }, []);
   return (
-    <span className="font-heading text-sm tracking-wider" style={{ color: "#F0C040" }}>{timeLeft}</span>
+    <span className="font-heading text-xs tracking-wider" style={{ color: "#F0C040" }}>{timeLeft}</span>
   );
 }
 
-// ─── Battle of the Day card ─────────────────────────────────────────────────
+// ─── Compact Battle of the Day (sidebar version) ─────────────────────────────
 
-function BattleOfDayCard({
+function CompactBattleCard({
   battle, h2h, user,
 }: {
   battle: FeaturedBattle;
@@ -111,77 +143,61 @@ function BattleOfDayCard({
   return (
     <>
       <div className="rounded-2xl overflow-hidden"
-        style={{ background: "linear-gradient(135deg, #0F0F1A 0%, #141420 100%)", border: "1px solid rgba(139,92,246,0.2)", boxShadow: "0 0 30px rgba(139,92,246,0.05)" }}>
-        <div className="px-4 pt-3 pb-2 flex items-center justify-between border-b" style={{ borderColor: "rgba(139,92,246,0.12)" }}>
-          <div className="flex items-center gap-2">
-            <span className="text-sm">{"\u2694\uFE0F"}</span>
-            <span className="font-heading text-sm tracking-wider" style={{ color: "#A78BFA" }}>Battle of the Day</span>
+        style={{ background: "#0F0F1A", border: "1px solid rgba(139,92,246,0.15)" }}>
+        {/* Header */}
+        <div className="px-3 pt-2.5 pb-2 flex items-center justify-between border-b" style={{ borderColor: "rgba(139,92,246,0.1)" }}>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs">{"\u2694\uFE0F"}</span>
+            <span className="font-heading text-xs tracking-wider" style={{ color: "#A78BFA" }}>BATTLE OF THE DAY</span>
           </div>
-          <div className="flex items-center gap-2">
-            <CountdownTimer />
-            {votedFor && (
-              <span className="text-[9px] font-black px-2 py-0.5 rounded-full" style={{ background: "rgba(139,92,246,0.12)", color: "#A78BFA", border: "1px solid rgba(139,92,246,0.2)" }}>
-                {"\u2713"} Voted
-              </span>
-            )}
-          </div>
+          <CountdownTimer />
         </div>
-        <div className="flex relative" style={{ aspectRatio: "2/1.2" }}>
+        {/* Photos */}
+        <div className="flex relative" style={{ aspectRatio: "2/1.1" }}>
           <button onClick={() => handleVote(pa.id)} disabled={voting}
             className="flex-1 relative overflow-hidden text-left"
             style={{ outline: votedFor === pa.id ? "2px solid #8B5CF6" : "2px solid transparent", outlineOffset: "-2px" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={pa.image_url ?? fb(pa.name)} alt={pa.name}
-              className="w-full h-full object-cover object-top transition-all duration-300"
-              style={{ opacity: votedFor && votedFor !== pa.id ? 0.55 : 1 }}
+              className="w-full h-full object-cover object-top"
+              style={{ opacity: votedFor && votedFor !== pa.id ? 0.5 : 1 }}
               onError={(e) => { (e.target as HTMLImageElement).src = fb(pa.name); }} />
-            <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to top, rgba(5,5,8,0.9) 0%, rgba(5,5,8,0.1) 55%, transparent 100%)" }} />
-            {votedFor === pa.id && <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[9px] font-black" style={{ background: "#8B5CF6", color: "#fff" }}>YOUR PICK</div>}
-            <p className="absolute bottom-7 left-2 right-2 text-white font-black text-xs leading-tight truncate">{pa.name}</p>
-            <span className="absolute bottom-2 left-2 font-black" style={{ fontSize: "18px", color: votedFor === pa.id ? "#A78BFA" : "#4A4A66", lineHeight: 1 }}>{aPct}%</span>
+            <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to top, rgba(5,5,8,0.9) 0%, transparent 60%)" }} />
+            {votedFor === pa.id && <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-full text-[8px] font-black" style={{ background: "#8B5CF6", color: "#fff" }}>YOUR PICK</div>}
+            <p className="absolute bottom-5 left-1.5 right-1 text-white font-black text-[10px] leading-tight truncate">{pa.name}</p>
+            <span className="absolute bottom-1 left-1.5 font-black text-sm" style={{ color: votedFor === pa.id ? "#A78BFA" : "#4A4A66" }}>{aPct}%</span>
           </button>
           <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10">
-            <div className="w-7 h-7 flex items-center justify-center rounded-full font-black text-[10px]"
-              style={{ background: "#050508", border: "2px solid rgba(139,92,246,0.35)", color: "#A78BFA" }}>VS</div>
+            <div className="w-6 h-6 flex items-center justify-center rounded-full font-black text-[8px]"
+              style={{ background: "#050508", border: "2px solid rgba(139,92,246,0.3)", color: "#A78BFA" }}>VS</div>
           </div>
           <button onClick={() => handleVote(pb.id)} disabled={voting}
             className="flex-1 relative overflow-hidden text-left"
             style={{ outline: votedFor === pb.id ? "2px solid #8B5CF6" : "2px solid transparent", outlineOffset: "-2px" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={pb.image_url ?? fb(pb.name)} alt={pb.name}
-              className="w-full h-full object-cover object-top transition-all duration-300"
-              style={{ opacity: votedFor && votedFor !== pb.id ? 0.55 : 1 }}
+              className="w-full h-full object-cover object-top"
+              style={{ opacity: votedFor && votedFor !== pb.id ? 0.5 : 1 }}
               onError={(e) => { (e.target as HTMLImageElement).src = fb(pb.name); }} />
-            <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to top, rgba(5,5,8,0.9) 0%, rgba(5,5,8,0.1) 55%, transparent 100%)" }} />
-            {votedFor === pb.id && <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[9px] font-black" style={{ background: "#8B5CF6", color: "#fff" }}>YOUR PICK</div>}
-            <p className="absolute bottom-7 left-2 right-2 text-white font-black text-xs leading-tight truncate text-right">{pb.name}</p>
-            <span className="absolute bottom-2 right-2 font-black" style={{ fontSize: "18px", color: votedFor === pb.id ? "#A78BFA" : "#4A4A66", lineHeight: 1 }}>{bPct}%</span>
+            <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to top, rgba(5,5,8,0.9) 0%, transparent 60%)" }} />
+            {votedFor === pb.id && <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-full text-[8px] font-black" style={{ background: "#8B5CF6", color: "#fff" }}>YOUR PICK</div>}
+            <p className="absolute bottom-5 left-1 right-1.5 text-white font-black text-[10px] leading-tight truncate text-right">{pb.name}</p>
+            <span className="absolute bottom-1 right-1.5 font-black text-sm" style={{ color: votedFor === pb.id ? "#A78BFA" : "#4A4A66" }}>{bPct}%</span>
           </button>
         </div>
-        <div className="px-3 pt-3 pb-1">
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-[10px] font-black" style={{ color: votedFor === pa.id ? "#A78BFA" : "#4A4A66", minWidth: "30px" }}>{aPct}%</span>
-            <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: "#1A1A28" }}>
+        {/* Vote bar */}
+        <div className="px-3 py-2">
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className="text-[9px] font-black" style={{ color: votedFor === pa.id ? "#A78BFA" : "#4A4A66" }}>{aPct}%</span>
+            <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: "#1A1A28" }}>
               <div className="h-full rounded-full transition-all duration-700" style={{ width: `${aPct}%`, background: "linear-gradient(90deg, #8B5CF6, #A78BFA 50%, #F0C040)" }} />
             </div>
-            <span className="text-[10px] font-black text-right" style={{ color: votedFor === pb.id ? "#A78BFA" : "#4A4A66", minWidth: "30px" }}>{bPct}%</span>
+            <span className="text-[9px] font-black text-right" style={{ color: votedFor === pb.id ? "#A78BFA" : "#4A4A66" }}>{bPct}%</span>
           </div>
-          <p className="text-center text-[9px] font-bold" style={{ color: "#2A2A3D" }}>
-            {total > 0 ? `${total.toLocaleString()} vote${total === 1 ? "" : "s"} cast` : "Be the first to vote"}
+          <p className="text-center text-[8px] font-bold" style={{ color: "#2A2A3D" }}>
+            {total > 0 ? `${total.toLocaleString()} votes` : "Be the first to vote"}
+            {votedFor && " \u2022 Voted"}
           </p>
-        </div>
-        <div className="px-3 pb-3 pt-2">
-          {!user ? (
-            <button onClick={() => setShowSignIn(true)}
-              className="block w-full text-center py-2 rounded-xl text-xs font-black uppercase tracking-wider"
-              style={{ background: "rgba(139,92,246,0.1)", color: "#A78BFA", border: "1px solid rgba(139,92,246,0.2)" }}>
-              Sign in to vote {"\u2192"}
-            </button>
-          ) : !votedFor ? (
-            <p className="text-center text-[9px] font-bold uppercase tracking-widest" style={{ color: "#4A4A66" }}>Tap a photo to cast your vote</p>
-          ) : (
-            <p className="text-center text-[9px] font-bold uppercase tracking-widest" style={{ color: "#2A2A3D" }}>Tap the other side to switch</p>
-          )}
         </div>
       </div>
       {showSignIn && (
@@ -200,6 +216,41 @@ function BattleOfDayCard({
         </div>
       )}
     </>
+  );
+}
+
+// ─── Upcoming Battle mini-card ───────────────────────────────────────────────
+
+function UpcomingBattleCard({ battle }: { battle: FeaturedBattle }) {
+  const pa = battle.profile_a;
+  const pb = battle.profile_b;
+  if (!pa || !pb) return null;
+
+  function fb(n: string) {
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(n)}&background=0F0F1A&color=888&size=80&bold=true`;
+  }
+
+  return (
+    <div className="rounded-xl p-3 flex items-center gap-3"
+      style={{ background: "#0F0F1A", border: "1px solid #222233" }}>
+      <div className="flex items-center gap-1 shrink-0">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={pa.image_url ?? fb(pa.name)} alt={pa.name}
+          className="w-8 h-8 rounded-full object-cover" style={{ border: "1px solid #222233" }}
+          onError={(e) => { (e.target as HTMLImageElement).src = fb(pa.name); }} />
+        <span className="text-[9px] font-black" style={{ color: "#A78BFA" }}>VS</span>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={pb.image_url ?? fb(pb.name)} alt={pb.name}
+          className="w-8 h-8 rounded-full object-cover" style={{ border: "1px solid #222233" }}
+          onError={(e) => { (e.target as HTMLImageElement).src = fb(pb.name); }} />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] font-black text-white truncate">{pa.name} vs {pb.name}</p>
+        {battle.label && (
+          <p className="text-[9px] font-bold" style={{ color: "#F0C040" }}>{battle.label}</p>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -250,7 +301,7 @@ function SearchDropdown({ query, profiles, arenas, onClose }: {
   );
 }
 
-// ─── Main Explore Page (PS5-style) ────────────────────────────────────────────
+// ─── Main Explore Page ───────────────────────────────────────────────────────
 
 export default function ExplorePage() {
   const { user } = useAuth();
@@ -261,6 +312,8 @@ export default function ExplorePage() {
   const [query, setQuery] = useState("");
   const [profileResults, setProfileResults] = useState<ProfileHit[]>([]);
   const [arenaResults, setArenaResults] = useState<ArenaWithCount[]>([]);
+  const [topThread, setTopThread] = useState<ForumThread | null>(null);
+  const [latestArticle, setLatestArticle] = useState<ArticlePreview | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const officialScrollRef = useRef<HTMLDivElement>(null);
@@ -275,13 +328,33 @@ export default function ExplorePage() {
   const customArenas = arenas.filter((a) => !a.is_official);
 
   useEffect(() => {
+    const db = supabase();
+    // Arenas
     getExploreArenas({ sort: "popular" }).then((data) => { setArenas(data); setArenasLoading(false); });
+    // Featured battles
     getFeaturedBattles().then((battles) => {
       const bod = battles.find((b) => b.type === "battle_of_day") ?? null;
       const upcoming = battles.find((b) => b.type === "upcoming") ?? null;
       setFeatured({ bod, upcoming });
       if (bod?.profile_a && bod?.profile_b) getHeadToHead(bod.profile_a.id, bod.profile_b.id).then(setH2h);
     });
+    // Top forum thread (most replies)
+    db.from("forum_threads")
+      .select("id, title, content, reply_count, author_name, created_at")
+      .order("reply_count", { ascending: false })
+      .limit(1)
+      .then(({ data }) => {
+        if (data && data.length > 0) setTopThread(data[0] as ForumThread);
+      });
+    // Latest article
+    db.from("articles")
+      .select("id, title, content, image_url, published_at, slug, author_display")
+      .eq("is_published", true)
+      .order("published_at", { ascending: false })
+      .limit(1)
+      .then(({ data }) => {
+        if (data && data.length > 0) setLatestArticle(data[0] as ArticlePreview);
+      });
   }, []);
 
   // GSAP stagger for arena cards (horizontal slide-in)
@@ -329,10 +402,114 @@ export default function ExplorePage() {
     ref.current.scrollBy({ left: dir === "left" ? -300 : 300, behavior: "smooth" });
   }
 
+  // ── Right sidebar feed content ──
+  const feedContent = (
+    <div className="space-y-4">
+      {/* Battle of the Day */}
+      {hasFeatured && featured.bod && (
+        <CompactBattleCard battle={featured.bod} h2h={h2h} user={user} />
+      )}
+
+      {/* Upcoming Battle */}
+      {featured.upcoming?.profile_a && featured.upcoming?.profile_b && (
+        <div>
+          <p className="text-[9px] font-black uppercase tracking-widest mb-2 px-1" style={{ color: "#2A2A3D" }}>
+            {"\u{1F525}"} COMING UP
+          </p>
+          <UpcomingBattleCard battle={featured.upcoming} />
+        </div>
+      )}
+
+      {/* News section */}
+      <div>
+        <p className="text-[9px] font-black uppercase tracking-widest mb-2 px-1" style={{ color: "#2A2A3D" }}>
+          {"\uD83D\uDCF0"} NEWS
+        </p>
+
+        <div className="space-y-3">
+          {/* Top Forum Post */}
+          {topThread && (
+            <Link href={`/forum/${topThread.id}`}
+              className="block rounded-xl p-3 transition-all hover:scale-[1.01]"
+              style={{ background: "#0F0F1A", border: "1px solid #222233" }}>
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full"
+                  style={{ color: "#22C55E", background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.15)" }}>
+                  {"\uD83D\uDCAC"} FORUM
+                </span>
+                <span className="text-[9px] font-bold" style={{ color: "#2A2A3D" }}>
+                  {topThread.reply_count} {topThread.reply_count === 1 ? "reply" : "replies"}
+                </span>
+              </div>
+              <p className="text-white text-xs font-bold leading-snug line-clamp-2 mb-1">{topThread.title}</p>
+              {topThread.content && (
+                <p className="text-[10px] leading-snug line-clamp-2 mb-1.5" style={{ color: "#4A4A66" }}>
+                  {topThread.content.slice(0, 120)}
+                </p>
+              )}
+              <p className="text-[9px] font-bold" style={{ color: "#2A2A3D" }}>
+                {topThread.author_name ?? "Anon"} {"\u2022"} {timeAgo(topThread.created_at)}
+              </p>
+            </Link>
+          )}
+
+          {/* Latest Article */}
+          {latestArticle && (
+            <Link href={`/articles/${latestArticle.slug}`}
+              className="block rounded-xl overflow-hidden transition-all hover:scale-[1.01]"
+              style={{ background: "#0F0F1A", border: "1px solid #222233" }}>
+              {latestArticle.image_url && (
+                <div className="relative" style={{ aspectRatio: "16/8" }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={latestArticle.image_url} alt={latestArticle.title}
+                    className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 pointer-events-none" style={{
+                    background: "linear-gradient(to top, rgba(15,15,26,1) 0%, transparent 60%)"
+                  }} />
+                </div>
+              )}
+              <div className="p-3">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full"
+                    style={{ color: "#A78BFA", background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.15)" }}>
+                    {"\uD83D\uDCDD"} ARTICLE
+                  </span>
+                </div>
+                <p className="text-white text-xs font-bold leading-snug line-clamp-2 mb-1">{latestArticle.title}</p>
+                {latestArticle.content && (
+                  <p className="text-[10px] leading-snug line-clamp-2 mb-1.5" style={{ color: "#4A4A66" }}>
+                    {latestArticle.content.slice(0, 120)}
+                  </p>
+                )}
+                <p className="text-[9px] font-bold" style={{ color: "#2A2A3D" }}>
+                  {latestArticle.author_display ?? "MogBattles"} {"\u2022"} {timeAgo(latestArticle.published_at)}
+                </p>
+              </div>
+            </Link>
+          )}
+
+          {/* View all links */}
+          <div className="flex gap-2">
+            <Link href="/forum"
+              className="flex-1 text-center py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all hover:scale-[1.02]"
+              style={{ color: "#4A4A66", background: "#0F0F1A", border: "1px solid #222233" }}>
+              All Posts {"\u2192"}
+            </Link>
+            <Link href="/articles"
+              className="flex-1 text-center py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all hover:scale-[1.02]"
+              style={{ color: "#4A4A66", background: "#0F0F1A", border: "1px solid #222233" }}>
+              All Articles {"\u2192"}
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-5">
 
-      {/* ── Search bar ── */}
+      {/* ── Search bar (full width) ── */}
       <div ref={searchRef} className="relative mb-6">
         <div className="flex items-center gap-2 px-4 py-3 rounded-2xl"
           style={{ background: "#0F0F1A", border: `1px solid ${query ? "rgba(139,92,246,0.3)" : "#222233"}` }}>
@@ -351,127 +528,19 @@ export default function ExplorePage() {
         <SearchDropdown query={query} profiles={profileResults} arenas={arenaResults} onClose={clearSearch} />
       </div>
 
-      {/* ── Hero: Battle of the Day ── */}
-      {hasFeatured && featured.bod && (
-        <div className="mb-8">
-          <BattleOfDayCard battle={featured.bod} h2h={h2h} user={user} />
-        </div>
-      )}
+      {/* ── Two-column layout ── */}
+      <div className="flex gap-6">
 
-      {/* ── Highlighted Arenas: All + Members ── */}
-      {!arenasLoading && (highlightedArenas.length > 0) && (
-        <div className="mb-8">
-          <div className="flex gap-4">
-            {highlightedArenas.map((arena) => (
-              <ArenaCard
-                key={arena.id}
-                name={arena.name}
-                slug={arena.slug}
-                description={arena.description}
-                is_official={arena.is_official}
-                is_verified={arena.is_verified}
-                player_count={arena.player_count}
-                mode="explore"
-                variant="highlighted"
-              />
-            ))}
-          </div>
-        </div>
-      )}
-      {arenasLoading && (
-        <div className="flex gap-4 mb-8">
-          {[0, 1].map((i) => (
-            <div key={i} className="flex-1 rounded-2xl animate-pulse" style={{ height: "260px", background: "#0F0F1A", border: "1px solid #222233" }} />
-          ))}
-        </div>
-      )}
+        {/* ── LEFT: Arenas ── */}
+        <div className="flex-1 min-w-0">
 
-      {/* ── Official Arenas (horizontal scroll) ── */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <h2 className="font-heading tracking-wide text-2xl text-white">OFFICIAL ARENAS</h2>
-            <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
-              style={{ color: "#F0C040", background: "rgba(240,192,64,0.1)", border: "1px solid rgba(240,192,64,0.2)" }}>
-              {"\u2713"} VERIFIED
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <button onClick={() => scrollSection(officialScrollRef, "left")}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all hover:scale-110 active:scale-95"
-              style={{ background: "#1A1A28", border: "1px solid #2A2A3D", color: "#888" }}>{"\u2039"}</button>
-            <button onClick={() => scrollSection(officialScrollRef, "right")}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all hover:scale-110 active:scale-95"
-              style={{ background: "#1A1A28", border: "1px solid #2A2A3D", color: "#888" }}>{"\u203A"}</button>
-          </div>
-        </div>
-
-        {arenasLoading ? (
-          <div className="flex gap-4 overflow-hidden">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="shrink-0 w-[260px] rounded-2xl animate-pulse" style={{ height: "240px", background: "#0F0F1A", border: "1px solid #222233" }} />
-            ))}
-          </div>
-        ) : (
-          <div ref={officialScrollRef}
-            className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory arena-scroll-hide"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
-            {officialArenas.map((arena) => (
-              <div key={arena.id} className="snap-start">
-                <ArenaCard
-                  name={arena.name}
-                  slug={arena.slug}
-                  description={arena.description}
-                  is_official={arena.is_official}
-                  is_verified={arena.is_verified}
-                  player_count={arena.player_count}
-                  mode="explore"
-                />
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* ── Custom Arenas (horizontal scroll) ── */}
-      {(arenasLoading || customArenas.length > 0) && (
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <h2 className="font-heading tracking-wide text-2xl text-white">CUSTOM ARENAS</h2>
-              <span className="text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full"
-                style={{ color: "#4A4A66", background: "#1A1A28", border: "1px solid #2A2A3D" }}>
-                COMMUNITY
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Link href={user ? "/arenas/new" : "/profile"}
-                className="text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-full transition-all hover:scale-105"
-                style={{ color: "#A78BFA", background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.2)" }}>
-                + Create
-              </Link>
-              <button onClick={() => scrollSection(customScrollRef, "left")}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all hover:scale-110 active:scale-95"
-                style={{ background: "#1A1A28", border: "1px solid #2A2A3D", color: "#888" }}>{"\u2039"}</button>
-              <button onClick={() => scrollSection(customScrollRef, "right")}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all hover:scale-110 active:scale-95"
-                style={{ background: "#1A1A28", border: "1px solid #2A2A3D", color: "#888" }}>{"\u203A"}</button>
-            </div>
-          </div>
-
-          {arenasLoading ? (
-            <div className="flex gap-4 overflow-hidden">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="shrink-0 w-[260px] rounded-2xl animate-pulse" style={{ height: "240px", background: "#0F0F1A", border: "1px solid #222233" }} />
-              ))}
-            </div>
-          ) : (
-            <div ref={customScrollRef}
-              className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory arena-scroll-hide"
-              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
-              {customArenas.map((arena) => (
-                <div key={arena.id} className="snap-start">
+          {/* Highlighted Arenas: All + Members */}
+          {!arenasLoading && (highlightedArenas.length > 0) && (
+            <div className="mb-8">
+              <div className="flex gap-4">
+                {highlightedArenas.map((arena) => (
                   <ArenaCard
+                    key={arena.id}
                     name={arena.name}
                     slug={arena.slug}
                     description={arena.description}
@@ -479,47 +548,170 @@ export default function ExplorePage() {
                     is_verified={arena.is_verified}
                     player_count={arena.player_count}
                     mode="explore"
+                    variant="highlighted"
+                    thumbnail_url={arena.thumbnail_url}
                   />
-                </div>
-              ))}
-              {/* Trailing "create" card */}
-              <Link href={user ? "/arenas/new" : "/profile"}
-                className="group shrink-0 w-[260px] sm:w-[280px] rounded-2xl overflow-hidden flex flex-col items-center justify-center gap-3 transition-all duration-300 hover:scale-[1.03] snap-start"
-                style={{ background: "#0F0F1A", border: "1px dashed #2A2A3D", minHeight: "240px" }}>
-                <span className="text-4xl opacity-40 group-hover:opacity-80 group-hover:scale-110 transition-all duration-300">+</span>
-                <span className="text-xs font-black uppercase tracking-wider" style={{ color: "#4A4A66" }}>Create Arena</span>
-              </Link>
+                ))}
+              </div>
             </div>
           )}
-        </div>
-      )}
+          {arenasLoading && (
+            <div className="flex gap-4 mb-8">
+              {[0, 1].map((i) => (
+                <div key={i} className="flex-1 rounded-2xl animate-pulse" style={{ height: "260px", background: "#0F0F1A", border: "1px solid #222233" }} />
+              ))}
+            </div>
+          )}
 
-      {/* ── Quick Actions (PS5 Control Center style) ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Link href="/swipe/all"
-          className="group rounded-2xl p-4 text-center transition-all duration-200 hover:scale-[1.03] active:scale-[0.98]"
-          style={{ background: "linear-gradient(135deg, rgba(139,92,246,0.1), rgba(139,92,246,0.03))", border: "1px solid rgba(139,92,246,0.2)" }}>
-          <span className="text-3xl block mb-2">{"\u2694\uFE0F"}</span>
-          <span className="text-xs font-black uppercase tracking-wider" style={{ color: "#A78BFA" }}>Quick Battle</span>
-        </Link>
-        <Link href="/leaderboard/all"
-          className="group rounded-2xl p-4 text-center transition-all duration-200 hover:scale-[1.03] active:scale-[0.98]"
-          style={{ background: "linear-gradient(135deg, rgba(240,192,64,0.1), rgba(240,192,64,0.03))", border: "1px solid rgba(240,192,64,0.2)" }}>
-          <span className="text-3xl block mb-2">{"\uD83C\uDFC6"}</span>
-          <span className="text-xs font-black uppercase tracking-wider" style={{ color: "#F0C040" }}>Leaderboards</span>
-        </Link>
-        <Link href="/live"
-          className="group rounded-2xl p-4 text-center transition-all duration-200 hover:scale-[1.03] active:scale-[0.98]"
-          style={{ background: "linear-gradient(135deg, rgba(239,68,68,0.1), rgba(239,68,68,0.03))", border: "1px solid rgba(239,68,68,0.2)" }}>
-          <span className="text-3xl block mb-2">{"\uD83D\uDD34"}</span>
-          <span className="text-xs font-black uppercase tracking-wider" style={{ color: "#EF4444" }}>Live</span>
-        </Link>
-        <Link href="/forum"
-          className="group rounded-2xl p-4 text-center transition-all duration-200 hover:scale-[1.03] active:scale-[0.98]"
-          style={{ background: "linear-gradient(135deg, rgba(34,197,94,0.1), rgba(34,197,94,0.03))", border: "1px solid rgba(34,197,94,0.2)" }}>
-          <span className="text-3xl block mb-2">{"\uD83D\uDCAC"}</span>
-          <span className="text-xs font-black uppercase tracking-wider" style={{ color: "#22C55E" }}>Forum</span>
-        </Link>
+          {/* Official Arenas (horizontal scroll) */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <h2 className="font-heading tracking-wide text-xl sm:text-2xl text-white">OFFICIAL ARENAS</h2>
+                <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full hidden sm:inline"
+                  style={{ color: "#F0C040", background: "rgba(240,192,64,0.1)", border: "1px solid rgba(240,192,64,0.2)" }}>
+                  {"\u2713"} VERIFIED
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button onClick={() => scrollSection(officialScrollRef, "left")}
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all hover:scale-110 active:scale-95"
+                  style={{ background: "#1A1A28", border: "1px solid #2A2A3D", color: "#888" }}>{"\u2039"}</button>
+                <button onClick={() => scrollSection(officialScrollRef, "right")}
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all hover:scale-110 active:scale-95"
+                  style={{ background: "#1A1A28", border: "1px solid #2A2A3D", color: "#888" }}>{"\u203A"}</button>
+              </div>
+            </div>
+            {arenasLoading ? (
+              <div className="flex gap-4 overflow-hidden">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="shrink-0 w-[260px] rounded-2xl animate-pulse" style={{ height: "240px", background: "#0F0F1A", border: "1px solid #222233" }} />
+                ))}
+              </div>
+            ) : (
+              <div ref={officialScrollRef}
+                className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory arena-scroll-hide"
+                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+                {officialArenas.map((arena) => (
+                  <div key={arena.id} className="snap-start">
+                    <ArenaCard
+                      name={arena.name}
+                      slug={arena.slug}
+                      description={arena.description}
+                      is_official={arena.is_official}
+                      is_verified={arena.is_verified}
+                      player_count={arena.player_count}
+                      mode="explore"
+                      thumbnail_url={arena.thumbnail_url}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Custom Arenas (horizontal scroll) */}
+          {(arenasLoading || customArenas.length > 0) && (
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <h2 className="font-heading tracking-wide text-xl sm:text-2xl text-white">CUSTOM ARENAS</h2>
+                  <span className="text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full hidden sm:inline"
+                    style={{ color: "#4A4A66", background: "#1A1A28", border: "1px solid #2A2A3D" }}>
+                    COMMUNITY
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Link href={user ? "/arenas/new" : "/profile"}
+                    className="text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-full transition-all hover:scale-105"
+                    style={{ color: "#A78BFA", background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.2)" }}>
+                    + Create
+                  </Link>
+                  <button onClick={() => scrollSection(customScrollRef, "left")}
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all hover:scale-110 active:scale-95"
+                    style={{ background: "#1A1A28", border: "1px solid #2A2A3D", color: "#888" }}>{"\u2039"}</button>
+                  <button onClick={() => scrollSection(customScrollRef, "right")}
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all hover:scale-110 active:scale-95"
+                    style={{ background: "#1A1A28", border: "1px solid #2A2A3D", color: "#888" }}>{"\u203A"}</button>
+                </div>
+              </div>
+              {arenasLoading ? (
+                <div className="flex gap-4 overflow-hidden">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="shrink-0 w-[260px] rounded-2xl animate-pulse" style={{ height: "240px", background: "#0F0F1A", border: "1px solid #222233" }} />
+                  ))}
+                </div>
+              ) : (
+                <div ref={customScrollRef}
+                  className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory arena-scroll-hide"
+                  style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+                  {customArenas.map((arena) => (
+                    <div key={arena.id} className="snap-start">
+                      <ArenaCard
+                        name={arena.name}
+                        slug={arena.slug}
+                        description={arena.description}
+                        is_official={arena.is_official}
+                        is_verified={arena.is_verified}
+                        player_count={arena.player_count}
+                        mode="explore"
+                        thumbnail_url={arena.thumbnail_url}
+                      />
+                    </div>
+                  ))}
+                  {/* Trailing "create" card */}
+                  <Link href={user ? "/arenas/new" : "/profile"}
+                    className="group shrink-0 w-[260px] sm:w-[280px] rounded-2xl overflow-hidden flex flex-col items-center justify-center gap-3 transition-all duration-300 hover:scale-[1.03] snap-start"
+                    style={{ background: "#0F0F1A", border: "1px dashed #2A2A3D", minHeight: "240px" }}>
+                    <span className="text-4xl opacity-40 group-hover:opacity-80 group-hover:scale-110 transition-all duration-300">+</span>
+                    <span className="text-xs font-black uppercase tracking-wider" style={{ color: "#4A4A66" }}>Create Arena</span>
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Quick Actions */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+            <Link href="/swipe/all"
+              className="group rounded-2xl p-4 text-center transition-all duration-200 hover:scale-[1.03] active:scale-[0.98]"
+              style={{ background: "linear-gradient(135deg, rgba(139,92,246,0.1), rgba(139,92,246,0.03))", border: "1px solid rgba(139,92,246,0.2)" }}>
+              <span className="text-3xl block mb-2">{"\u2694\uFE0F"}</span>
+              <span className="text-xs font-black uppercase tracking-wider" style={{ color: "#A78BFA" }}>Quick Battle</span>
+            </Link>
+            <Link href="/leaderboard/all"
+              className="group rounded-2xl p-4 text-center transition-all duration-200 hover:scale-[1.03] active:scale-[0.98]"
+              style={{ background: "linear-gradient(135deg, rgba(240,192,64,0.1), rgba(240,192,64,0.03))", border: "1px solid rgba(240,192,64,0.2)" }}>
+              <span className="text-3xl block mb-2">{"\uD83C\uDFC6"}</span>
+              <span className="text-xs font-black uppercase tracking-wider" style={{ color: "#F0C040" }}>Leaderboards</span>
+            </Link>
+            <Link href="/live"
+              className="group rounded-2xl p-4 text-center transition-all duration-200 hover:scale-[1.03] active:scale-[0.98]"
+              style={{ background: "linear-gradient(135deg, rgba(239,68,68,0.1), rgba(239,68,68,0.03))", border: "1px solid rgba(239,68,68,0.2)" }}>
+              <span className="text-3xl block mb-2">{"\uD83D\uDD34"}</span>
+              <span className="text-xs font-black uppercase tracking-wider" style={{ color: "#EF4444" }}>Live</span>
+            </Link>
+            <Link href="/forum"
+              className="group rounded-2xl p-4 text-center transition-all duration-200 hover:scale-[1.03] active:scale-[0.98]"
+              style={{ background: "linear-gradient(135deg, rgba(34,197,94,0.1), rgba(34,197,94,0.03))", border: "1px solid rgba(34,197,94,0.2)" }}>
+              <span className="text-3xl block mb-2">{"\uD83D\uDCAC"}</span>
+              <span className="text-xs font-black uppercase tracking-wider" style={{ color: "#22C55E" }}>Forum</span>
+            </Link>
+          </div>
+
+          {/* Mobile: show feed below arenas */}
+          <div className="lg:hidden">
+            {feedContent}
+          </div>
+        </div>
+
+        {/* ── RIGHT: Feed sidebar (desktop only) ── */}
+        <div className="hidden lg:block w-[320px] shrink-0">
+          <div className="sticky top-20">
+            {feedContent}
+          </div>
+        </div>
+
       </div>
     </div>
   );
