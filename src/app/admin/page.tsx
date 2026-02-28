@@ -346,6 +346,13 @@ export default function AdminPage() {
   const [upResultsA, setUpResultsA] = useState<ProfileHit[]>([]);
   const [upResultsB, setUpResultsB] = useState<ProfileHit[]>([]);
 
+  // Arena thumbnails management
+  type OfficialArena = { id: string; name: string; slug: string; thumbnail_url: string | null };
+  const [officialArenas, setOfficialArenas] = useState<OfficialArena[]>([]);
+  const [arenaThumbnailInputs, setArenaThumbnailInputs] = useState<Record<string, string>>({});
+  const [savingArenaThumbnail, setSavingArenaThumbnail] = useState<string | null>(null);
+  const [arenaThumbnailMsg, setArenaThumbnailMsg] = useState<string | null>(null);
+
   const supabase = useDb();
   const addFormRef = useRef<HTMLDivElement>(null);
 
@@ -405,6 +412,26 @@ export default function AdminPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ── Load official arenas for thumbnail management ────────────────────────────
+  useEffect(() => {
+    async function loadOfficialArenas() {
+      const { data } = await supabase
+        .from("arenas")
+        .select("id, name, slug, thumbnail_url")
+        .eq("is_official", true)
+        .order("created_at", { ascending: true });
+      if (data) {
+        const arenas = data as OfficialArena[];
+        setOfficialArenas(arenas);
+        const inputs: Record<string, string> = {};
+        arenas.forEach((a) => { inputs[a.id] = a.thumbnail_url ?? ""; });
+        setArenaThumbnailInputs(inputs);
+      }
+    }
+    loadOfficialArenas();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // ── Load featured battles ─────────────────────────────────────────────────────
   useEffect(() => {
     getFeaturedBattles().then((battles) => {
@@ -459,6 +486,50 @@ export default function AdminPage() {
       getFeaturedBattles().then(setFeaturedBattles);
     }
     setTimeout(() => setFeaturedMsg(null), 3000);
+  }
+
+  // ── Save arena thumbnail ────────────────────────────────────────────────────
+  async function saveArenaThumbnail(arenaId: string) {
+    setSavingArenaThumbnail(arenaId);
+    const url = (arenaThumbnailInputs[arenaId] ?? "").trim() || null;
+    const { error } = await supabase
+      .from("arenas")
+      .update({ thumbnail_url: url })
+      .eq("id", arenaId);
+    setSavingArenaThumbnail(null);
+    if (error) {
+      setArenaThumbnailMsg(`❌ ${(error as { message: string }).message}`);
+    } else {
+      setArenaThumbnailMsg("✅ Thumbnail saved");
+      // Update local state
+      setOfficialArenas((prev) =>
+        prev.map((a) => a.id === arenaId ? { ...a, thumbnail_url: url } : a)
+      );
+    }
+    setTimeout(() => setArenaThumbnailMsg(null), 3000);
+  }
+
+  async function saveAllArenaThumbnails() {
+    setSavingArenaThumbnail("all");
+    let errors = 0;
+    for (const arena of officialArenas) {
+      const url = (arenaThumbnailInputs[arena.id] ?? "").trim() || null;
+      if (url !== (arena.thumbnail_url ?? "")) {
+        const { error } = await supabase
+          .from("arenas")
+          .update({ thumbnail_url: url })
+          .eq("id", arena.id);
+        if (error) errors++;
+        else {
+          setOfficialArenas((prev) =>
+            prev.map((a) => a.id === arena.id ? { ...a, thumbnail_url: url } : a)
+          );
+        }
+      }
+    }
+    setSavingArenaThumbnail(null);
+    setArenaThumbnailMsg(errors ? `❌ ${errors} failed` : "✅ All thumbnails saved");
+    setTimeout(() => setArenaThumbnailMsg(null), 3000);
   }
 
   // ── Wikipedia fetch ──────────────────────────────────────────────────────────
@@ -1168,6 +1239,81 @@ export default function AdminPage() {
                 </p>
               );
             })()}
+        </div>
+      </div>
+
+      {/* ── Arena Thumbnails Panel ──────────────────────────────────────────── */}
+      <div className="mb-6 bg-zinc-900 border border-purple-500/20 rounded-2xl p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-white font-bold text-base">🖼️ Arena Thumbnails</h2>
+            <p className="text-zinc-500 text-xs mt-0.5">Set cover images for official arenas (paste image URL)</p>
+          </div>
+          <div className="flex items-center gap-3">
+            {arenaThumbnailMsg && (
+              <span className="text-xs font-bold" style={{ color: arenaThumbnailMsg.startsWith("✅") ? "#22C55E" : "#EF4444" }}>
+                {arenaThumbnailMsg}
+              </span>
+            )}
+            <button
+              onClick={saveAllArenaThumbnails}
+              disabled={savingArenaThumbnail === "all"}
+              className="shrink-0 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white text-xs font-black px-4 py-2 rounded-lg transition-colors"
+            >
+              {savingArenaThumbnail === "all" ? "Saving all…" : "Save All"}
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {officialArenas.map((arena) => (
+            <div key={arena.id}
+              className="bg-zinc-950/60 border border-zinc-800 rounded-xl p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">{
+                    ({
+                      all: "\uD83C\uDF0D", members: "\uD83D\uDC65", actors: "\uD83C\uDFAC",
+                      looksmaxxers: "\uD83D\uDC8E", "psl-icons": "\uD83D\uDC41",
+                      singers: "\uD83C\uDFB5", athletes: "\uD83C\uDFC6",
+                      streamers: "\uD83D\uDCFA", politicians: "\uD83C\uDFDB\uFE0F",
+                      "political-commentators": "\uD83C\uDF99", models: "\uD83D\uDC57",
+                    } as Record<string, string>)[arena.slug] ?? "\u2694\uFE0F"
+                  }</span>
+                  <span className="text-white text-sm font-bold">{arena.name}</span>
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ color: "#4A4A66", background: "#1A1A28" }}>{arena.slug}</span>
+                </div>
+                <button
+                  onClick={() => saveArenaThumbnail(arena.id)}
+                  disabled={savingArenaThumbnail === arena.id}
+                  className="text-[10px] font-black px-3 py-1 rounded-lg transition-colors disabled:opacity-50"
+                  style={{ background: "rgba(139,92,246,0.15)", color: "#A78BFA", border: "1px solid rgba(139,92,246,0.3)" }}
+                >
+                  {savingArenaThumbnail === arena.id ? "…" : "Save"}
+                </button>
+              </div>
+              <input
+                type="url"
+                value={arenaThumbnailInputs[arena.id] ?? ""}
+                onChange={(e) => setArenaThumbnailInputs((prev) => ({ ...prev, [arena.id]: e.target.value }))}
+                placeholder="https://example.com/cover.jpg"
+                className="w-full bg-zinc-800 border border-zinc-700 text-zinc-300 placeholder:text-zinc-600 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-purple-500"
+              />
+              {/* Thumbnail preview */}
+              {(arenaThumbnailInputs[arena.id] ?? "").trim() && (
+                <div className="rounded-lg overflow-hidden" style={{ maxHeight: "80px", border: "1px solid #222" }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={arenaThumbnailInputs[arena.id]}
+                    alt={`${arena.name} thumbnail`}
+                    className="w-full object-cover"
+                    style={{ maxHeight: "80px" }}
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                  />
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </div>
 
