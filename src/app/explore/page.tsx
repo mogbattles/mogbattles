@@ -433,18 +433,19 @@ export default function ExplorePage() {
       const highlighted = data.filter((a) => HIGHLIGHTED_SLUGS.includes(a.slug));
       for (const arena of highlighted) {
         if (arena.slug === "members") {
-          // "All Players" — count only REAL registered user profiles (not seeded)
+          // "All Players" — real users + seeded users (exclude official/celebrity profiles)
           const { count } = await db.from("profiles").select("id", { count: "exact", head: true }).eq("is_test_profile", false);
           arena.player_count = count ?? 0;
         } else if (arena.slug === "all") {
-          // "All" — count total profiles
+          // "All" — count total profiles (everyone)
           const { count } = await db.from("profiles").select("id", { count: "exact", head: true });
           arena.player_count = count ?? 0;
         }
         // Fetch top 3 leaderboard
-        // "All Players" = real users only; "All" = everyone (seeded + real)
-        const excludeTest = arena.slug === "members";
-        getTopProfilesForArena(arena.id, 3, { excludeTestProfiles: excludeTest }).then((players) => {
+        // "All Players" excludes official profiles (is_test_profile=true)
+        // "All" shows everyone
+        const excludeOfficial = arena.slug === "members";
+        getTopProfilesForArena(arena.id, 3, { excludeTestProfiles: excludeOfficial }).then((players) => {
           setTopPlayersMap((prev) => ({ ...prev, [arena.id]: players }));
         });
       }

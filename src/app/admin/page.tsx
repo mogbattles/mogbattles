@@ -923,9 +923,9 @@ export default function AdminPage() {
     setAdding(false);
   }
 
-  // ── Add seeded (fake) user ───────────────────────────────────────────────────
-  // Seeded users get user_id (non-null → appear in All Players) + is_test_profile=true
-  // (the hidden algorithm tag that identifies them as seeded calibration profiles)
+  // ── Add seeded user ─────────────────────────────────────────────────────────
+  // Seeded users get user_id (non-null → appear in All Players) + is_test_profile=false
+  // so they show alongside real users. Official/celebrity profiles keep is_test_profile=true.
   async function handleAddSeededUser(e: React.FormEvent) {
     e.preventDefault();
     if (!seedName.trim()) return;
@@ -948,7 +948,7 @@ export default function AdminPage() {
       total_losses: 0,
       total_matches: 0,
       user_id: crypto.randomUUID(),
-      is_test_profile: true,
+      is_test_profile: false,
       gender: seedGender || null,
       height_in: heightVal,
       weight_lbs: weightVal,
@@ -1001,7 +1001,7 @@ export default function AdminPage() {
     setSeedHeight(""); setSeedWeight(""); setSeedCountry("");
     setSeedInstagram(""); setSeedTiktok(""); setSeedTwitter(""); setSeedYoutube("");
     setShowSeedForm(false);
-    setMessage(statsWarning ?? `✅ Seeded user "${newProfile.name}" created (ELO: ${eloRating}, tag: is_test_profile=true).`);
+    setMessage(statsWarning ?? `✅ Seeded user "${newProfile.name}" created (ELO: ${eloRating}).`);
     setSeeding(false);
   }
 
@@ -1883,8 +1883,8 @@ export default function AdminPage() {
             <h2 className="text-white font-bold text-base mb-0.5">🤖 Add Seeded User</h2>
             <p className="text-xs" style={{ color: "#6B7280" }}>
               Creates a profile with a synthetic <code className="text-indigo-400">user_id</code> (so they appear in &ldquo;All Players&rdquo;) and{" "}
-              <code className="text-indigo-400">is_test_profile = true</code> — the hidden algorithm tag used to identify calibration profiles
-              when real users first swipe in the &ldquo;All&rdquo; arena.
+              <code className="text-indigo-400">is_test_profile = false</code> — seeded users appear in &ldquo;All Players&rdquo;
+              alongside real users. Official/celebrity profiles use <code className="text-indigo-400">is_test_profile = true</code> and are excluded.
             </p>
           </div>
           <form onSubmit={handleAddSeededUser} className="space-y-4">
