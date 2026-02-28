@@ -424,7 +424,7 @@ function useDb() {
 }
 
 export default function AdminPage() {
-  const { loading: authLoading, refreshPermissions } = useAuth();
+  const { user, loading: authLoading, refreshPermissions } = useAuth();
   const perms = usePermissions();
   const [refreshing, setRefreshing] = useState(false);
 
