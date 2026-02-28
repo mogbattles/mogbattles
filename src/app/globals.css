@@ -285,6 +285,10 @@ main {
 .vs-text           { animation: vsGlow 2s ease-in-out infinite; }
 .crown-float       { animation: crownFloat 3s ease-in-out infinite; display: inline-block; }
 
+/* ─── Hidden-scrollbar utility (arena swipers, etc.) ──────────────────────── */
+.arena-scroll-hide::-webkit-scrollbar { display: none; }
+.arena-scroll-hide { scrollbar-width: none; -ms-overflow-style: none; }
+
 /* ─── Custom scrollbar ─────────────────────────────────────────────────────── */
 ::-webkit-scrollbar        { width: 4px; }
 ::-webkit-scrollbar-track  { background: #0A0A12; }

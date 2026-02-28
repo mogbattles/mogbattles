@@ -11,7 +11,7 @@ interface ArenaCardProps {
   player_count: number;
   mode: "swipe" | "leaderboard" | "explore";
   emoji?: string;
-  variant?: "default" | "more";
+  variant?: "default" | "more" | "highlighted";
   thumbnail_url?: string | null;
 }
 
@@ -75,6 +75,96 @@ export default function ArenaCard({
           <span className="font-black text-2xl group-hover:translate-x-1 transition-transform" style={{ color: "#A78BFA" }}>{"\u2192"}</span>
         </div>
       </Link>
+    );
+  }
+
+  // ── Highlighted variant: bigger featured arena card ─────────────────────────
+  if (variant === "highlighted") {
+    return (
+      <div className="group flex-1 min-w-0 rounded-2xl overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1"
+        style={{
+          background: "#0F0F1A",
+          border: "1px solid rgba(139,92,246,0.25)",
+          boxShadow: "0 4px 24px rgba(139,92,246,0.08), 0 4px 20px rgba(0,0,0,0.4)",
+        }}
+        onMouseEnter={(e) => {
+          (e.currentTarget as HTMLElement).style.borderColor = "rgba(139,92,246,0.6)";
+          (e.currentTarget as HTMLElement).style.boxShadow = "0 12px 48px rgba(139,92,246,0.2), 0 4px 20px rgba(0,0,0,0.6)";
+        }}
+        onMouseLeave={(e) => {
+          (e.currentTarget as HTMLElement).style.borderColor = "rgba(139,92,246,0.25)";
+          (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 24px rgba(139,92,246,0.08), 0 4px 20px rgba(0,0,0,0.4)";
+        }}
+      >
+        {/* Image area — taller aspect for highlighted */}
+        <div className="relative" style={{ aspectRatio: "16/9" }}>
+          {thumbnail_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={thumbnail_url} alt={name}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center"
+              style={{ background: gradient }}>
+              <span className="text-6xl sm:text-7xl opacity-60 group-hover:opacity-90 group-hover:scale-110 transition-all duration-300">{icon}</span>
+            </div>
+          )}
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 pointer-events-none" style={{
+            background: "linear-gradient(to top, rgba(15,15,26,1) 0%, rgba(15,15,26,0.4) 40%, transparent 100%)"
+          }} />
+          {/* Player count badge */}
+          <div className="absolute bottom-2 right-3 z-10">
+            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full"
+              style={{ background: "rgba(0,0,0,0.6)", color: "#888", backdropFilter: "blur(4px)" }}>
+              {player_count.toLocaleString()} players
+            </span>
+          </div>
+          {/* Official badge */}
+          {is_verified && (
+            <div className="absolute top-3 right-3 z-10">
+              <span className="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-full"
+                style={{ color: "#F0C040", background: "rgba(0,0,0,0.6)", border: "1px solid rgba(240,192,64,0.3)" }}>
+                {"\u2713"} OFFICIAL
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="px-5 pt-2 pb-4">
+          <h3 className="text-white font-heading tracking-wide text-xl sm:text-2xl leading-tight mb-1">{name}</h3>
+          {description && (
+            <p className="text-xs sm:text-sm leading-snug line-clamp-2 mb-3" style={{ color: "#4A4A66" }}>{description}</p>
+          )}
+          {!description && <div className="mb-3" />}
+
+          {/* Action buttons — slightly bigger for highlighted */}
+          <div className="flex gap-2">
+            <Link href={`/swipe/${slug}`}
+              className="flex-1 text-center py-2.5 rounded-xl text-[12px] font-black uppercase tracking-wide transition-all"
+              style={{
+                background: "rgba(139,92,246,0.12)",
+                color: "#A78BFA",
+                border: "1px solid rgba(139,92,246,0.3)",
+              }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(139,92,246,0.25)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(139,92,246,0.12)"; }}>
+              {"\u2694\uFE0F"} Battle
+            </Link>
+            <Link href={`/leaderboard/${slug}`}
+              className="flex-1 text-center py-2.5 rounded-xl text-[12px] font-black uppercase tracking-wide transition-all"
+              style={{
+                background: "rgba(240,192,64,0.1)",
+                color: "#F0C040",
+                border: "1px solid rgba(240,192,64,0.3)",
+              }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(240,192,64,0.18)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(240,192,64,0.1)"; }}>
+              {"\uD83C\uDFC6"} Ranks
+            </Link>
+          </div>
+        </div>
+      </div>
     );
   }
 

@@ -263,7 +263,16 @@ export default function ExplorePage() {
   const [arenaResults, setArenaResults] = useState<ArenaWithCount[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const arenaScrollRef = useRef<HTMLDivElement>(null);
+  const officialScrollRef = useRef<HTMLDivElement>(null);
+  const customScrollRef = useRef<HTMLDivElement>(null);
+
+  // Split arenas: highlighted (All + Members), official (rest), custom
+  const HIGHLIGHTED_SLUGS = ["all", "members"];
+  const highlightedArenas = HIGHLIGHTED_SLUGS
+    .map((slug) => arenas.find((a) => a.slug === slug))
+    .filter(Boolean) as ArenaWithCount[];
+  const officialArenas = arenas.filter((a) => a.is_official && !HIGHLIGHTED_SLUGS.includes(a.slug));
+  const customArenas = arenas.filter((a) => !a.is_official);
 
   useEffect(() => {
     getExploreArenas({ sort: "popular" }).then((data) => { setArenas(data); setArenasLoading(false); });
@@ -277,13 +286,16 @@ export default function ExplorePage() {
 
   // GSAP stagger for arena cards (horizontal slide-in)
   useEffect(() => {
-    if (arenasLoading || !arenaScrollRef.current) return;
-    const cards = arenaScrollRef.current.children;
-    if (cards.length === 0) return;
-    gsap.fromTo(cards,
-      { x: 60, opacity: 0, scale: 0.9 },
-      { x: 0, opacity: 1, scale: 1, duration: 0.5, stagger: 0.07, ease: "power2.out" }
-    );
+    if (arenasLoading) return;
+    [officialScrollRef, customScrollRef].forEach((ref) => {
+      if (!ref.current) return;
+      const cards = ref.current.children;
+      if (cards.length === 0) return;
+      gsap.fromTo(cards,
+        { x: 60, opacity: 0, scale: 0.9 },
+        { x: 0, opacity: 1, scale: 1, duration: 0.5, stagger: 0.07, ease: "power2.out" }
+      );
+    });
   }, [arenasLoading]);
 
   useEffect(() => {
@@ -312,9 +324,9 @@ export default function ExplorePage() {
 
   const hasFeatured = !!(featured.bod?.profile_a && featured.bod?.profile_b);
 
-  function scrollArenas(dir: "left" | "right") {
-    if (!arenaScrollRef.current) return;
-    arenaScrollRef.current.scrollBy({ left: dir === "left" ? -300 : 300, behavior: "smooth" });
+  function scrollSection(ref: React.RefObject<HTMLDivElement | null>, dir: "left" | "right") {
+    if (!ref.current) return;
+    ref.current.scrollBy({ left: dir === "left" ? -300 : 300, behavior: "smooth" });
   }
 
   return (
@@ -346,15 +358,49 @@ export default function ExplorePage() {
         </div>
       )}
 
-      {/* ── Arenas Section (PS5-style horizontal scroll) ── */}
+      {/* ── Highlighted Arenas: All + Members ── */}
+      {!arenasLoading && (highlightedArenas.length > 0) && (
+        <div className="mb-8">
+          <div className="flex gap-4">
+            {highlightedArenas.map((arena) => (
+              <ArenaCard
+                key={arena.id}
+                name={arena.name}
+                slug={arena.slug}
+                description={arena.description}
+                is_official={arena.is_official}
+                is_verified={arena.is_verified}
+                player_count={arena.player_count}
+                mode="explore"
+                variant="highlighted"
+              />
+            ))}
+          </div>
+        </div>
+      )}
+      {arenasLoading && (
+        <div className="flex gap-4 mb-8">
+          {[0, 1].map((i) => (
+            <div key={i} className="flex-1 rounded-2xl animate-pulse" style={{ height: "260px", background: "#0F0F1A", border: "1px solid #222233" }} />
+          ))}
+        </div>
+      )}
+
+      {/* ── Official Arenas (horizontal scroll) ── */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-heading tracking-wide text-2xl text-white">ARENAS</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="font-heading tracking-wide text-2xl text-white">OFFICIAL ARENAS</h2>
+            <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
+              style={{ color: "#F0C040", background: "rgba(240,192,64,0.1)", border: "1px solid rgba(240,192,64,0.2)" }}>
+              {"\u2713"} VERIFIED
+            </span>
+          </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => scrollArenas("left")}
+            <button onClick={() => scrollSection(officialScrollRef, "left")}
               className="w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all hover:scale-110 active:scale-95"
               style={{ background: "#1A1A28", border: "1px solid #2A2A3D", color: "#888" }}>{"\u2039"}</button>
-            <button onClick={() => scrollArenas("right")}
+            <button onClick={() => scrollSection(officialScrollRef, "right")}
               className="w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all hover:scale-110 active:scale-95"
               style={{ background: "#1A1A28", border: "1px solid #2A2A3D", color: "#888" }}>{"\u203A"}</button>
           </div>
@@ -367,11 +413,10 @@ export default function ExplorePage() {
             ))}
           </div>
         ) : (
-          <div ref={arenaScrollRef}
-            className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory"
+          <div ref={officialScrollRef}
+            className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory arena-scroll-hide"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
-            <style jsx>{`div::-webkit-scrollbar { display: none; }`}</style>
-            {arenas.map((arena) => (
+            {officialArenas.map((arena) => (
               <div key={arena.id} className="snap-start">
                 <ArenaCard
                   name={arena.name}
@@ -387,6 +432,67 @@ export default function ExplorePage() {
           </div>
         )}
       </div>
+
+      {/* ── Custom Arenas (horizontal scroll) ── */}
+      {(arenasLoading || customArenas.length > 0) && (
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <h2 className="font-heading tracking-wide text-2xl text-white">CUSTOM ARENAS</h2>
+              <span className="text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full"
+                style={{ color: "#4A4A66", background: "#1A1A28", border: "1px solid #2A2A3D" }}>
+                COMMUNITY
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link href={user ? "/arenas/new" : "/profile"}
+                className="text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-full transition-all hover:scale-105"
+                style={{ color: "#A78BFA", background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.2)" }}>
+                + Create
+              </Link>
+              <button onClick={() => scrollSection(customScrollRef, "left")}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all hover:scale-110 active:scale-95"
+                style={{ background: "#1A1A28", border: "1px solid #2A2A3D", color: "#888" }}>{"\u2039"}</button>
+              <button onClick={() => scrollSection(customScrollRef, "right")}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all hover:scale-110 active:scale-95"
+                style={{ background: "#1A1A28", border: "1px solid #2A2A3D", color: "#888" }}>{"\u203A"}</button>
+            </div>
+          </div>
+
+          {arenasLoading ? (
+            <div className="flex gap-4 overflow-hidden">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="shrink-0 w-[260px] rounded-2xl animate-pulse" style={{ height: "240px", background: "#0F0F1A", border: "1px solid #222233" }} />
+              ))}
+            </div>
+          ) : (
+            <div ref={customScrollRef}
+              className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory arena-scroll-hide"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+              {customArenas.map((arena) => (
+                <div key={arena.id} className="snap-start">
+                  <ArenaCard
+                    name={arena.name}
+                    slug={arena.slug}
+                    description={arena.description}
+                    is_official={arena.is_official}
+                    is_verified={arena.is_verified}
+                    player_count={arena.player_count}
+                    mode="explore"
+                  />
+                </div>
+              ))}
+              {/* Trailing "create" card */}
+              <Link href={user ? "/arenas/new" : "/profile"}
+                className="group shrink-0 w-[260px] sm:w-[280px] rounded-2xl overflow-hidden flex flex-col items-center justify-center gap-3 transition-all duration-300 hover:scale-[1.03] snap-start"
+                style={{ background: "#0F0F1A", border: "1px dashed #2A2A3D", minHeight: "240px" }}>
+                <span className="text-4xl opacity-40 group-hover:opacity-80 group-hover:scale-110 transition-all duration-300">+</span>
+                <span className="text-xs font-black uppercase tracking-wider" style={{ color: "#4A4A66" }}>Create Arena</span>
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Quick Actions (PS5 Control Center style) ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
