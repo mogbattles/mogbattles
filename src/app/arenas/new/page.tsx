@@ -24,12 +24,16 @@ export default function NewArenaPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Load categories for the picker
+  // Load categories for the picker — show root categories + their children
   useEffect(() => {
     getCategoryChildren(null).then((roots) => {
+      if (roots.length === 0) return;
+      // Include root categories (e.g. "Humans") then their children
       const humanRoot = roots.find((c) => c.slug === "human");
       if (humanRoot) {
-        getCategoryChildren(humanRoot.id).then(setCategoryOptions);
+        getCategoryChildren(humanRoot.id).then((children) => {
+          setCategoryOptions([humanRoot, ...children]);
+        });
       } else {
         setCategoryOptions(roots);
       }

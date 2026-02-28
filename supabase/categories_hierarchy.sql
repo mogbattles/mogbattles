@@ -91,7 +91,7 @@ $$;
 
 -- Root node
 INSERT INTO categories (name, slug, description, icon, parent_id, thing_type, depth, path, sort_order)
-VALUES ('Human', 'human', 'All human categories', '👤', NULL, 'human', 0, 'human', 0)
+VALUES ('Humans', 'human', 'All human categories', '🧑', NULL, 'human', 0, 'human', 0)
 ON CONFLICT (slug) DO NOTHING;
 
 -- Child categories (depth=1) under "human"

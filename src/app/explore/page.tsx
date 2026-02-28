@@ -337,22 +337,11 @@ export default function ExplorePage() {
   const officialArenas = arenas.filter((a) => a.is_official && !HIGHLIGHTED_SLUGS.includes(a.slug));
   const customArenas = arenas.filter((a) => !a.is_official);
 
-  // Load initial categories (depth=1, children of "human" root)
+  // Load initial categories — show root "thing" categories (e.g. Humans)
   useEffect(() => {
-    // Get the "human" root's children as top-level category chips
     getCategoryChildren(null).then((roots) => {
-      // Find the "human" root and get its children
-      const humanRoot = roots.find((c) => c.slug === "human");
-      if (humanRoot) {
-        getCategoryChildren(humanRoot.id).then((children) => {
-          setCategoryChildren(children);
-          setCategoryLoading(false);
-        });
-      } else {
-        // Fallback: show root categories
-        setCategoryChildren(roots);
-        setCategoryLoading(false);
-      }
+      setCategoryChildren(roots);
+      setCategoryLoading(false);
     });
   }, []);
 
@@ -362,17 +351,9 @@ export default function ExplorePage() {
     setArenasLoading(true);
 
     if (!category) {
-      // Back to "All" — no filter
+      // Back to "All" — no filter, show root categories
       setCategoryAncestors([]);
-      // Get human root's children again
-      getCategoryChildren(null).then((roots) => {
-        const humanRoot = roots.find((c) => c.slug === "human");
-        if (humanRoot) {
-          getCategoryChildren(humanRoot.id).then(setCategoryChildren);
-        } else {
-          setCategoryChildren(roots);
-        }
-      });
+      getCategoryChildren(null).then(setCategoryChildren);
       getExploreArenas({ sort: "popular" }).then((data) => { setArenas(data); setArenasLoading(false); });
       return;
     }
@@ -605,7 +586,6 @@ export default function ExplorePage() {
                 All
               </button>
               {categoryAncestors
-                .filter((a) => a.slug !== "human") // skip the root "human" in breadcrumb display
                 .map((ancestor, i) => (
                 <span key={ancestor.id} className="flex items-center gap-1.5">
                   <span className="text-[10px]" style={{ color: "#2A2A3D" }}>{"\u203A"}</span>
