@@ -1087,11 +1087,12 @@ export default function AdminPage() {
       height_in: heightVal,
       weight_lbs: weightVal,
       country: seedCountry.trim() || null,
-      instagram: seedInstagram.trim() || null,
-      tiktok: seedTiktok.trim() || null,
-      twitter: seedTwitter.trim() || null,
-      youtube: seedYoutube.trim() || null,
     };
+    // Only include social media fields if they have values (columns may not exist yet)
+    if (seedInstagram.trim()) insertObj.instagram = seedInstagram.trim();
+    if (seedTiktok.trim()) insertObj.tiktok = seedTiktok.trim();
+    if (seedTwitter.trim()) insertObj.twitter = seedTwitter.trim();
+    if (seedYoutube.trim()) insertObj.youtube = seedYoutube.trim();
 
     const { data, error } = await supabase
       .from("profiles")
