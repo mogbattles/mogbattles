@@ -89,6 +89,7 @@ export interface Database {
           description: string | null;
           is_official: boolean;
           category: string | null;
+          category_id: string | null;
           visibility: "public" | "private";
           arena_type: "fixed" | "open" | "request";
           creator_id: string | null;
@@ -104,6 +105,7 @@ export interface Database {
           description?: string | null;
           is_official?: boolean;
           category?: string | null;
+          category_id?: string | null;
           visibility?: "public" | "private";
           arena_type?: "fixed" | "open" | "request";
           creator_id?: string | null;
@@ -114,6 +116,7 @@ export interface Database {
           name?: string;
           slug?: string;
           description?: string | null;
+          category_id?: string | null;
           visibility?: "public" | "private";
           arena_type?: "fixed" | "open" | "request";
           is_verified?: boolean;
@@ -281,6 +284,58 @@ export interface Database {
           ended_at?: string | null;
         };
       };
+      categories: {
+        Row: {
+          id: string;
+          name: string;
+          slug: string;
+          description: string | null;
+          icon: string | null;
+          parent_id: string | null;
+          thing_type: string;
+          depth: number;
+          path: string;
+          sort_order: number;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          slug: string;
+          description?: string | null;
+          icon?: string | null;
+          parent_id?: string | null;
+          thing_type?: string;
+          depth?: number;
+          path?: string;
+          sort_order?: number;
+          is_active?: boolean;
+        };
+        Update: {
+          name?: string;
+          slug?: string;
+          description?: string | null;
+          icon?: string | null;
+          parent_id?: string | null;
+          thing_type?: string;
+          depth?: number;
+          path?: string;
+          sort_order?: number;
+          is_active?: boolean;
+        };
+      };
+      profile_categories: {
+        Row: {
+          profile_id: string;
+          category_id: string;
+        };
+        Insert: {
+          profile_id: string;
+          category_id: string;
+        };
+        Update: Record<string, never>;
+      };
     };
     Functions: {
       record_match: {
@@ -305,6 +360,14 @@ export interface Database {
         Args: { a: string; b: string };
         Returns: boolean;
       };
+      get_category_descendants: {
+        Args: { root_id: string };
+        Returns: { id: string }[];
+      };
+      get_category_ancestors: {
+        Args: { cat_id: string };
+        Returns: { id: string; name: string; slug: string; depth: number }[];
+      };
     };
   };
 }
@@ -318,6 +381,7 @@ export type ArenaRow = Tables<"arenas">;
 export type ProfileRow = Tables<"profiles">;
 export type ArenaProfileStatsRow = Tables<"arena_profile_stats">;
 export type UserVoteRow = Tables<"user_votes">;
+export type CategoryRow = Tables<"categories">;
 
 // ─── Browser client ───────────────────────────────────────────────────────────
 // Call createClient() inside component/hook bodies — never at module level.

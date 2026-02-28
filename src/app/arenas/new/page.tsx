@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { createArena } from "@/lib/arenas";
+import { getCategoryChildren } from "@/lib/categories";
+import type { CategoryRow } from "@/lib/supabase";
 import Link from "next/link";
 
 export default function NewArenaPage() {
@@ -15,8 +17,22 @@ export default function NewArenaPage() {
   const [thumbnailUrl, setThumbnailUrl] = useState("");
   const [visibility, setVisibility] = useState<"public" | "private">("public");
   const [arenaType, setArenaType] = useState<"fixed" | "open" | "request">("fixed");
+  const [categoryId, setCategoryId] = useState<string | null>(null);
+  const [categoryOptions, setCategoryOptions] = useState<CategoryRow[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Load categories for the picker
+  useEffect(() => {
+    getCategoryChildren(null).then((roots) => {
+      const humanRoot = roots.find((c) => c.slug === "human");
+      if (humanRoot) {
+        getCategoryChildren(humanRoot.id).then(setCategoryOptions);
+      } else {
+        setCategoryOptions(roots);
+      }
+    });
+  }, []);
 
   if (loading) {
     return (
@@ -63,6 +79,7 @@ export default function NewArenaPage() {
       arena_type: arenaType,
       creator_id: user.id,
       thumbnail_url: thumbnailUrl.trim() || null,
+      category_id: categoryId,
     });
 
     if (createError || !data) {
@@ -153,6 +170,53 @@ export default function NewArenaPage() {
             </div>
           )}
         </div>
+
+        {/* Category */}
+        {categoryOptions.length > 0 && (
+          <div>
+            <label className="block font-semibold text-sm mb-2" style={{ color: "#ccc" }}>
+              Category
+            </label>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setCategoryId(null)}
+                className="px-3 py-2 rounded-xl text-xs font-bold transition-all"
+                style={!categoryId ? {
+                  background: "rgba(139,92,246,0.15)",
+                  color: "#A78BFA",
+                  border: "1px solid rgba(139,92,246,0.4)",
+                } : {
+                  background: "#0F0F1A",
+                  color: "#4A4A66",
+                  border: "1px solid #222233",
+                }}>
+                None
+              </button>
+              {categoryOptions.map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setCategoryId(cat.id)}
+                  className="px-3 py-2 rounded-xl text-xs font-bold transition-all"
+                  style={categoryId === cat.id ? {
+                    background: "rgba(139,92,246,0.15)",
+                    color: "#A78BFA",
+                    border: "1px solid rgba(139,92,246,0.4)",
+                  } : {
+                    background: "#0F0F1A",
+                    color: "#4A4A66",
+                    border: "1px solid #222233",
+                  }}>
+                  {cat.icon ? `${cat.icon} ` : ""}{cat.name}
+                </button>
+              ))}
+            </div>
+            <p className="text-[10px] mt-1.5" style={{ color: "#2A2A3D" }}>
+              Pick a category so people can find your arena when browsing.
+            </p>
+          </div>
+        )}
 
         {/* Visibility */}
         <div>

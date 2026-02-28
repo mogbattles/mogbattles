@@ -107,6 +107,8 @@ export async function getExploreArenas(opts?: {
   search?: string;
   sort?: "popular" | "newest" | "active";
   filter?: "all" | "open" | "request";
+  categoryId?: string;
+  categoryDescendantIds?: string[];
 }): Promise<ArenaWithCount[]> {
   const client = db();
 
@@ -123,6 +125,13 @@ export async function getExploreArenas(opts?: {
 
   if (opts?.search?.trim()) {
     query = query.ilike("name", `%${opts.search.trim()}%`);
+  }
+
+  // Filter by category hierarchy (category + all descendants)
+  if (opts?.categoryDescendantIds && opts.categoryDescendantIds.length > 0) {
+    query = query.in("category_id", opts.categoryDescendantIds);
+  } else if (opts?.categoryId) {
+    query = query.eq("category_id", opts.categoryId);
   }
 
   const { data: arenas, error } = await query;
@@ -611,6 +620,7 @@ export async function createArena(input: {
   arena_type: "fixed" | "open" | "request";
   creator_id: string;
   thumbnail_url?: string | null;
+  category_id?: string | null;
 }): Promise<{ data: ArenaRow | null; error: string | null }> {
   const client = db();
 

@@ -5,6 +5,8 @@ import { createPortal } from "react-dom";
 import { createBrowserClient } from "@supabase/ssr";
 import { getFeaturedBattles, upsertFeaturedBattle, searchProfiles, type FeaturedBattle } from "@/lib/arenas";
 import { useAuth, usePermissions } from "@/context/AuthContext";
+import { getAllCategories, createCategory, updateCategory, deleteCategory } from "@/lib/categories";
+import type { CategoryRow } from "@/lib/supabase";
 
 type Category =
   | "actors"
@@ -353,6 +355,29 @@ export default function AdminPage() {
   const [savingArenaThumbnail, setSavingArenaThumbnail] = useState<string | null>(null);
   const [arenaThumbnailMsg, setArenaThumbnailMsg] = useState<string | null>(null);
 
+  // Category management
+  const [categories, setCategories] = useState<CategoryRow[]>([]);
+  const [showCategoryForm, setShowCategoryForm] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<CategoryRow | null>(null);
+  const [catName, setCatName] = useState("");
+  const [catSlug, setCatSlug] = useState("");
+  const [catIcon, setCatIcon] = useState("");
+  const [catDescription, setCatDescription] = useState("");
+  const [catParentId, setCatParentId] = useState<string | null>(null);
+  const [catSortOrder, setCatSortOrder] = useState("0");
+  const [savingCategory, setSavingCategory] = useState(false);
+  const [categoryMsg, setCategoryMsg] = useState<string | null>(null);
+
+  // Arena management (all arenas)
+  type AdminArena = { id: string; name: string; slug: string; description: string | null; is_official: boolean; is_verified: boolean; category: string | null; category_id: string | null; visibility: string; arena_type: string; creator_id: string | null; thumbnail_url: string | null; created_at: string };
+  const [allArenas, setAllArenas] = useState<AdminArena[]>([]);
+  const [arenaFilter, setArenaFilter] = useState<"all" | "official" | "custom">("all");
+  const [arenaSearch, setArenaSearch] = useState("");
+  const [editingArena, setEditingArena] = useState<string | null>(null);
+  const [arenaEdits, setArenaEdits] = useState<Record<string, Partial<AdminArena>>>({});
+  const [savingArena, setSavingArena] = useState<string | null>(null);
+  const [arenaMsg, setArenaMsg] = useState<string | null>(null);
+
   const supabase = useDb();
   const addFormRef = useRef<HTMLDivElement>(null);
 
@@ -429,6 +454,25 @@ export default function AdminPage() {
       }
     }
     loadOfficialArenas();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── Load categories ────────────────────────────────────────────────────────
+  useEffect(() => {
+    getAllCategories().then(setCategories);
+  }, []);
+
+  // ── Load all arenas for management ────────────────────────────────────────
+  useEffect(() => {
+    async function loadAllArenas() {
+      const { data } = await supabase
+        .from("arenas")
+        .select("id, name, slug, description, is_official, is_verified, category, category_id, visibility, arena_type, creator_id, thumbnail_url, created_at")
+        .order("is_official", { ascending: false })
+        .order("created_at", { ascending: true });
+      if (data) setAllArenas(data as AdminArena[]);
+    }
+    loadAllArenas();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -531,6 +575,120 @@ export default function AdminPage() {
     setArenaThumbnailMsg(errors ? `❌ ${errors} failed` : "✅ All thumbnails saved");
     setTimeout(() => setArenaThumbnailMsg(null), 3000);
   }
+
+  // ── Category CRUD ──────────────────────────────────────────────────────────
+  function resetCategoryForm() {
+    setCatName(""); setCatSlug(""); setCatIcon(""); setCatDescription("");
+    setCatParentId(null); setCatSortOrder("0");
+    setEditingCategory(null); setShowCategoryForm(false);
+  }
+
+  function startEditCategory(cat: CategoryRow) {
+    setEditingCategory(cat);
+    setCatName(cat.name);
+    setCatSlug(cat.slug);
+    setCatIcon(cat.icon ?? "");
+    setCatDescription(cat.description ?? "");
+    setCatParentId(cat.parent_id);
+    setCatSortOrder(String(cat.sort_order));
+    setShowCategoryForm(true);
+  }
+
+  async function handleSaveCategory() {
+    if (!catName.trim() || !catSlug.trim()) {
+      setCategoryMsg("Name and slug are required.");
+      setTimeout(() => setCategoryMsg(null), 3000);
+      return;
+    }
+    setSavingCategory(true);
+    if (editingCategory) {
+      const { error } = await updateCategory(editingCategory.id, {
+        name: catName.trim(),
+        slug: catSlug.trim(),
+        icon: catIcon.trim() || null,
+        description: catDescription.trim() || null,
+        parent_id: catParentId,
+        sort_order: parseInt(catSortOrder) || 0,
+      });
+      setCategoryMsg(error ? `Error: ${error}` : "Category updated");
+    } else {
+      const { error } = await createCategory({
+        name: catName.trim(),
+        slug: catSlug.trim(),
+        icon: catIcon.trim() || null,
+        description: catDescription.trim() || null,
+        parent_id: catParentId,
+        sort_order: parseInt(catSortOrder) || 0,
+      });
+      setCategoryMsg(error ? `Error: ${error}` : "Category created");
+    }
+    setSavingCategory(false);
+    resetCategoryForm();
+    getAllCategories().then(setCategories); // Refresh
+    setTimeout(() => setCategoryMsg(null), 3000);
+  }
+
+  async function handleDeleteCategory(id: string) {
+    const { error } = await deleteCategory(id);
+    setCategoryMsg(error ? `Error: ${error}` : "Category deactivated");
+    getAllCategories().then(setCategories);
+    setTimeout(() => setCategoryMsg(null), 3000);
+  }
+
+  // ── Arena management helpers ──────────────────────────────────────────────
+  function getArenaEdit(arenaId: string): Partial<AdminArena> {
+    return arenaEdits[arenaId] ?? {};
+  }
+
+  function setArenaEdit(arenaId: string, field: string, value: string | boolean | null) {
+    setArenaEdits((prev) => ({
+      ...prev,
+      [arenaId]: { ...prev[arenaId], [field]: value },
+    }));
+  }
+
+  async function saveArenaEdits(arenaId: string) {
+    const edits = arenaEdits[arenaId];
+    if (!edits || Object.keys(edits).length === 0) return;
+    setSavingArena(arenaId);
+
+    const updatePayload: Record<string, unknown> = {};
+    if (edits.name !== undefined) updatePayload.name = edits.name;
+    if (edits.description !== undefined) updatePayload.description = edits.description || null;
+    if (edits.thumbnail_url !== undefined) updatePayload.thumbnail_url = edits.thumbnail_url || null;
+    if (edits.is_official !== undefined) updatePayload.is_official = edits.is_official;
+    if (edits.is_verified !== undefined) updatePayload.is_verified = edits.is_verified;
+    if (edits.category_id !== undefined) updatePayload.category_id = edits.category_id || null;
+    if (edits.visibility !== undefined) updatePayload.visibility = edits.visibility;
+
+    const { error } = await supabase
+      .from("arenas")
+      .update(updatePayload)
+      .eq("id", arenaId);
+
+    setSavingArena(null);
+    if (error) {
+      setArenaMsg(`Error: ${(error as { message: string }).message}`);
+    } else {
+      setArenaMsg("Arena saved");
+      setAllArenas((prev) =>
+        prev.map((a) => a.id === arenaId ? { ...a, ...updatePayload } as AdminArena : a)
+      );
+      setArenaEdits((prev) => { const n = { ...prev }; delete n[arenaId]; return n; });
+      setEditingArena(null);
+    }
+    setTimeout(() => setArenaMsg(null), 3000);
+  }
+
+  const filteredArenas = allArenas.filter((a) => {
+    if (arenaFilter === "official" && !a.is_official) return false;
+    if (arenaFilter === "custom" && a.is_official) return false;
+    if (arenaSearch.trim()) {
+      const q = arenaSearch.toLowerCase();
+      return a.name.toLowerCase().includes(q) || a.slug.toLowerCase().includes(q);
+    }
+    return true;
+  });
 
   // ── Wikipedia fetch ──────────────────────────────────────────────────────────
   async function fetchWikiImage(slug: string): Promise<string | null> {
@@ -1314,6 +1472,308 @@ export default function AdminPage() {
               )}
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* ── Category Management Panel ─────────────────────────────────────────── */}
+      <div className="mb-6 bg-zinc-900 border border-emerald-500/20 rounded-2xl p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-white font-bold text-base">🗂️ Category Hierarchy</h2>
+            <p className="text-zinc-500 text-xs mt-0.5">Manage the category tree (Human → Actors, Athletes, etc.)</p>
+          </div>
+          <div className="flex items-center gap-3">
+            {categoryMsg && (
+              <span className="text-xs font-bold" style={{ color: categoryMsg.startsWith("Error") ? "#EF4444" : "#22C55E" }}>
+                {categoryMsg}
+              </span>
+            )}
+            <button onClick={() => { resetCategoryForm(); setShowCategoryForm(!showCategoryForm); }}
+              className="shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black px-4 py-2 rounded-lg transition-colors">
+              {showCategoryForm ? "Cancel" : "+ Add Category"}
+            </button>
+          </div>
+        </div>
+
+        {/* Add/Edit category form */}
+        {showCategoryForm && (
+          <div className="bg-zinc-950/60 border border-zinc-800 rounded-xl p-4 space-y-3">
+            <p className="text-white text-sm font-bold">{editingCategory ? `Edit: ${editingCategory.name}` : "New Category"}</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Name *</label>
+                <input type="text" value={catName}
+                  onChange={(e) => { setCatName(e.target.value); if (!editingCategory) setCatSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+$/, "")); }}
+                  placeholder="e.g. Basketball Players"
+                  className="w-full bg-zinc-800 border border-zinc-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Slug *</label>
+                <input type="text" value={catSlug}
+                  onChange={(e) => setCatSlug(e.target.value)}
+                  placeholder="basketball-players"
+                  className="w-full bg-zinc-800 border border-zinc-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Icon (emoji)</label>
+                <input type="text" value={catIcon}
+                  onChange={(e) => setCatIcon(e.target.value)}
+                  placeholder="🏀"
+                  className="w-full bg-zinc-800 border border-zinc-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500" />
+              </div>
+              <div className="col-span-2">
+                <label className="block text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Parent Category</label>
+                <select value={catParentId ?? ""}
+                  onChange={(e) => setCatParentId(e.target.value || null)}
+                  className="w-full bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500">
+                  <option value="">— Root (no parent) —</option>
+                  {categories.filter((c) => c.is_active).map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {"  ".repeat(c.depth)}{c.icon ? `${c.icon} ` : ""}{c.name} ({c.slug})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Sort Order</label>
+                <input type="number" value={catSortOrder}
+                  onChange={(e) => setCatSortOrder(e.target.value)}
+                  className="w-full bg-zinc-800 border border-zinc-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Description</label>
+              <input type="text" value={catDescription}
+                onChange={(e) => setCatDescription(e.target.value)}
+                placeholder="Optional description"
+                className="w-full bg-zinc-800 border border-zinc-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500" />
+            </div>
+            <div className="flex justify-end">
+              <button onClick={handleSaveCategory} disabled={savingCategory}
+                className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-black px-5 py-2 rounded-lg transition-colors">
+                {savingCategory ? "Saving…" : editingCategory ? "Update" : "Create"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Category tree list */}
+        <div className="space-y-1 max-h-[400px] overflow-y-auto">
+          {categories.filter((c) => c.is_active).map((cat) => (
+            <div key={cat.id}
+              className="flex items-center gap-2 py-1.5 px-3 rounded-lg hover:bg-zinc-800/50 transition-colors group"
+              style={{ paddingLeft: `${12 + cat.depth * 20}px` }}>
+              {cat.depth > 0 && (
+                <span className="text-zinc-700 text-xs">{"└"}</span>
+              )}
+              <span className="text-sm">{cat.icon || "📁"}</span>
+              <span className="text-white text-xs font-bold flex-1">{cat.name}</span>
+              <span className="text-[9px] font-mono text-zinc-600 hidden sm:inline">{cat.slug}</span>
+              <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ background: "#1A1A28", color: "#4A4A66" }}>
+                d={cat.depth}
+              </span>
+              <button onClick={() => startEditCategory(cat)}
+                className="text-zinc-600 hover:text-emerald-400 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                Edit
+              </button>
+              <button onClick={() => handleDeleteCategory(cat.id)}
+                className="text-zinc-600 hover:text-red-400 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                Delete
+              </button>
+            </div>
+          ))}
+          {categories.filter((c) => c.is_active).length === 0 && (
+            <p className="text-zinc-600 text-xs text-center py-4">No categories yet. Run the SQL migration first, then refresh.</p>
+          )}
+        </div>
+      </div>
+
+      {/* ── Arena Management Panel ─────────────────────────────────────────────── */}
+      <div className="mb-6 bg-zinc-900 border border-blue-500/20 rounded-2xl p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-white font-bold text-base">🏟️ Arena Management</h2>
+            <p className="text-zinc-500 text-xs mt-0.5">Manage all arenas — official, custom, visibility, categories</p>
+          </div>
+          {arenaMsg && (
+            <span className="text-xs font-bold" style={{ color: arenaMsg.startsWith("Error") ? "#EF4444" : "#22C55E" }}>
+              {arenaMsg}
+            </span>
+          )}
+        </div>
+
+        {/* Filters */}
+        <div className="flex items-center gap-3">
+          <div className="flex gap-1.5">
+            {(["all", "official", "custom"] as const).map((f) => (
+              <button key={f} onClick={() => setArenaFilter(f)}
+                className="text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-lg transition-colors"
+                style={arenaFilter === f
+                  ? { background: "rgba(59,130,246,0.15)", color: "#60A5FA", border: "1px solid rgba(59,130,246,0.3)" }
+                  : { background: "#1A1A28", color: "#4A4A66", border: "1px solid #2A2A3D" }
+                }>
+                {f}
+              </button>
+            ))}
+          </div>
+          <input type="text" value={arenaSearch} onChange={(e) => setArenaSearch(e.target.value)}
+            placeholder="Search arenas…"
+            className="flex-1 bg-zinc-800 border border-zinc-700 text-white text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-blue-500"
+            style={{ maxWidth: "240px" }} />
+          <span className="text-[10px] text-zinc-600">{filteredArenas.length} arenas</span>
+        </div>
+
+        {/* Arena list */}
+        <div className="space-y-2 max-h-[500px] overflow-y-auto">
+          {filteredArenas.map((arena) => {
+            const isEditing = editingArena === arena.id;
+            const edits = getArenaEdit(arena.id);
+            const catForArena = categories.find((c) => c.id === (edits.category_id !== undefined ? edits.category_id : arena.category_id));
+
+            return (
+              <div key={arena.id}
+                className="bg-zinc-950/60 border rounded-xl p-3 transition-colors"
+                style={{ borderColor: isEditing ? "rgba(59,130,246,0.4)" : "#222" }}>
+                <div className="flex items-center gap-3">
+                  {/* Arena info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="text-white text-sm font-bold truncate">{arena.name}</span>
+                      {arena.is_official && (
+                        <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full"
+                          style={{ color: "#F0C040", background: "rgba(240,192,64,0.1)", border: "1px solid rgba(240,192,64,0.2)" }}>
+                          OFFICIAL
+                        </span>
+                      )}
+                      {arena.is_verified && (
+                        <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full"
+                          style={{ color: "#22C55E", background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.2)" }}>
+                          VERIFIED
+                        </span>
+                      )}
+                      {!arena.is_official && (
+                        <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full"
+                          style={{ color: "#4A4A66", background: "#1A1A28", border: "1px solid #2A2A3D" }}>
+                          CUSTOM
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 text-[10px] text-zinc-600">
+                      <span className="font-mono">{arena.slug}</span>
+                      <span>•</span>
+                      <span>{arena.visibility}</span>
+                      <span>•</span>
+                      <span>{arena.arena_type}</span>
+                      {catForArena && (
+                        <>
+                          <span>•</span>
+                          <span style={{ color: "#60A5FA" }}>{catForArena.icon} {catForArena.name}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-2 shrink-0">
+                    {isEditing ? (
+                      <>
+                        <button onClick={() => saveArenaEdits(arena.id)} disabled={savingArena === arena.id}
+                          className="text-[10px] font-black px-3 py-1 rounded-lg transition-colors disabled:opacity-50"
+                          style={{ background: "rgba(59,130,246,0.15)", color: "#60A5FA", border: "1px solid rgba(59,130,246,0.3)" }}>
+                          {savingArena === arena.id ? "…" : "Save"}
+                        </button>
+                        <button onClick={() => { setEditingArena(null); setArenaEdits((prev) => { const n = { ...prev }; delete n[arena.id]; return n; }); }}
+                          className="text-[10px] font-bold text-zinc-500 hover:text-white transition-colors">
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <button onClick={() => setEditingArena(arena.id)}
+                        className="text-[10px] font-bold text-zinc-500 hover:text-blue-400 transition-colors">
+                        Edit
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Edit form (expanded) */}
+                {isEditing && (
+                  <div className="mt-3 pt-3 space-y-3" style={{ borderTop: "1px solid #222" }}>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Name</label>
+                        <input type="text"
+                          value={edits.name ?? arena.name}
+                          onChange={(e) => setArenaEdit(arena.id, "name", e.target.value)}
+                          className="w-full bg-zinc-800 border border-zinc-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500" />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Category</label>
+                        <select
+                          value={edits.category_id !== undefined ? (edits.category_id ?? "") : (arena.category_id ?? "")}
+                          onChange={(e) => setArenaEdit(arena.id, "category_id", e.target.value || null)}
+                          className="w-full bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
+                          <option value="">— No category —</option>
+                          {categories.filter((c) => c.is_active).map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {"  ".repeat(c.depth)}{c.icon ? `${c.icon} ` : ""}{c.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Visibility</label>
+                        <select
+                          value={edits.visibility ?? arena.visibility}
+                          onChange={(e) => setArenaEdit(arena.id, "visibility", e.target.value)}
+                          className="w-full bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
+                          <option value="public">Public</option>
+                          <option value="private">Private</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Description</label>
+                        <input type="text"
+                          value={edits.description !== undefined ? (edits.description ?? "") : (arena.description ?? "")}
+                          onChange={(e) => setArenaEdit(arena.id, "description", e.target.value)}
+                          placeholder="Arena description…"
+                          className="w-full bg-zinc-800 border border-zinc-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500" />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Thumbnail URL</label>
+                        <input type="url"
+                          value={edits.thumbnail_url !== undefined ? (edits.thumbnail_url ?? "") : (arena.thumbnail_url ?? "")}
+                          onChange={(e) => setArenaEdit(arena.id, "thumbnail_url", e.target.value)}
+                          placeholder="https://example.com/image.jpg"
+                          className="w-full bg-zinc-800 border border-zinc-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500" />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox"
+                          checked={edits.is_official !== undefined ? !!edits.is_official : arena.is_official}
+                          onChange={(e) => setArenaEdit(arena.id, "is_official", e.target.checked)}
+                          className="accent-blue-500 w-3.5 h-3.5" />
+                        <span className="text-zinc-300 text-xs">Official</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox"
+                          checked={edits.is_verified !== undefined ? !!edits.is_verified : arena.is_verified}
+                          onChange={(e) => setArenaEdit(arena.id, "is_verified", e.target.checked)}
+                          className="accent-blue-500 w-3.5 h-3.5" />
+                        <span className="text-zinc-300 text-xs">Verified</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {filteredArenas.length === 0 && (
+            <p className="text-zinc-600 text-xs text-center py-4">No arenas match your filter.</p>
+          )}
         </div>
       </div>
 

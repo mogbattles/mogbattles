@@ -18,6 +18,12 @@ import ArenaCard, { ARENA_EMOJIS } from "@/components/ArenaCard";
 import { useAuth } from "@/context/AuthContext";
 import { createBrowserClient } from "@supabase/ssr";
 import type { User } from "@supabase/supabase-js";
+import {
+  getCategoryChildren,
+  getCategoryAncestors,
+  getCategoryDescendantIds,
+} from "@/lib/categories";
+import type { CategoryRow } from "@/lib/supabase";
 
 function supabase() {
   return createBrowserClient(
@@ -314,6 +320,10 @@ export default function ExplorePage() {
   const [arenaResults, setArenaResults] = useState<ArenaWithCount[]>([]);
   const [topThread, setTopThread] = useState<ForumThread | null>(null);
   const [latestArticle, setLatestArticle] = useState<ArticlePreview | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<CategoryRow | null>(null);
+  const [categoryChildren, setCategoryChildren] = useState<CategoryRow[]>([]);
+  const [categoryAncestors, setCategoryAncestors] = useState<{ id: string; name: string; slug: string; depth: number }[]>([]);
+  const [categoryLoading, setCategoryLoading] = useState(true);
   const searchRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const officialScrollRef = useRef<HTMLDivElement>(null);
@@ -326,6 +336,61 @@ export default function ExplorePage() {
     .filter(Boolean) as ArenaWithCount[];
   const officialArenas = arenas.filter((a) => a.is_official && !HIGHLIGHTED_SLUGS.includes(a.slug));
   const customArenas = arenas.filter((a) => !a.is_official);
+
+  // Load initial categories (depth=1, children of "human" root)
+  useEffect(() => {
+    // Get the "human" root's children as top-level category chips
+    getCategoryChildren(null).then((roots) => {
+      // Find the "human" root and get its children
+      const humanRoot = roots.find((c) => c.slug === "human");
+      if (humanRoot) {
+        getCategoryChildren(humanRoot.id).then((children) => {
+          setCategoryChildren(children);
+          setCategoryLoading(false);
+        });
+      } else {
+        // Fallback: show root categories
+        setCategoryChildren(roots);
+        setCategoryLoading(false);
+      }
+    });
+  }, []);
+
+  // Handle category selection
+  const handleCategorySelect = useCallback(async (category: CategoryRow | null) => {
+    setSelectedCategory(category);
+    setArenasLoading(true);
+
+    if (!category) {
+      // Back to "All" — no filter
+      setCategoryAncestors([]);
+      // Get human root's children again
+      getCategoryChildren(null).then((roots) => {
+        const humanRoot = roots.find((c) => c.slug === "human");
+        if (humanRoot) {
+          getCategoryChildren(humanRoot.id).then(setCategoryChildren);
+        } else {
+          setCategoryChildren(roots);
+        }
+      });
+      getExploreArenas({ sort: "popular" }).then((data) => { setArenas(data); setArenasLoading(false); });
+      return;
+    }
+
+    // Load ancestors (breadcrumbs) and children
+    const [ancestors, children] = await Promise.all([
+      getCategoryAncestors(category.id),
+      getCategoryChildren(category.id),
+    ]);
+    setCategoryAncestors(ancestors);
+    setCategoryChildren(children);
+
+    // Get all descendant IDs for filtering
+    const descendantIds = await getCategoryDescendantIds(category.id);
+    const data = await getExploreArenas({ sort: "popular", categoryDescendantIds: descendantIds });
+    setArenas(data);
+    setArenasLoading(false);
+  }, []);
 
   useEffect(() => {
     const db = supabase();
@@ -527,6 +592,80 @@ export default function ExplorePage() {
         </div>
         <SearchDropdown query={query} profiles={profileResults} arenas={arenaResults} onClose={clearSearch} />
       </div>
+
+      {/* ── Category Chips / Breadcrumbs ── */}
+      {!categoryLoading && categoryChildren.length > 0 && (
+        <div className="mb-5">
+          {/* Breadcrumbs (when drilled into a category) */}
+          {selectedCategory && categoryAncestors.length > 0 && (
+            <div className="flex items-center gap-1.5 mb-3 flex-wrap">
+              <button onClick={() => handleCategorySelect(null)}
+                className="text-[10px] font-bold uppercase tracking-wider transition-colors hover:underline"
+                style={{ color: "#A78BFA" }}>
+                All
+              </button>
+              {categoryAncestors
+                .filter((a) => a.slug !== "human") // skip the root "human" in breadcrumb display
+                .map((ancestor, i) => (
+                <span key={ancestor.id} className="flex items-center gap-1.5">
+                  <span className="text-[10px]" style={{ color: "#2A2A3D" }}>{"\u203A"}</span>
+                  {ancestor.id === selectedCategory.id ? (
+                    <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: "#F0C040" }}>
+                      {ancestor.name}
+                    </span>
+                  ) : (
+                    <button
+                      onClick={async () => {
+                        const { getCategoryById } = await import("@/lib/categories");
+                        const cat = await getCategoryById(ancestor.id);
+                        if (cat) handleCategorySelect(cat);
+                      }}
+                      className="text-[10px] font-bold uppercase tracking-wider transition-colors hover:underline"
+                      style={{ color: "#A78BFA" }}>
+                      {ancestor.name}
+                    </button>
+                  )}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Category chips */}
+          <div className="flex gap-2 overflow-x-auto pb-2 arena-scroll-hide" style={{ scrollbarWidth: "none" }}>
+            {/* "All" chip */}
+            <button onClick={() => handleCategorySelect(null)}
+              className="shrink-0 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all hover:scale-[1.03] active:scale-[0.97]"
+              style={!selectedCategory ? {
+                background: "rgba(139,92,246,0.15)",
+                color: "#A78BFA",
+                border: "1px solid rgba(139,92,246,0.4)",
+                boxShadow: "0 0 12px rgba(139,92,246,0.1)",
+              } : {
+                background: "#0F0F1A",
+                color: "#4A4A66",
+                border: "1px solid #222233",
+              }}>
+              {"\uD83C\uDF0D"} All
+            </button>
+            {categoryChildren.map((cat) => (
+              <button key={cat.id} onClick={() => handleCategorySelect(cat)}
+                className="shrink-0 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all hover:scale-[1.03] active:scale-[0.97]"
+                style={selectedCategory?.id === cat.id ? {
+                  background: "rgba(139,92,246,0.15)",
+                  color: "#A78BFA",
+                  border: "1px solid rgba(139,92,246,0.4)",
+                  boxShadow: "0 0 12px rgba(139,92,246,0.1)",
+                } : {
+                  background: "#0F0F1A",
+                  color: "#4A4A66",
+                  border: "1px solid #222233",
+                }}>
+                {cat.icon ? `${cat.icon} ` : ""}{cat.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── Two-column layout ── */}
       <div className="flex gap-6">
