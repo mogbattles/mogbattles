@@ -194,18 +194,30 @@ export async function getProfilesForArena(
   let profileIds: string[];
 
   if (arena.is_official) {
-    const query = client.from("profiles").select("id");
-    let result;
     if (arena.slug === "members") {
       // "All Players" arena — only registered user accounts
-      result = await query.not("user_id", "is", null);
+      const { data } = await client.from("profiles").select("id").not("user_id", "is", null);
+      profileIds = ((data ?? []) as { id: string }[]).map((p) => p.id);
+    } else if (arena.category_id) {
+      // Use hierarchical category system: get all descendant category IDs,
+      // then find profiles linked via profile_categories junction table
+      const { getCategoryDescendantIds } = await import("@/lib/categories");
+      const descendantIds = await getCategoryDescendantIds(arena.category_id);
+      const { data } = await client
+        .from("profile_categories")
+        .select("profile_id")
+        .in("category_id", descendantIds);
+      // Deduplicate (a profile can be in multiple descendant categories)
+      profileIds = [...new Set(((data ?? []) as { profile_id: string }[]).map((r) => r.profile_id))];
     } else if (arena.category && arena.category !== "all") {
-      result = await query.contains("categories", [arena.category]);
+      // Legacy fallback: use profiles.categories array
+      const { data } = await client.from("profiles").select("id").contains("categories", [arena.category]);
+      profileIds = ((data ?? []) as { id: string }[]).map((p) => p.id);
     } else {
-      result = await query;
+      // "All" arena or no category — show all profiles
+      const { data } = await client.from("profiles").select("id");
+      profileIds = ((data ?? []) as { id: string }[]).map((p) => p.id);
     }
-    const { data } = result;
-    profileIds = ((data ?? []) as { id: string }[]).map((p) => p.id);
   } else {
     const { data } = await client
       .from("arena_members")

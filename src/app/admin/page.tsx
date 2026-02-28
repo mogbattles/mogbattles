@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { createBrowserClient } from "@supabase/ssr";
 import { getFeaturedBattles, upsertFeaturedBattle, searchProfiles, type FeaturedBattle } from "@/lib/arenas";
 import { useAuth, usePermissions } from "@/context/AuthContext";
-import { getAllCategories, createCategory, updateCategory, deleteCategory } from "@/lib/categories";
+import { getAllCategories, createCategory, updateCategory, deleteCategory, setProfileCategories, getCategoryBySlug } from "@/lib/categories";
 import type { CategoryRow } from "@/lib/supabase";
 
 type Category =
@@ -57,19 +57,26 @@ const CATEGORIES: { value: Category; label: string }[] = [
 const MAX_IMAGES = 4;
 
 // ─── CategoryMultiSelect ──────────────────────────────────────────────────────
-// Uses a fixed-position portal so the dropdown escapes overflow:hidden cards.
+// Uses dynamic categories from the DB. Shows hierarchy with indentation.
+// value/onChange use category slugs (strings) for backward compat.
 function CategoryMultiSelect({
   value,
   onChange,
+  allCategories,
 }: {
   value: string[];
   onChange: (cats: string[]) => void;
+  allCategories: CategoryRow[];
 }) {
   const [open, setOpen] = useState(false);
   const [dropPos, setDropPos] = useState({ top: 0, left: 0, minWidth: 0 });
   const btnRef = useRef<HTMLButtonElement>(null);
   const dropRef = useRef<HTMLDivElement>(null);
   const id = useId();
+
+  // Only show active non-root categories (depth >= 1) for profile assignment
+  // Also include root if desired
+  const selectableCategories = allCategories.filter((c) => c.is_active);
 
   // Close when clicking outside either the button or the portal dropdown
   useEffect(() => {
@@ -87,18 +94,19 @@ function CategoryMultiSelect({
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
 
+  const selectedCats = selectableCategories.filter((c) => value.includes(c.slug));
   const label =
     value.length === 0
       ? "— None —"
       : value.length === 1
-      ? CATEGORIES.find((c) => c.value === value[0])?.label ?? value[0]
+      ? (selectedCats[0]?.icon ? selectedCats[0].icon + " " : "") + (selectedCats[0]?.name ?? value[0])
       : `${value.length} categories`;
 
-  function toggle(cat: string) {
-    if (value.includes(cat)) {
-      onChange(value.filter((c) => c !== cat));
+  function toggle(slug: string) {
+    if (value.includes(slug)) {
+      onChange(value.filter((c) => c !== slug));
     } else {
-      onChange([...value, cat]);
+      onChange([...value, slug]);
     }
   }
 
@@ -108,7 +116,7 @@ function CategoryMultiSelect({
       setDropPos({
         top: rect.bottom + 4,
         left: rect.left,
-        minWidth: Math.max(rect.width, 190),
+        minWidth: Math.max(rect.width, 220),
       });
     }
     setOpen(true);
@@ -131,7 +139,7 @@ function CategoryMultiSelect({
         createPortal(
           <div
             ref={dropRef}
-            className="bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl p-1.5"
+            className="bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl p-1.5 max-h-64 overflow-y-auto"
             style={{
               position: "fixed",
               top: dropPos.top,
@@ -141,20 +149,23 @@ function CategoryMultiSelect({
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {CATEGORIES.filter((c) => c.value !== null).map((c) => {
-              const checked = value.includes(c.value!);
+            {selectableCategories.map((c) => {
+              const checked = value.includes(c.slug);
               return (
                 <label
-                  key={String(c.value)}
+                  key={c.id}
                   className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800 cursor-pointer select-none"
+                  style={{ paddingLeft: `${8 + c.depth * 16}px` }}
                 >
                   <input
                     type="checkbox"
                     checked={checked}
-                    onChange={() => toggle(c.value!)}
+                    onChange={() => toggle(c.slug)}
                     className="accent-orange-500 w-3.5 h-3.5 shrink-0"
                   />
-                  <span className="text-zinc-300 text-xs">{c.label}</span>
+                  <span className={`text-xs ${c.depth === 0 ? "text-zinc-200 font-bold" : "text-zinc-300"}`}>
+                    {c.icon ? c.icon + " " : ""}{c.name}
+                  </span>
                 </label>
               );
             })}
@@ -798,16 +809,27 @@ export default function AdminPage() {
   }
 
   // ── Categories change (multi-select) ─────────────────────────────────────────
-  async function handleCategoriesChange(profileId: string, cats: string[]) {
-    const category = (cats[0] ?? null) as Category;
+  // Syncs both legacy fields (profiles.categories array) AND the new
+  // profile_categories junction table used by the hierarchical system.
+  async function handleCategoriesChange(profileId: string, catSlugs: string[]) {
+    const category = (catSlugs[0] ?? null) as Category;
+
+    // 1. Update legacy fields on profiles table
     const { error } = await supabase
       .from("profiles")
-      .update({ categories: cats, category })
+      .update({ categories: catSlugs, category })
       .eq("id", profileId);
+
+    // 2. Sync profile_categories junction table (using category IDs)
+    const categoryIds = catSlugs
+      .map((slug) => categories.find((c) => c.slug === slug)?.id)
+      .filter(Boolean) as string[];
+    await setProfileCategories(profileId, categoryIds);
+
     if (!error)
       setProfiles((prev) =>
         prev.map((p) =>
-          p.id === profileId ? { ...p, categories: cats, category } : p
+          p.id === profileId ? { ...p, categories: catSlugs, category } : p
         )
       );
   }
@@ -2055,6 +2077,7 @@ Clavicular,Looksmaxxers,5'11",165,United States,https://example.com/clav.jpg,`}
             <CategoryMultiSelect
               value={newCategories}
               onChange={setNewCategories}
+              allCategories={categories}
             />
             <input
               type="url"
@@ -2135,6 +2158,7 @@ Clavicular,Looksmaxxers,5'11",165,United States,https://example.com/clav.jpg,`}
                 <CategoryMultiSelect
                   value={profile.categories ?? (profile.category ? [profile.category] : [])}
                   onChange={(cats) => handleCategoriesChange(profile.id, cats)}
+                  allCategories={categories}
                 />
 
                 {/* Image count */}
