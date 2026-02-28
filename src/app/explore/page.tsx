@@ -394,15 +394,13 @@ export default function ExplorePage() {
     ]);
     setCategoryAncestors(ancestors);
 
-    if (children.length > 0) {
-      // Has sub-categories → show them as drill-down chips
-      setCategoryChildren(children);
-    } else {
-      // No sub-categories → show siblings (parent's children) so user can still navigate
-      const parentId = category.parent_id ?? selectedRoot?.id ?? null;
-      const siblings = await getCategoryChildren(parentId);
-      setCategoryChildren(siblings);
-    }
+    // Always show siblings + children so user can navigate freely
+    const parentId = category.parent_id ?? selectedRoot?.id ?? null;
+    const siblings = await getCategoryChildren(parentId);
+    const siblingIds = new Set(siblings.map((s) => s.id));
+    // Children that aren't already in siblings list (sub-categories)
+    const extraChildren = children.filter((c) => !siblingIds.has(c.id));
+    setCategoryChildren([...siblings, ...extraChildren]);
 
     // Get all descendant IDs for filtering
     const descendantIds = await getCategoryDescendantIds(category.id);
