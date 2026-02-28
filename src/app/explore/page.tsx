@@ -873,7 +873,8 @@ export default function ExplorePage() {
             </div>
           )}
 
-          {/* Official Arenas (horizontal scroll) */}
+          {/* Official Arenas (horizontal scroll) — hide when empty */}
+          {(arenasLoading || officialArenas.length > 0) && (
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
@@ -919,6 +920,7 @@ export default function ExplorePage() {
               </div>
             )}
           </div>
+          )}
 
           {/* Moderator Arenas (horizontal scroll) */}
           {!arenasLoading && moderatorArenas.length > 0 && (
