@@ -434,7 +434,7 @@ export default function ExplorePage() {
       for (const arena of highlighted) {
         if (arena.slug === "members") {
           // "All Players" — count only REAL registered user profiles (not seeded)
-          const { count } = await db.from("profiles").select("id", { count: "exact", head: true }).or("is_test_profile.is.null,is_test_profile.eq.false");
+          const { count } = await db.from("profiles").select("id", { count: "exact", head: true }).eq("is_test_profile", false);
           arena.player_count = count ?? 0;
         } else if (arena.slug === "all") {
           // "All" — count total profiles

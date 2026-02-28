@@ -128,20 +128,26 @@ export async function getExploreArenas(opts?: {
     query = query.ilike("name", `%${opts.search.trim()}%`);
   }
 
-  // Filter by category hierarchy — match both category_id (UUID) AND category (slug)
-  // so arenas that only have the legacy text slug still show up
+  // Don't filter by category in the DB query — fetch all, then filter client-side
+  // to reliably match both category_id (UUID) and legacy category (slug)
+
+  const { data: allArenas, error } = await query;
+  if (error || !allArenas || allArenas.length === 0) return [];
+
+  // Client-side category filtering: match category_id OR legacy category slug
+  let arenas = allArenas;
   if (opts?.categoryDescendantIds && opts.categoryDescendantIds.length > 0) {
-    const idFilter = `category_id.in.(${opts.categoryDescendantIds.join(",")})`;
-    const slugFilter = opts?.categorySlugs && opts.categorySlugs.length > 0
-      ? `,category.in.(${opts.categorySlugs.join(",")})`
-      : "";
-    query = query.or(`${idFilter}${slugFilter}`);
+    const idSet = new Set(opts.categoryDescendantIds);
+    const slugSet = new Set(opts.categorySlugs ?? []);
+    arenas = allArenas.filter((a) =>
+      (a.category_id && idSet.has(a.category_id)) ||
+      (a.category && slugSet.has(a.category))
+    );
   } else if (opts?.categoryId) {
-    query = query.eq("category_id", opts.categoryId);
+    arenas = allArenas.filter((a) => a.category_id === opts.categoryId);
   }
 
-  const { data: arenas, error } = await query;
-  if (error || !arenas || arenas.length === 0) return [];
+  if (arenas.length === 0) return [];
 
   // Fetch player counts + match counts for sorting
   const ids = arenas.map((a: ArenaRow) => a.id);
