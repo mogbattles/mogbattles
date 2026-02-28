@@ -393,7 +393,16 @@ export default function ExplorePage() {
       getCategoryChildren(category.id),
     ]);
     setCategoryAncestors(ancestors);
-    setCategoryChildren(children);
+
+    if (children.length > 0) {
+      // Has sub-categories → show them as drill-down chips
+      setCategoryChildren(children);
+    } else {
+      // No sub-categories → show siblings (parent's children) so user can still navigate
+      const parentId = category.parent_id ?? selectedRoot?.id ?? null;
+      const siblings = await getCategoryChildren(parentId);
+      setCategoryChildren(siblings);
+    }
 
     // Get all descendant IDs for filtering
     const descendantIds = await getCategoryDescendantIds(category.id);
