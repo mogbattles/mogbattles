@@ -56,6 +56,129 @@ const CATEGORIES: { value: Category; label: string }[] = [
 
 const MAX_IMAGES = 4;
 
+// ─── Country list with flag emojis ────────────────────────────────────────────
+const COUNTRIES: { code: string; name: string; flag: string }[] = [
+  { code: "AF", name: "Afghanistan", flag: "🇦🇫" }, { code: "AL", name: "Albania", flag: "🇦🇱" },
+  { code: "DZ", name: "Algeria", flag: "🇩🇿" }, { code: "AR", name: "Argentina", flag: "🇦🇷" },
+  { code: "AM", name: "Armenia", flag: "🇦🇲" }, { code: "AU", name: "Australia", flag: "🇦🇺" },
+  { code: "AT", name: "Austria", flag: "🇦🇹" }, { code: "AZ", name: "Azerbaijan", flag: "🇦🇿" },
+  { code: "BD", name: "Bangladesh", flag: "🇧🇩" }, { code: "BY", name: "Belarus", flag: "🇧🇾" },
+  { code: "BE", name: "Belgium", flag: "🇧🇪" }, { code: "BA", name: "Bosnia and Herzegovina", flag: "🇧🇦" },
+  { code: "BR", name: "Brazil", flag: "🇧🇷" }, { code: "BG", name: "Bulgaria", flag: "🇧🇬" },
+  { code: "CA", name: "Canada", flag: "🇨🇦" }, { code: "CL", name: "Chile", flag: "🇨🇱" },
+  { code: "CN", name: "China", flag: "🇨🇳" }, { code: "CO", name: "Colombia", flag: "🇨🇴" },
+  { code: "HR", name: "Croatia", flag: "🇭🇷" }, { code: "CU", name: "Cuba", flag: "🇨🇺" },
+  { code: "CZ", name: "Czech Republic", flag: "🇨🇿" }, { code: "DK", name: "Denmark", flag: "🇩🇰" },
+  { code: "DO", name: "Dominican Republic", flag: "🇩🇴" }, { code: "EC", name: "Ecuador", flag: "🇪🇨" },
+  { code: "EG", name: "Egypt", flag: "🇪🇬" }, { code: "EE", name: "Estonia", flag: "🇪🇪" },
+  { code: "ET", name: "Ethiopia", flag: "🇪🇹" }, { code: "FI", name: "Finland", flag: "🇫🇮" },
+  { code: "FR", name: "France", flag: "🇫🇷" }, { code: "GE", name: "Georgia", flag: "🇬🇪" },
+  { code: "DE", name: "Germany", flag: "🇩🇪" }, { code: "GH", name: "Ghana", flag: "🇬🇭" },
+  { code: "GR", name: "Greece", flag: "🇬🇷" }, { code: "HU", name: "Hungary", flag: "🇭🇺" },
+  { code: "IS", name: "Iceland", flag: "🇮🇸" }, { code: "IN", name: "India", flag: "🇮🇳" },
+  { code: "ID", name: "Indonesia", flag: "🇮🇩" }, { code: "IR", name: "Iran", flag: "🇮🇷" },
+  { code: "IQ", name: "Iraq", flag: "🇮🇶" }, { code: "IE", name: "Ireland", flag: "🇮🇪" },
+  { code: "IL", name: "Israel", flag: "🇮🇱" }, { code: "IT", name: "Italy", flag: "🇮🇹" },
+  { code: "JM", name: "Jamaica", flag: "🇯🇲" }, { code: "JP", name: "Japan", flag: "🇯🇵" },
+  { code: "JO", name: "Jordan", flag: "🇯🇴" }, { code: "KZ", name: "Kazakhstan", flag: "🇰🇿" },
+  { code: "KE", name: "Kenya", flag: "🇰🇪" }, { code: "KR", name: "South Korea", flag: "🇰🇷" },
+  { code: "KW", name: "Kuwait", flag: "🇰🇼" }, { code: "LV", name: "Latvia", flag: "🇱🇻" },
+  { code: "LB", name: "Lebanon", flag: "🇱🇧" }, { code: "LT", name: "Lithuania", flag: "🇱🇹" },
+  { code: "MX", name: "Mexico", flag: "🇲🇽" }, { code: "MA", name: "Morocco", flag: "🇲🇦" },
+  { code: "NL", name: "Netherlands", flag: "🇳🇱" }, { code: "NZ", name: "New Zealand", flag: "🇳🇿" },
+  { code: "NG", name: "Nigeria", flag: "🇳🇬" }, { code: "NO", name: "Norway", flag: "🇳🇴" },
+  { code: "PK", name: "Pakistan", flag: "🇵🇰" }, { code: "PE", name: "Peru", flag: "🇵🇪" },
+  { code: "PH", name: "Philippines", flag: "🇵🇭" }, { code: "PL", name: "Poland", flag: "🇵🇱" },
+  { code: "PT", name: "Portugal", flag: "🇵🇹" }, { code: "PR", name: "Puerto Rico", flag: "🇵🇷" },
+  { code: "RO", name: "Romania", flag: "🇷🇴" }, { code: "RU", name: "Russia", flag: "🇷🇺" },
+  { code: "SA", name: "Saudi Arabia", flag: "🇸🇦" }, { code: "RS", name: "Serbia", flag: "🇷🇸" },
+  { code: "SG", name: "Singapore", flag: "🇸🇬" }, { code: "SK", name: "Slovakia", flag: "🇸🇰" },
+  { code: "SI", name: "Slovenia", flag: "🇸🇮" }, { code: "ZA", name: "South Africa", flag: "🇿🇦" },
+  { code: "ES", name: "Spain", flag: "🇪🇸" }, { code: "SE", name: "Sweden", flag: "🇸🇪" },
+  { code: "CH", name: "Switzerland", flag: "🇨🇭" }, { code: "TW", name: "Taiwan", flag: "🇹🇼" },
+  { code: "TH", name: "Thailand", flag: "🇹🇭" }, { code: "TR", name: "Turkey", flag: "🇹🇷" },
+  { code: "UA", name: "Ukraine", flag: "🇺🇦" }, { code: "AE", name: "United Arab Emirates", flag: "🇦🇪" },
+  { code: "GB", name: "United Kingdom", flag: "🇬🇧" }, { code: "US", name: "United States", flag: "🇺🇸" },
+  { code: "UY", name: "Uruguay", flag: "🇺🇾" }, { code: "VE", name: "Venezuela", flag: "🇻🇪" },
+  { code: "VN", name: "Vietnam", flag: "🇻🇳" },
+];
+
+// ─── CountryPicker — searchable dropdown with flags ───────────────────────────
+function CountryPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [dropPos, setDropPos] = useState({ top: 0, left: 0, minWidth: 0 });
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const dropRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  const selectedCountry = COUNTRIES.find((c) => c.name === value);
+  const filtered = search.trim()
+    ? COUNTRIES.filter((c) => c.name.toLowerCase().includes(search.trim().toLowerCase()))
+    : COUNTRIES;
+
+  useEffect(() => {
+    if (!open) return;
+    function handler(e: MouseEvent) {
+      const t = e.target as Node;
+      if (btnRef.current && !btnRef.current.contains(t) && dropRef.current && !dropRef.current.contains(t)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  useEffect(() => { if (open && searchRef.current) searchRef.current.focus(); }, [open]);
+
+  function openDropdown() {
+    if (btnRef.current) {
+      const r = btnRef.current.getBoundingClientRect();
+      setDropPos({ top: r.bottom + 4, left: r.left, minWidth: Math.max(r.width, 220) });
+    }
+    setSearch("");
+    setOpen(true);
+  }
+
+  return (
+    <div className="relative">
+      <button ref={btnRef} type="button" onClick={() => (open ? setOpen(false) : openDropdown())}
+        className="w-full bg-zinc-800 border border-zinc-700 text-sm rounded-lg px-3 py-2 text-left flex items-center gap-2 focus:outline-none hover:border-indigo-500 transition-colors"
+        style={{ color: value ? "#D1D5DB" : "#52525B" }}>
+        {selectedCountry ? <><span>{selectedCountry.flag}</span><span className="truncate">{selectedCountry.name}</span></> : <span>Select country…</span>}
+        <span className="ml-auto text-zinc-500 shrink-0">{open ? "▲" : "▾"}</span>
+      </button>
+      {open && typeof document !== "undefined" && createPortal(
+        <div ref={dropRef}
+          className="bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl overflow-hidden"
+          style={{ position: "fixed", top: dropPos.top, left: dropPos.left, minWidth: dropPos.minWidth, zIndex: 9999 }}
+          onClick={(e) => e.stopPropagation()}>
+          <div className="p-2 border-b border-zinc-800">
+            <input ref={searchRef} type="text" placeholder="Search country…" value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-500 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500" />
+          </div>
+          <div className="max-h-52 overflow-y-auto">
+            {value && (
+              <button type="button" onClick={() => { onChange(""); setOpen(false); }}
+                className="w-full text-left px-3 py-1.5 text-xs text-zinc-500 hover:bg-zinc-800 transition-colors">
+                ✕ Clear
+              </button>
+            )}
+            {filtered.map((c) => (
+              <button key={c.code} type="button"
+                onClick={() => { onChange(c.name); setOpen(false); }}
+                className={`w-full text-left px-3 py-1.5 flex items-center gap-2 text-xs hover:bg-zinc-800 transition-colors ${value === c.name ? "bg-zinc-800 text-white" : "text-zinc-300"}`}>
+                <span>{c.flag}</span><span>{c.name}</span>
+              </button>
+            ))}
+            {filtered.length === 0 && <div className="px-3 py-3 text-xs text-zinc-600 text-center">No countries found</div>}
+          </div>
+        </div>,
+        document.body
+      )}
+    </div>
+  );
+}
+
 // ─── CategoryMultiSelect ──────────────────────────────────────────────────────
 // Uses dynamic categories from the DB. Shows hierarchy with indentation.
 // Root categories (depth 0) are non-selectable group headers.
@@ -345,7 +468,9 @@ export default function AdminPage() {
   const [seedElo, setSeedElo] = useState("1200");
   const [seedGender, setSeedGender] = useState<"male" | "female" | "">("");
   const [seedHeight, setSeedHeight] = useState("");
+  const [seedHeightUnit, setSeedHeightUnit] = useState<"cm" | "ft">("cm");
   const [seedWeight, setSeedWeight] = useState("");
+  const [seedWeightUnit, setSeedWeightUnit] = useState<"kg" | "lbs">("kg");
   const [seedCountry, setSeedCountry] = useState("");
   const [seedInstagram, setSeedInstagram] = useState("");
   const [seedTiktok, setSeedTiktok] = useState("");
@@ -934,8 +1059,17 @@ export default function AdminPage() {
 
     const imageUrls = seedImageUrls.filter((u) => u.trim());
     const eloRating = Math.max(100, Math.min(9999, parseInt(seedElo) || 1200));
-    const heightVal = seedHeight ? parseFloat(seedHeight) : null;
-    const weightVal = seedWeight ? parseFloat(seedWeight) : null;
+    // Convert to DB units: height_in (inches), weight_lbs (pounds)
+    let heightVal: number | null = null;
+    if (seedHeight) {
+      const h = parseFloat(seedHeight);
+      heightVal = seedHeightUnit === "cm" ? Math.round(h / 2.54) : h;
+    }
+    let weightVal: number | null = null;
+    if (seedWeight) {
+      const w = parseFloat(seedWeight);
+      weightVal = seedWeightUnit === "kg" ? Math.round(w * 2.205) : w;
+    }
 
     const insertObj: Record<string, unknown> = {
       name: seedName.trim(),
@@ -1906,21 +2040,34 @@ export default function AdminPage() {
               </div>
               <div>
                 <label className="block text-xs mb-1" style={{ color: "#6B7280" }}>Country</label>
-                <input type="text" placeholder="e.g. USA" value={seedCountry} onChange={(e) => setSeedCountry(e.target.value)}
-                  className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-600 text-sm rounded-lg px-3 py-2 focus:outline-none" />
+                <CountryPicker value={seedCountry} onChange={setSeedCountry} />
               </div>
             </div>
 
             {/* Row 2: Height + Weight + ELO */}
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="block text-xs mb-1" style={{ color: "#6B7280" }}>Height (inches)</label>
-                <input type="number" placeholder="e.g. 72" value={seedHeight} onChange={(e) => setSeedHeight(e.target.value)}
+                <label className="block text-xs mb-1 flex items-center gap-1.5" style={{ color: "#6B7280" }}>
+                  Height
+                  <button type="button" onClick={() => setSeedHeightUnit((u) => u === "cm" ? "ft" : "cm")}
+                    className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded transition-colors"
+                    style={{ background: "rgba(99,102,241,0.15)", color: "#818CF8", border: "1px solid rgba(99,102,241,0.3)" }}>
+                    {seedHeightUnit}
+                  </button>
+                </label>
+                <input type="number" placeholder={seedHeightUnit === "cm" ? "e.g. 183" : "e.g. 72"} value={seedHeight} onChange={(e) => setSeedHeight(e.target.value)}
                   className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-600 text-sm rounded-lg px-3 py-2 focus:outline-none" />
               </div>
               <div>
-                <label className="block text-xs mb-1" style={{ color: "#6B7280" }}>Weight (lbs)</label>
-                <input type="number" placeholder="e.g. 180" value={seedWeight} onChange={(e) => setSeedWeight(e.target.value)}
+                <label className="block text-xs mb-1 flex items-center gap-1.5" style={{ color: "#6B7280" }}>
+                  Weight
+                  <button type="button" onClick={() => setSeedWeightUnit((u) => u === "kg" ? "lbs" : "kg")}
+                    className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded transition-colors"
+                    style={{ background: "rgba(99,102,241,0.15)", color: "#818CF8", border: "1px solid rgba(99,102,241,0.3)" }}>
+                    {seedWeightUnit}
+                  </button>
+                </label>
+                <input type="number" placeholder={seedWeightUnit === "kg" ? "e.g. 82" : "e.g. 180"} value={seedWeight} onChange={(e) => setSeedWeight(e.target.value)}
                   className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-600 text-sm rounded-lg px-3 py-2 focus:outline-none" />
               </div>
               <div>
@@ -1935,7 +2082,7 @@ export default function AdminPage() {
               <label className="block text-xs mb-1" style={{ color: "#6B7280" }}>Images (paste URLs, up to 4)</label>
               <div className="grid grid-cols-2 gap-2">
                 {seedImageUrls.map((url, i) => (
-                  <input key={i} type="url" placeholder={`Image ${i + 1} URL`} value={url}
+                  <input key={i} type="text" placeholder={`Image ${i + 1} URL`} value={url}
                     onChange={(e) => { const copy = [...seedImageUrls]; copy[i] = e.target.value; setSeedImageUrls(copy); }}
                     className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-600 text-sm rounded-lg px-3 py-2 focus:outline-none" />
                 ))}
