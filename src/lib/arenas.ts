@@ -320,13 +320,14 @@ export async function getLeaderboardForArena(
       country: string | null;
       gender: string | null;
       user_id: string | null;
+      is_test_profile: boolean | null;
     } | null;
   };
 
   const { data, error } = await client
     .from("arena_profile_stats")
     .select(
-      "elo_rating, wins, losses, matches, profile_id, profiles(id, name, image_url, image_urls, wikipedia_slug, category, categories, height_in, weight_lbs, country, gender, user_id)"
+      "elo_rating, wins, losses, matches, profile_id, profiles(id, name, image_url, image_urls, wikipedia_slug, category, categories, height_in, weight_lbs, country, gender, user_id, is_test_profile)"
     )
     .eq("arena_id", arenaId)
     .order("elo_rating", { ascending: false });
@@ -334,7 +335,9 @@ export async function getLeaderboardForArena(
   if (error || !data) return [];
 
   return ((data as unknown as LRow[]))
-    .filter((row) => row.profiles && (!membersOnly || row.profiles.user_id !== null))
+    // membersOnly = exclude official/celebrity profiles (is_test_profile=true)
+    // includes real users + seeded users (is_test_profile=false or null)
+    .filter((row) => row.profiles && (!membersOnly || row.profiles.is_test_profile !== true))
     .map((row, i) => {
       const profile = row.profiles!;
       return {

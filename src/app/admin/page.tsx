@@ -6,6 +6,7 @@ import { createBrowserClient } from "@supabase/ssr";
 import { getFeaturedBattles, upsertFeaturedBattle, searchProfiles, type FeaturedBattle } from "@/lib/arenas";
 import { useAuth, usePermissions } from "@/context/AuthContext";
 import { getAllCategories, createCategory, updateCategory, deleteCategory, setProfileCategories, getCategoryBySlug } from "@/lib/categories";
+import { grantRole, revokeRole, type UserRole } from "@/lib/user_roles";
 import type { CategoryRow } from "@/lib/supabase";
 
 type Category =
@@ -434,6 +435,7 @@ export default function AdminPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [userRoles, setUserRoles] = useState<Record<string, UserRole[]>>({});
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [imageInputs, setImageInputs] = useState<Record<string, string[]>>({});
@@ -577,6 +579,22 @@ export default function AdminPage() {
       setSlugInputs(slugs);
       setStatsInputs(stats);
       setEloInputs(elos);
+
+      // Fetch user roles for profiles that have a real user_id
+      const userIds = profs.filter((p) => p.user_id).map((p) => p.user_id!);
+      if (userIds.length > 0) {
+        const { data: roleRows } = await supabase
+          .from("user_roles")
+          .select("user_id, role")
+          .in("user_id", userIds);
+        const rolesMap: Record<string, UserRole[]> = {};
+        (roleRows ?? []).forEach((r: { user_id: string; role: string }) => {
+          if (!rolesMap[r.user_id]) rolesMap[r.user_id] = [];
+          rolesMap[r.user_id].push(r.role as UserRole);
+        });
+        setUserRoles(rolesMap);
+      }
+
       setLoading(false);
     }
     load();
@@ -984,6 +1002,25 @@ export default function AdminPage() {
           p.id === profileId ? { ...p, categories: catSlugs, category } : p
         )
       );
+  }
+
+  // ── Toggle user role (admin/moderator) ──────────────────────────────────────
+  async function handleToggleRole(userId: string, role: UserRole) {
+    const current = userRoles[userId] ?? [];
+    const has = current.includes(role);
+    if (has) {
+      const { error } = await revokeRole(userId, role);
+      if (!error) {
+        setUserRoles((prev) => ({ ...prev, [userId]: current.filter((r) => r !== role) }));
+        setMessage(`✅ Revoked "${role}" role`);
+      } else setMessage(`❌ ${error}`);
+    } else {
+      const { error } = await grantRole(userId, role, user?.id ?? "");
+      if (!error) {
+        setUserRoles((prev) => ({ ...prev, [userId]: [...current, role] }));
+        setMessage(`✅ Granted "${role}" role`);
+      } else setMessage(`❌ ${error}`);
+    }
   }
 
   // ── Slug save on blur ────────────────────────────────────────────────────────
@@ -2323,15 +2360,39 @@ Clavicular,Looksmaxxers,5'11",165,United States,https://example.com/clav.jpg,`}
         </div>
       )}
 
-      {/* ── Profile List ──────────────────────────────────────────────────────── */}
-      <div className="space-y-2">
-        {profiles.map((profile) => {
+      {/* ── Profile Lists (separated by type) ─────────────────────────────── */}
+      {(() => {
+        // Split profiles into 3 groups
+        const realUsers = profiles.filter((p) => p.user_id && p.is_test_profile !== true);
+        const seededUsers = profiles.filter((p) => !p.user_id && !p.is_test_profile);
+        const officialProfiles = profiles.filter((p) => p.is_test_profile === true);
+
+        const sections = [
+          { key: "users", label: "👤 Registered Users", profiles: realUsers, color: "#22C55E", border: "rgba(34,197,94,0.2)" },
+          { key: "seeded", label: "🤖 Seeded Users", profiles: seededUsers, color: "#818CF8", border: "rgba(99,102,241,0.2)" },
+          { key: "official", label: "⭐ Official Profiles", profiles: officialProfiles, color: "#F0C040", border: "rgba(240,192,64,0.2)" },
+        ];
+
+        return sections.map((section) => (
+          <div key={section.key} className="mb-6">
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className="text-sm font-black uppercase tracking-wider" style={{ color: section.color }}>{section.label}</h3>
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(255,255,255,0.05)", color: "#6B7280" }}>
+                {section.profiles.length}
+              </span>
+            </div>
+            {section.profiles.length === 0 ? (
+              <p className="text-zinc-600 text-xs italic px-3 py-4">No profiles in this category yet.</p>
+            ) : (
+            <div className="space-y-2">
+              {section.profiles.map((profile) => {
           const isExpanded = expandedId === profile.id;
           const slots = imageInputs[profile.id] ?? ["", "", "", ""];
           const stats = statsInputs[profile.id] ?? { height: "", weight: "", country: "" };
+          const roles = profile.user_id ? (userRoles[profile.user_id] ?? []) : [];
 
           return (
-            <div key={profile.id} className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+            <div key={profile.id} className="bg-zinc-900 rounded-xl overflow-hidden" style={{ border: `1px solid ${section.border}` }}>
               {/* Row */}
               <div className="flex flex-wrap items-center gap-3 p-3">
                 {/* Thumbnail */}
@@ -2343,18 +2404,21 @@ Clavicular,Looksmaxxers,5'11",165,United States,https://example.com/clav.jpg,`}
                   onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name)}&background=27272a&color=555&size=80`; }}
                 />
 
-                {/* Name + stats */}
+                {/* Name + stats + role badges */}
                 <div className="flex-1 min-w-[120px]">
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     <p className="text-white font-bold text-sm">{profile.name}</p>
-                    {profile.is_test_profile && profile.user_id && (
-                      <span
-                        className="text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-widest shrink-0"
-                        style={{ background: "rgba(99,102,241,0.15)", color: "#818CF8", border: "1px solid rgba(99,102,241,0.3)" }}
-                        title="Seeded calibration user — is_test_profile=true"
-                      >
-                        🤖 seeded
-                      </span>
+                    {roles.includes("admin") && (
+                      <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-widest"
+                        style={{ background: "rgba(239,68,68,0.15)", color: "#EF4444", border: "1px solid rgba(239,68,68,0.3)" }}>admin</span>
+                    )}
+                    {roles.includes("moderator") && (
+                      <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-widest"
+                        style={{ background: "rgba(59,130,246,0.15)", color: "#60A5FA", border: "1px solid rgba(59,130,246,0.3)" }}>mod</span>
+                    )}
+                    {roles.includes("premium") && (
+                      <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-widest"
+                        style={{ background: "rgba(240,192,64,0.15)", color: "#F0C040", border: "1px solid rgba(240,192,64,0.3)" }}>premium</span>
                     )}
                   </div>
                   <div className="flex gap-2 mt-0.5 flex-wrap">
@@ -2369,6 +2433,29 @@ Clavicular,Looksmaxxers,5'11",165,United States,https://example.com/clav.jpg,`}
                       <p className="text-zinc-600 text-xs">{profile.country}</p>
                     )}
                   </div>
+                  {/* Role toggles for real users */}
+                  {profile.user_id && (
+                    <div className="flex gap-1.5 mt-1.5">
+                      {(["moderator", "admin"] as UserRole[]).map((role) => {
+                        const has = roles.includes(role);
+                        return (
+                          <button key={role} onClick={() => handleToggleRole(profile.user_id!, role)}
+                            className="text-[9px] font-bold px-2 py-0.5 rounded transition-all"
+                            style={has ? {
+                              background: role === "admin" ? "rgba(239,68,68,0.2)" : "rgba(59,130,246,0.2)",
+                              color: role === "admin" ? "#EF4444" : "#60A5FA",
+                              border: `1px solid ${role === "admin" ? "rgba(239,68,68,0.4)" : "rgba(59,130,246,0.4)"}`,
+                            } : {
+                              background: "transparent",
+                              color: "#4A4A66",
+                              border: "1px solid #2A2A3D",
+                            }}>
+                            {has ? `✓ ${role}` : `+ ${role}`}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 {/* Categories */}
@@ -2569,7 +2656,11 @@ Clavicular,Looksmaxxers,5'11",165,United States,https://example.com/clav.jpg,`}
             </div>
           );
         })}
-      </div>
+            </div>
+            )}
+          </div>
+        ));
+      })()}
     </div>
   );
 }
