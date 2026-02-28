@@ -251,8 +251,9 @@ export async function getProfileCategories(
     .select("category_id, categories(*)")
     .eq("profile_id", profileId);
   if (error || !data) return [];
-  return (data as { categories: CategoryRow }[])
-    .map((r) => r.categories)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (data as any[])
+    .map((r) => r.categories as CategoryRow)
     .filter(Boolean);
 }
 
