@@ -145,6 +145,27 @@ export async function getCategoryDescendantIds(
   return (data as { id: string }[]).map((r) => r.id);
 }
 
+// Returns both IDs and slugs for all descendants (including the category itself)
+export async function getCategoryDescendants(
+  categoryId: string
+): Promise<{ ids: string[]; slugs: string[] }> {
+  const client = db();
+  const { data, error } = await client.rpc("get_category_descendants", {
+    root_id: categoryId,
+  });
+  if (error || !data || data.length === 0) {
+    // Fallback: at least return this category
+    const { data: self } = await client.from("categories").select("id, slug").eq("id", categoryId).single();
+    return self ? { ids: [self.id], slugs: [self.slug] } : { ids: [categoryId], slugs: [] };
+  }
+  const rows = data as { id: string; slug?: string }[];
+  // The RPC might not return slug, so fetch them
+  const ids = rows.map((r) => r.id);
+  const { data: cats } = await client.from("categories").select("id, slug").in("id", ids);
+  const slugs = (cats ?? []).map((c) => c.slug);
+  return { ids, slugs };
+}
+
 // ─── Fetch all categories (flat list, for admin) ─────────────────────────────
 
 export async function getAllCategories(): Promise<CategoryRow[]> {

@@ -109,6 +109,7 @@ export async function getExploreArenas(opts?: {
   filter?: "all" | "open" | "request";
   categoryId?: string;
   categoryDescendantIds?: string[];
+  categorySlugs?: string[];
 }): Promise<ArenaWithCount[]> {
   const client = db();
 
@@ -127,9 +128,14 @@ export async function getExploreArenas(opts?: {
     query = query.ilike("name", `%${opts.search.trim()}%`);
   }
 
-  // Filter by category hierarchy (category + all descendants)
+  // Filter by category hierarchy — match both category_id (UUID) AND category (slug)
+  // so arenas that only have the legacy text slug still show up
   if (opts?.categoryDescendantIds && opts.categoryDescendantIds.length > 0) {
-    query = query.in("category_id", opts.categoryDescendantIds);
+    const idFilter = `category_id.in.(${opts.categoryDescendantIds.join(",")})`;
+    const slugFilter = opts?.categorySlugs && opts.categorySlugs.length > 0
+      ? `,category.in.(${opts.categorySlugs.join(",")})`
+      : "";
+    query = query.or(`${idFilter}${slugFilter}`);
   } else if (opts?.categoryId) {
     query = query.eq("category_id", opts.categoryId);
   }

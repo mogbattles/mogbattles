@@ -23,6 +23,7 @@ import {
   getCategoryChildren,
   getCategoryAncestors,
   getCategoryDescendantIds,
+  getCategoryDescendants,
 } from "@/lib/categories";
 import type { CategoryRow } from "@/lib/supabase";
 
@@ -402,9 +403,9 @@ export default function ExplorePage() {
     const extraChildren = children.filter((c) => !siblingIds.has(c.id));
     setCategoryChildren([...siblings, ...extraChildren]);
 
-    // Get all descendant IDs for filtering
-    const descendantIds = await getCategoryDescendantIds(category.id);
-    const data = await getExploreArenas({ sort: "popular", categoryDescendantIds: descendantIds });
+    // Get all descendant IDs + slugs for filtering (matches both category_id and legacy category slug)
+    const descendants = await getCategoryDescendants(category.id);
+    const data = await getExploreArenas({ sort: "popular", categoryDescendantIds: descendants.ids, categorySlugs: descendants.slugs });
     setArenas(data);
     setArenasLoading(false);
   }, [selectedRoot]);
@@ -417,9 +418,9 @@ export default function ExplorePage() {
     setArenasLoading(true);
     const children = await getCategoryChildren(root.id);
     setCategoryChildren(children);
-    // Filter arenas to this root's descendants
-    const descendantIds = await getCategoryDescendantIds(root.id);
-    const data = await getExploreArenas({ sort: "popular", categoryDescendantIds: descendantIds });
+    // Filter arenas to this root's descendants (IDs + slugs for legacy matching)
+    const descendants = await getCategoryDescendants(root.id);
+    const data = await getExploreArenas({ sort: "popular", categoryDescendantIds: descendants.ids, categorySlugs: descendants.slugs });
     setArenas(data);
     setArenasLoading(false);
   }, []);
