@@ -134,14 +134,17 @@ export async function getExploreArenas(opts?: {
   const { data: allArenas, error } = await query;
   if (error || !allArenas || allArenas.length === 0) return [];
 
-  // Client-side category filtering: match category_id OR legacy category slug
+  // Client-side category filtering: match category_id, legacy category slug, OR arena slug
+  // Official arenas like "actors" may not have category/category_id set, but their
+  // slug matches the category slug, so we also check a.slug against the set.
   let arenas = allArenas;
   if (opts?.categoryDescendantIds && opts.categoryDescendantIds.length > 0) {
     const idSet = new Set(opts.categoryDescendantIds);
     const slugSet = new Set(opts.categorySlugs ?? []);
     arenas = allArenas.filter((a) =>
       (a.category_id && idSet.has(a.category_id)) ||
-      (a.category && slugSet.has(a.category))
+      (a.category && slugSet.has(a.category)) ||
+      (a.slug && slugSet.has(a.slug))
     );
   } else if (opts?.categoryId) {
     arenas = allArenas.filter((a) => a.category_id === opts.categoryId);
