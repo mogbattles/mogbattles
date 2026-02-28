@@ -24,18 +24,16 @@ export default function NewArenaPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [rootCategory, setRootCategory] = useState<CategoryRow | null>(null);
+  const [rootCategories, setRootCategories] = useState<CategoryRow[]>([]);
+  const [selectedRoot, setSelectedRoot] = useState<CategoryRow | null>(null);
 
-  // Load categories for the picker — find root, show its children
+  // Load categories for the picker — fetch all roots, select first
   useEffect(() => {
     getCategoryChildren(null).then((roots) => {
-      if (roots.length === 0) return;
-      const humanRoot = roots.find((c) => c.slug === "human");
-      if (humanRoot) {
-        setRootCategory(humanRoot);
-        getCategoryChildren(humanRoot.id).then(setCategoryOptions);
-      } else {
-        setCategoryOptions(roots);
+      setRootCategories(roots);
+      if (roots.length > 0) {
+        setSelectedRoot(roots[0]);
+        getCategoryChildren(roots[0].id).then(setCategoryOptions);
       }
     });
   }, []);
@@ -179,15 +177,42 @@ export default function NewArenaPage() {
         </div>
 
         {/* Category */}
-        {categoryOptions.length > 0 && (
+        {(rootCategories.length > 0 || categoryOptions.length > 0) && (
           <div>
             <label className="block font-semibold text-sm mb-2" style={{ color: "#ccc" }}>
               Category
             </label>
-            {/* Root category label */}
-            {rootCategory && (
+            {/* Root category tabs */}
+            {rootCategories.length > 1 && (
+              <div className="flex gap-2 mb-3">
+                {rootCategories.map((root) => (
+                  <button
+                    key={root.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedRoot(root);
+                      setCategoryId(null);
+                      getCategoryChildren(root.id).then(setCategoryOptions);
+                    }}
+                    className="px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all"
+                    style={selectedRoot?.id === root.id ? {
+                      background: "rgba(139,92,246,0.15)",
+                      color: "#A78BFA",
+                      border: "1px solid rgba(139,92,246,0.4)",
+                    } : {
+                      background: "#0F0F1A",
+                      color: "#4A4A66",
+                      border: "1px solid #222233",
+                    }}>
+                    {root.icon ? `${root.icon} ` : ""}{root.name}
+                  </button>
+                ))}
+              </div>
+            )}
+            {/* Single root label */}
+            {rootCategories.length === 1 && selectedRoot && (
               <p className="text-xs font-black uppercase tracking-wider mb-2" style={{ color: "#A78BFA" }}>
-                {rootCategory.icon ? `${rootCategory.icon} ` : ""}{rootCategory.name}
+                {selectedRoot.icon ? `${selectedRoot.icon} ` : ""}{selectedRoot.name}
               </p>
             )}
             <div className="flex flex-wrap gap-2">

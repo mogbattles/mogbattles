@@ -334,7 +334,8 @@ export default function ExplorePage() {
   const [newsPosts, setNewsPosts] = useState<NewsPost[]>([]);
   const [topPlayersMap, setTopPlayersMap] = useState<Record<string, TopPlayer[]>>({});
   const [selectedCategory, setSelectedCategory] = useState<CategoryRow | null>(null);
-  const [rootCategory, setRootCategory] = useState<CategoryRow | null>(null);
+  const [rootCategories, setRootCategories] = useState<CategoryRow[]>([]);
+  const [selectedRoot, setSelectedRoot] = useState<CategoryRow | null>(null);
   const [categoryChildren, setCategoryChildren] = useState<CategoryRow[]>([]);
   const [categoryAncestors, setCategoryAncestors] = useState<{ id: string; name: string; slug: string; depth: number }[]>([]);
   const [categoryLoading, setCategoryLoading] = useState(true);
@@ -353,18 +354,17 @@ export default function ExplorePage() {
   const moderatorArenas = arenas.filter((a) => (a as ArenaWithCount & { arena_tier?: string }).arena_tier === "moderator");
   const customArenas = arenas.filter((a) => !a.is_official && (a as ArenaWithCount & { arena_tier?: string }).arena_tier !== "moderator");
 
-  // Load initial categories — find root "Humans" and show its sub-categories
+  // Load initial categories — fetch all root categories, auto-select first
   useEffect(() => {
     getCategoryChildren(null).then((roots) => {
-      const humanRoot = roots.find((c) => c.slug === "human");
-      if (humanRoot) {
-        setRootCategory(humanRoot);
-        getCategoryChildren(humanRoot.id).then((children) => {
+      setRootCategories(roots);
+      if (roots.length > 0) {
+        setSelectedRoot(roots[0]);
+        getCategoryChildren(roots[0].id).then((children) => {
           setCategoryChildren(children);
           setCategoryLoading(false);
         });
       } else {
-        setCategoryChildren(roots);
         setCategoryLoading(false);
       }
     });
@@ -378,8 +378,8 @@ export default function ExplorePage() {
     if (!category) {
       // Back to "All" — no filter, show root sub-categories
       setCategoryAncestors([]);
-      if (rootCategory) {
-        getCategoryChildren(rootCategory.id).then(setCategoryChildren);
+      if (selectedRoot) {
+        getCategoryChildren(selectedRoot.id).then(setCategoryChildren);
       } else {
         getCategoryChildren(null).then(setCategoryChildren);
       }
@@ -397,6 +397,21 @@ export default function ExplorePage() {
 
     // Get all descendant IDs for filtering
     const descendantIds = await getCategoryDescendantIds(category.id);
+    const data = await getExploreArenas({ sort: "popular", categoryDescendantIds: descendantIds });
+    setArenas(data);
+    setArenasLoading(false);
+  }, [selectedRoot]);
+
+  // Switch root category (e.g. Men ↔ Women)
+  const handleRootSwitch = useCallback(async (root: CategoryRow) => {
+    setSelectedRoot(root);
+    setSelectedCategory(null);
+    setCategoryAncestors([]);
+    setArenasLoading(true);
+    const children = await getCategoryChildren(root.id);
+    setCategoryChildren(children);
+    // Filter arenas to this root's descendants
+    const descendantIds = await getCategoryDescendantIds(root.id);
     const data = await getExploreArenas({ sort: "popular", categoryDescendantIds: descendantIds });
     setArenas(data);
     setArenasLoading(false);
@@ -668,20 +683,32 @@ export default function ExplorePage() {
         <SearchDropdown query={query} profiles={profileResults} arenas={arenaResults} onClose={clearSearch} />
       </div>
 
-      {/* ── Root Category Label + Sub-Category Chips ── */}
+      {/* ── Root Category Tabs + Sub-Category Chips ── */}
       {!categoryLoading && (
         <div className="mb-5">
-          {/* Root category header (e.g. "🧑 Humans") */}
-          {rootCategory && (
+          {/* Root category tabs (e.g. Men | Women) */}
+          {rootCategories.length > 0 && (
             <div className="flex items-center gap-2 mb-3">
-              <span className="text-sm font-black uppercase tracking-wider" style={{ color: "#A78BFA" }}>
-                {rootCategory.icon ? `${rootCategory.icon} ` : ""}{rootCategory.name}
-              </span>
+              {rootCategories.map((root) => (
+                <button key={root.id} onClick={() => handleRootSwitch(root)}
+                  className="px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all"
+                  style={selectedRoot?.id === root.id ? {
+                    background: "rgba(139,92,246,0.15)",
+                    color: "#A78BFA",
+                    border: "1px solid rgba(139,92,246,0.4)",
+                  } : {
+                    background: "transparent",
+                    color: "#4A4A66",
+                    border: "1px solid transparent",
+                  }}>
+                  {root.icon ? `${root.icon} ` : ""}{root.name}
+                </button>
+              ))}
               {/* Breadcrumb trail when drilled into a sub-category */}
               {selectedCategory && categoryAncestors.length > 0 && (
                 <div className="flex items-center gap-1.5">
                   {categoryAncestors
-                    .filter((a) => a.slug !== "human") // root is already shown as header
+                    .filter((a) => a.id !== selectedRoot?.id) // root is already shown as tab
                     .map((ancestor) => (
                     <span key={ancestor.id} className="flex items-center gap-1.5">
                       <span className="text-[10px]" style={{ color: "#2A2A3D" }}>{"\u203A"}</span>

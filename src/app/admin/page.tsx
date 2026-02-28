@@ -325,9 +325,16 @@ export default function AdminPage() {
   // Seeded users panel
   const [showSeedForm, setShowSeedForm] = useState(false);
   const [seedName, setSeedName] = useState("");
-  const [seedImageUrl, setSeedImageUrl] = useState("");
+  const [seedImageUrls, setSeedImageUrls] = useState(["", "", "", ""]);
   const [seedElo, setSeedElo] = useState("1200");
   const [seedGender, setSeedGender] = useState<"male" | "female" | "">("");
+  const [seedHeight, setSeedHeight] = useState("");
+  const [seedWeight, setSeedWeight] = useState("");
+  const [seedCountry, setSeedCountry] = useState("");
+  const [seedInstagram, setSeedInstagram] = useState("");
+  const [seedTiktok, setSeedTiktok] = useState("");
+  const [seedTwitter, setSeedTwitter] = useState("");
+  const [seedYoutube, setSeedYoutube] = useState("");
   const [seeding, setSeeding] = useState(false);
   const seedFormRef = useRef<HTMLDivElement>(null);
 
@@ -909,29 +916,36 @@ export default function AdminPage() {
     setSeeding(true);
     setMessage(null);
 
-    const imageUrls = seedImageUrl.trim() ? [seedImageUrl.trim()] : [];
+    const imageUrls = seedImageUrls.filter((u) => u.trim());
     const eloRating = Math.max(100, Math.min(9999, parseInt(seedElo) || 1200));
+    const heightVal = seedHeight ? parseFloat(seedHeight) : null;
+    const weightVal = seedWeight ? parseFloat(seedWeight) : null;
+
+    const insertObj: Record<string, unknown> = {
+      name: seedName.trim(),
+      categories: [],
+      category: null,
+      image_url: imageUrls[0] ?? null,
+      image_urls: imageUrls,
+      elo_rating: eloRating,
+      total_wins: 0,
+      total_losses: 0,
+      total_matches: 0,
+      user_id: crypto.randomUUID(),
+      is_test_profile: true,
+      gender: seedGender || null,
+      height_in: heightVal,
+      weight_lbs: weightVal,
+      country: seedCountry.trim() || null,
+      instagram: seedInstagram.trim() || null,
+      tiktok: seedTiktok.trim() || null,
+      twitter: seedTwitter.trim() || null,
+      youtube: seedYoutube.trim() || null,
+    };
 
     const { data, error } = await supabase
       .from("profiles")
-      .insert({
-        name: seedName.trim(),
-        categories: [],
-        category: null,
-        image_url: imageUrls[0] ?? null,
-        image_urls: imageUrls,
-        elo_rating: eloRating,
-        total_wins: 0,
-        total_losses: 0,
-        total_matches: 0,
-        // non-null user_id → qualifies for "All Players" (members) arena
-        user_id: crypto.randomUUID(),
-        // is_test_profile = true is the hidden algorithm tag:
-        // when real new users first open "All" arena, the algorithm knows
-        // these are calibration profiles, not organic users
-        is_test_profile: true,
-        gender: seedGender || null,
-      })
+      .insert(insertObj)
       .select()
       .single();
 
@@ -967,7 +981,9 @@ export default function AdminPage() {
     setStatsInputs((prev) => ({ ...prev, [newProfile.id]: { height: "", weight: "", country: "" } }));
     setEloInputs((prev) => ({ ...prev, [newProfile.id]: eloRating.toString() }));
 
-    setSeedName(""); setSeedImageUrl(""); setSeedElo("1200"); setSeedGender("");
+    setSeedName(""); setSeedImageUrls(["", "", "", ""]); setSeedElo("1200"); setSeedGender("");
+    setSeedHeight(""); setSeedWeight(""); setSeedCountry("");
+    setSeedInstagram(""); setSeedTiktok(""); setSeedTwitter(""); setSeedYoutube("");
     setShowSeedForm(false);
     setMessage(statsWarning ?? `✅ Seeded user "${newProfile.name}" created (ELO: ${eloRating}, tag: is_test_profile=true).`);
     setSeeding(false);
@@ -1252,7 +1268,7 @@ export default function AdminPage() {
             <span className="text-zinc-500 text-lg shrink-0">{openPanels.featured ? "▲" : "▼"}</span>
           </div>
         </button>
-        {openPanels.featured && <div className="px-5 pb-5 space-y-5">
+        {openPanels.featured && (<div className="px-5 pb-5 space-y-5">
 
         {/* Battle of the Day */}
         <div className="bg-zinc-950/60 border border-zinc-800 rounded-xl p-4 space-y-3">
@@ -1430,7 +1446,7 @@ export default function AdminPage() {
               );
             })()}
         </div>
-        </div>}
+        </div>)}
       </div>
 
       {/* ── Arena Thumbnails Panel ──────────────────────────────────────────── */}
@@ -1442,7 +1458,7 @@ export default function AdminPage() {
           </div>
           <span className="text-zinc-500 text-lg shrink-0">{openPanels.thumbnails ? "▲" : "▼"}</span>
         </button>
-        {openPanels.thumbnails && <div className="px-5 pb-5 space-y-4">
+        {openPanels.thumbnails && (<div className="px-5 pb-5 space-y-4">
           <div className="flex items-center gap-3">
             {arenaThumbnailMsg && (
               <span className="text-xs font-bold" style={{ color: arenaThumbnailMsg.startsWith("✅") ? "#22C55E" : "#EF4444" }}>
@@ -1509,7 +1525,7 @@ export default function AdminPage() {
             </div>
           ))}
         </div>
-        </div>}
+        </div>)}
       </div>
 
       {/* ── Category Management Panel ─────────────────────────────────────────── */}
@@ -1532,7 +1548,7 @@ export default function AdminPage() {
             <span className="text-zinc-500 text-lg shrink-0">{openPanels.categories ? "▲" : "▼"}</span>
           </div>
         </div>
-        {openPanels.categories && <div className="px-5 pb-5 space-y-4">
+        {openPanels.categories && (<div className="px-5 pb-5 space-y-4">
 
         {/* Add/Edit category form */}
         {showCategoryForm && (
@@ -1625,7 +1641,7 @@ export default function AdminPage() {
             <p className="text-zinc-600 text-xs text-center py-4">No categories yet. Run the SQL migration first, then refresh.</p>
           )}
         </div>
-        </div>}
+        </div>)}
       </div>
 
       {/* ── Arena Management Panel ─────────────────────────────────────────────── */}
@@ -1644,7 +1660,7 @@ export default function AdminPage() {
             <span className="text-zinc-500 text-lg shrink-0">{openPanels.arenas ? "▲" : "▼"}</span>
           </div>
         </div>
-        {openPanels.arenas && <div className="px-5 pb-5 space-y-4">
+        {openPanels.arenas && (<div className="px-5 pb-5 space-y-4">
 
         {/* Filters */}
         <div className="flex items-center gap-3">
@@ -1842,7 +1858,7 @@ export default function AdminPage() {
             <p className="text-zinc-600 text-xs text-center py-4">No arenas match your filter.</p>
           )}
         </div>
-        </div>}
+        </div>)}
       </div>
 
       {/* ── Seeded Users Panel ───────────────────────────────────────────────── */}
@@ -1856,68 +1872,85 @@ export default function AdminPage() {
               when real users first swipe in the &ldquo;All&rdquo; arena.
             </p>
           </div>
-          <form onSubmit={handleAddSeededUser} className="flex flex-wrap gap-3 items-end">
-            <div className="flex-1 min-w-[160px]">
-              <label className="block text-xs mb-1" style={{ color: "#6B7280" }}>Name (required)</label>
-              <input
-                type="text"
-                placeholder="e.g. SeedUser_Alpha"
-                value={seedName}
-                onChange={(e) => setSeedName(e.target.value)}
-                required
-                className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-600 text-sm rounded-lg px-3 py-2 focus:outline-none"
-                style={{ outlineColor: "#6366F1" }}
-              />
+          <form onSubmit={handleAddSeededUser} className="space-y-4">
+            {/* Row 1: Name + Gender + Country */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="col-span-2">
+                <label className="block text-xs mb-1" style={{ color: "#6B7280" }}>Name *</label>
+                <input type="text" placeholder="e.g. Jane Doe" value={seedName} onChange={(e) => setSeedName(e.target.value)} required
+                  className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-600 text-sm rounded-lg px-3 py-2 focus:outline-none" />
+              </div>
+              <div>
+                <label className="block text-xs mb-1" style={{ color: "#6B7280" }}>Gender</label>
+                <select value={seedGender} onChange={(e) => setSeedGender(e.target.value as "male" | "female" | "")}
+                  className="w-full bg-zinc-800 border border-zinc-700 text-sm rounded-lg px-2 py-2 focus:outline-none" style={{ color: seedGender ? "#D1D5DB" : "#52525B" }}>
+                  <option value="">— any —</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs mb-1" style={{ color: "#6B7280" }}>Country</label>
+                <input type="text" placeholder="e.g. USA" value={seedCountry} onChange={(e) => setSeedCountry(e.target.value)}
+                  className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-600 text-sm rounded-lg px-3 py-2 focus:outline-none" />
+              </div>
             </div>
-            <div className="flex-1 min-w-[180px]">
-              <label className="block text-xs mb-1" style={{ color: "#6B7280" }}>Image URL (optional)</label>
-              <input
-                type="url"
-                placeholder="https://example.com/photo.jpg"
-                value={seedImageUrl}
-                onChange={(e) => setSeedImageUrl(e.target.value)}
-                className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-600 text-sm rounded-lg px-3 py-2 focus:outline-none"
-              />
+
+            {/* Row 2: Height + Weight + ELO */}
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs mb-1" style={{ color: "#6B7280" }}>Height (inches)</label>
+                <input type="number" placeholder="e.g. 72" value={seedHeight} onChange={(e) => setSeedHeight(e.target.value)}
+                  className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-600 text-sm rounded-lg px-3 py-2 focus:outline-none" />
+              </div>
+              <div>
+                <label className="block text-xs mb-1" style={{ color: "#6B7280" }}>Weight (lbs)</label>
+                <input type="number" placeholder="e.g. 180" value={seedWeight} onChange={(e) => setSeedWeight(e.target.value)}
+                  className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-600 text-sm rounded-lg px-3 py-2 focus:outline-none" />
+              </div>
+              <div>
+                <label className="block text-xs mb-1" style={{ color: "#6B7280" }}>Starting ELO</label>
+                <input type="number" min={100} max={9999} placeholder="1200" value={seedElo} onChange={(e) => setSeedElo(e.target.value)}
+                  className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-600 text-sm rounded-lg px-3 py-2 focus:outline-none" />
+              </div>
             </div>
-            <div className="w-28">
-              <label className="block text-xs mb-1" style={{ color: "#6B7280" }}>Starting ELO</label>
-              <input
-                type="number"
-                min={100}
-                max={9999}
-                placeholder="1200"
-                value={seedElo}
-                onChange={(e) => setSeedElo(e.target.value)}
-                className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-600 text-sm rounded-lg px-3 py-2 focus:outline-none"
-              />
+
+            {/* Row 3: Images 1–4 */}
+            <div>
+              <label className="block text-xs mb-1" style={{ color: "#6B7280" }}>Images (paste URLs, up to 4)</label>
+              <div className="grid grid-cols-2 gap-2">
+                {seedImageUrls.map((url, i) => (
+                  <input key={i} type="url" placeholder={`Image ${i + 1} URL`} value={url}
+                    onChange={(e) => { const copy = [...seedImageUrls]; copy[i] = e.target.value; setSeedImageUrls(copy); }}
+                    className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-600 text-sm rounded-lg px-3 py-2 focus:outline-none" />
+                ))}
+              </div>
             </div>
-            <div className="w-28">
-              <label className="block text-xs mb-1" style={{ color: "#6B7280" }}>Gender</label>
-              <select
-                value={seedGender}
-                onChange={(e) => setSeedGender(e.target.value as "male" | "female" | "")}
-                className="w-full bg-zinc-800 border border-zinc-700 text-sm rounded-lg px-2 py-2 focus:outline-none"
-                style={{ color: seedGender ? "#D1D5DB" : "#52525B" }}
-              >
-                <option value="">— any —</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-              </select>
+
+            {/* Row 4: Social Media */}
+            <div>
+              <label className="block text-xs mb-1" style={{ color: "#6B7280" }}>Social Media (usernames or URLs)</label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <input type="text" placeholder="📸 Instagram" value={seedInstagram} onChange={(e) => setSeedInstagram(e.target.value)}
+                  className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-600 text-sm rounded-lg px-3 py-2 focus:outline-none" />
+                <input type="text" placeholder="🎵 TikTok" value={seedTiktok} onChange={(e) => setSeedTiktok(e.target.value)}
+                  className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-600 text-sm rounded-lg px-3 py-2 focus:outline-none" />
+                <input type="text" placeholder="𝕏 Twitter / X" value={seedTwitter} onChange={(e) => setSeedTwitter(e.target.value)}
+                  className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-600 text-sm rounded-lg px-3 py-2 focus:outline-none" />
+                <input type="text" placeholder="▶️ YouTube" value={seedYoutube} onChange={(e) => setSeedYoutube(e.target.value)}
+                  className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-600 text-sm rounded-lg px-3 py-2 focus:outline-none" />
+              </div>
             </div>
+
+            {/* Actions */}
             <div className="flex gap-2">
-              <button
-                type="submit"
-                disabled={seeding || !seedName.trim()}
-                className="font-bold text-sm px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
-                style={{ background: "#4F46E5", color: "#fff" }}
-              >
-                {seeding ? "Creating…" : "Create"}
+              <button type="submit" disabled={seeding || !seedName.trim()}
+                className="font-bold text-sm px-5 py-2.5 rounded-lg transition-colors disabled:opacity-50"
+                style={{ background: "#4F46E5", color: "#fff" }}>
+                {seeding ? "Creating…" : "Create Seeded User"}
               </button>
-              <button
-                type="button"
-                onClick={() => setShowSeedForm(false)}
-                className="text-zinc-500 hover:text-white text-sm px-3 py-2 rounded-lg transition-colors"
-              >
+              <button type="button" onClick={() => setShowSeedForm(false)}
+                className="text-zinc-500 hover:text-white text-sm px-3 py-2 rounded-lg transition-colors">
                 Cancel
               </button>
             </div>
