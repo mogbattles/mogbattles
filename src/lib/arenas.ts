@@ -366,7 +366,7 @@ export async function getLeaderboardForArena(
 export async function getTopProfilesForArena(
   arenaId: string,
   limit = 3,
-  opts?: { excludeTestProfiles?: boolean }
+  opts?: { excludeTestProfiles?: boolean; fallbackToProfiles?: boolean }
 ): Promise<{ id: string; name: string; image_url: string | null; elo_rating: number }[]> {
   const client = db();
   let query = client
@@ -380,7 +380,6 @@ export async function getTopProfilesForArena(
   query = query.limit(fetchLimit);
 
   const { data, error } = await query;
-  if (error || !data) return [];
 
   type Row = {
     elo_rating: number;
@@ -388,18 +387,46 @@ export async function getTopProfilesForArena(
     profiles: { id: string; name: string; image_url: string | null; is_test_profile?: boolean } | null;
   };
 
-  let rows = (data as unknown as Row[]).filter((r) => r.profiles);
+  let rows = ((data ?? []) as unknown as Row[]).filter((r) => r.profiles);
 
   if (opts?.excludeTestProfiles) {
     rows = rows.filter((r) => !r.profiles!.is_test_profile);
   }
 
-  return rows.slice(0, limit).map((r) => ({
+  const results = rows.slice(0, limit).map((r) => ({
     id: r.profiles!.id,
     name: r.profiles!.name,
     image_url: r.profiles!.image_url,
     elo_rating: r.elo_rating,
   }));
+
+  // Fallback: if arena_profile_stats has no matching rows but we know profiles
+  // exist (e.g. "All Players" / "All"), query profiles table directly.
+  if (results.length === 0 && opts?.fallbackToProfiles) {
+    let pQuery = client
+      .from("profiles")
+      .select("id, name, image_url, elo_rating, is_test_profile")
+      .order("elo_rating", { ascending: false })
+      .limit(opts.excludeTestProfiles ? limit * 5 : limit);
+
+    if (opts.excludeTestProfiles) {
+      pQuery = pQuery.eq("is_test_profile", false);
+    }
+
+    const { data: profiles } = await pQuery;
+    if (!profiles) return [];
+
+    return (profiles as { id: string; name: string; image_url: string | null; elo_rating: number; is_test_profile?: boolean }[])
+      .slice(0, limit)
+      .map((p) => ({
+        id: p.id,
+        name: p.name,
+        image_url: p.image_url,
+        elo_rating: p.elo_rating,
+      }));
+  }
+
+  return results;
 }
 
 // ─── Featured battles (Battle of the Day / Coming Up) ────────────────────────

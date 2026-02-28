@@ -444,8 +444,12 @@ export default function ExplorePage() {
         // Fetch top 3 leaderboard
         // "All Players" excludes official profiles (is_test_profile=true)
         // "All" shows everyone
+        // fallbackToProfiles: query profiles table directly if arena_profile_stats is empty
         const excludeOfficial = arena.slug === "members";
-        getTopProfilesForArena(arena.id, 3, { excludeTestProfiles: excludeOfficial }).then((players) => {
+        getTopProfilesForArena(arena.id, 3, {
+          excludeTestProfiles: excludeOfficial,
+          fallbackToProfiles: true,
+        }).then((players) => {
           setTopPlayersMap((prev) => ({ ...prev, [arena.id]: players }));
         });
       }
