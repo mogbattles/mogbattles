@@ -321,6 +321,7 @@ export default function ExplorePage() {
   const [topThread, setTopThread] = useState<ForumThread | null>(null);
   const [latestArticle, setLatestArticle] = useState<ArticlePreview | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<CategoryRow | null>(null);
+  const [rootCategory, setRootCategory] = useState<CategoryRow | null>(null);
   const [categoryChildren, setCategoryChildren] = useState<CategoryRow[]>([]);
   const [categoryAncestors, setCategoryAncestors] = useState<{ id: string; name: string; slug: string; depth: number }[]>([]);
   const [categoryLoading, setCategoryLoading] = useState(true);
@@ -337,11 +338,20 @@ export default function ExplorePage() {
   const officialArenas = arenas.filter((a) => a.is_official && !HIGHLIGHTED_SLUGS.includes(a.slug));
   const customArenas = arenas.filter((a) => !a.is_official);
 
-  // Load initial categories — show root "thing" categories (e.g. Humans)
+  // Load initial categories — find root "Humans" and show its sub-categories
   useEffect(() => {
     getCategoryChildren(null).then((roots) => {
-      setCategoryChildren(roots);
-      setCategoryLoading(false);
+      const humanRoot = roots.find((c) => c.slug === "human");
+      if (humanRoot) {
+        setRootCategory(humanRoot);
+        getCategoryChildren(humanRoot.id).then((children) => {
+          setCategoryChildren(children);
+          setCategoryLoading(false);
+        });
+      } else {
+        setCategoryChildren(roots);
+        setCategoryLoading(false);
+      }
     });
   }, []);
 
@@ -351,9 +361,13 @@ export default function ExplorePage() {
     setArenasLoading(true);
 
     if (!category) {
-      // Back to "All" — no filter, show root categories
+      // Back to "All" — no filter, show root sub-categories
       setCategoryAncestors([]);
-      getCategoryChildren(null).then(setCategoryChildren);
+      if (rootCategory) {
+        getCategoryChildren(rootCategory.id).then(setCategoryChildren);
+      } else {
+        getCategoryChildren(null).then(setCategoryChildren);
+      }
       getExploreArenas({ sort: "popular" }).then((data) => { setArenas(data); setArenasLoading(false); });
       return;
     }
@@ -574,63 +588,53 @@ export default function ExplorePage() {
         <SearchDropdown query={query} profiles={profileResults} arenas={arenaResults} onClose={clearSearch} />
       </div>
 
-      {/* ── Category Chips / Breadcrumbs ── */}
-      {!categoryLoading && categoryChildren.length > 0 && (
+      {/* ── Root Category Label + Sub-Category Chips ── */}
+      {!categoryLoading && (
         <div className="mb-5">
-          {/* Breadcrumbs (when drilled into a category) */}
-          {selectedCategory && categoryAncestors.length > 0 && (
-            <div className="flex items-center gap-1.5 mb-3 flex-wrap">
-              <button onClick={() => handleCategorySelect(null)}
-                className="text-[10px] font-bold uppercase tracking-wider transition-colors hover:underline"
-                style={{ color: "#A78BFA" }}>
-                All
-              </button>
-              {categoryAncestors
-                .map((ancestor, i) => (
-                <span key={ancestor.id} className="flex items-center gap-1.5">
-                  <span className="text-[10px]" style={{ color: "#2A2A3D" }}>{"\u203A"}</span>
-                  {ancestor.id === selectedCategory.id ? (
-                    <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: "#F0C040" }}>
-                      {ancestor.name}
+          {/* Root category header (e.g. "🧑 Humans") */}
+          {rootCategory && (
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-sm font-black uppercase tracking-wider" style={{ color: "#A78BFA" }}>
+                {rootCategory.icon ? `${rootCategory.icon} ` : ""}{rootCategory.name}
+              </span>
+              {/* Breadcrumb trail when drilled into a sub-category */}
+              {selectedCategory && categoryAncestors.length > 0 && (
+                <div className="flex items-center gap-1.5">
+                  {categoryAncestors
+                    .filter((a) => a.slug !== "human") // root is already shown as header
+                    .map((ancestor) => (
+                    <span key={ancestor.id} className="flex items-center gap-1.5">
+                      <span className="text-[10px]" style={{ color: "#2A2A3D" }}>{"\u203A"}</span>
+                      {ancestor.id === selectedCategory.id ? (
+                        <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: "#F0C040" }}>
+                          {ancestor.name}
+                        </span>
+                      ) : (
+                        <button
+                          onClick={async () => {
+                            const { getCategoryById } = await import("@/lib/categories");
+                            const cat = await getCategoryById(ancestor.id);
+                            if (cat) handleCategorySelect(cat);
+                          }}
+                          className="text-[10px] font-bold uppercase tracking-wider transition-colors hover:underline"
+                          style={{ color: "#A78BFA" }}>
+                          {ancestor.name}
+                        </button>
+                      )}
                     </span>
-                  ) : (
-                    <button
-                      onClick={async () => {
-                        const { getCategoryById } = await import("@/lib/categories");
-                        const cat = await getCategoryById(ancestor.id);
-                        if (cat) handleCategorySelect(cat);
-                      }}
-                      className="text-[10px] font-bold uppercase tracking-wider transition-colors hover:underline"
-                      style={{ color: "#A78BFA" }}>
-                      {ancestor.name}
-                    </button>
-                  )}
-                </span>
-              ))}
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
-          {/* Category chips */}
-          <div className="flex gap-2 overflow-x-auto pb-2 arena-scroll-hide" style={{ scrollbarWidth: "none" }}>
-            {/* "All" chip */}
-            <button onClick={() => handleCategorySelect(null)}
-              className="shrink-0 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all hover:scale-[1.03] active:scale-[0.97]"
-              style={!selectedCategory ? {
-                background: "rgba(139,92,246,0.15)",
-                color: "#A78BFA",
-                border: "1px solid rgba(139,92,246,0.4)",
-                boxShadow: "0 0 12px rgba(139,92,246,0.1)",
-              } : {
-                background: "#0F0F1A",
-                color: "#4A4A66",
-                border: "1px solid #222233",
-              }}>
-              {"\uD83C\uDF0D"} All
-            </button>
-            {categoryChildren.map((cat) => (
-              <button key={cat.id} onClick={() => handleCategorySelect(cat)}
+          {/* Sub-category chips */}
+          {categoryChildren.length > 0 && (
+            <div className="flex gap-2 overflow-x-auto pb-2 arena-scroll-hide" style={{ scrollbarWidth: "none" }}>
+              {/* "All" chip — resets to show everything under root */}
+              <button onClick={() => handleCategorySelect(null)}
                 className="shrink-0 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all hover:scale-[1.03] active:scale-[0.97]"
-                style={selectedCategory?.id === cat.id ? {
+                style={!selectedCategory ? {
                   background: "rgba(139,92,246,0.15)",
                   color: "#A78BFA",
                   border: "1px solid rgba(139,92,246,0.4)",
@@ -640,10 +644,26 @@ export default function ExplorePage() {
                   color: "#4A4A66",
                   border: "1px solid #222233",
                 }}>
-                {cat.icon ? `${cat.icon} ` : ""}{cat.name}
+                {"\uD83C\uDF0D"} All
               </button>
-            ))}
-          </div>
+              {categoryChildren.map((cat) => (
+                <button key={cat.id} onClick={() => handleCategorySelect(cat)}
+                  className="shrink-0 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all hover:scale-[1.03] active:scale-[0.97]"
+                  style={selectedCategory?.id === cat.id ? {
+                    background: "rgba(139,92,246,0.15)",
+                    color: "#A78BFA",
+                    border: "1px solid rgba(139,92,246,0.4)",
+                    boxShadow: "0 0 12px rgba(139,92,246,0.1)",
+                  } : {
+                    background: "#0F0F1A",
+                    color: "#4A4A66",
+                    border: "1px solid #222233",
+                  }}>
+                  {cat.icon ? `${cat.icon} ` : ""}{cat.name}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
