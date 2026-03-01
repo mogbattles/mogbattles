@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, type MouseEvent as ReactMouseEvent } from "react";
 import { createClient, type ArenaRow } from "@/lib/supabase";
 import { getProfilesForArena, getVotedPairs, getMyProfile, type ArenaProfile } from "@/lib/arenas";
 import {
@@ -229,7 +229,8 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
         p_voter_id: user?.id ?? null,
       });
       if (rpcError) console.error("record_match error:", rpcError);
-      eloData = data;
+      // record_match RETURNS TABLE → Supabase returns an array; unwrap first row
+      eloData = Array.isArray(data) ? data[0] ?? null : data;
     }
 
     const newWinnerElo: number = eloData?.winner_elo_after ?? winner.elo_rating;
@@ -376,6 +377,21 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
     const currentImg = imgs[imgIdx] ?? fallback(profile.name);
     const winRate = profile.wins + profile.losses > 0 ? Math.round((profile.wins / (profile.wins + profile.losses)) * 100) : null;
 
+    // Auto-cycle images every 3.5 seconds
+    useEffect(() => {
+      if (imgs.length <= 1) return;
+      const timer = setInterval(() => {
+        setImgIdx((prev) => (prev + 1) % imgs.length);
+      }, 3500);
+      return () => clearInterval(timer);
+    }, [imgs.length]);
+
+    // Reset image index when profile changes
+    useEffect(() => { setImgIdx(0); }, [profile.id]);
+
+    function prevImg(e: ReactMouseEvent) { e.stopPropagation(); setImgIdx((prev) => (prev - 1 + imgs.length) % imgs.length); }
+    function nextImg(e: ReactMouseEvent) { e.stopPropagation(); setImgIdx((prev) => (prev + 1) % imgs.length); }
+
     return (
       <button
         onClick={onVote}
@@ -411,6 +427,26 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
               />
             ))}
           </div>
+        )}
+
+        {/* Prev/Next arrows */}
+        {imgs.length > 1 && (
+          <>
+            <div
+              onClick={prevImg}
+              className="absolute left-1 top-1/2 -translate-y-1/2 z-20 w-7 h-7 flex items-center justify-center rounded-full cursor-pointer transition-opacity opacity-40 hover:opacity-90"
+              style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}
+            >
+              <span className="text-white text-xs font-black">‹</span>
+            </div>
+            <div
+              onClick={nextImg}
+              className="absolute right-1 top-1/2 -translate-y-1/2 z-20 w-7 h-7 flex items-center justify-center rounded-full cursor-pointer transition-opacity opacity-40 hover:opacity-90"
+              style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}
+            >
+              <span className="text-white text-xs font-black">›</span>
+            </div>
+          </>
         )}
 
         {/* ELO badge */}
@@ -574,20 +610,25 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
         onTouchEnd={handleSwipeEnd}
       >
         {/* ── Left card ── */}
-        <div ref={leftCardRef} className="flex flex-col items-center flex-1" style={{ maxWidth: "200px", position: "relative" }}>
-          <ProfileTags
-            tags={pairTags.get(pair[0].id) ?? []}
-            myVotedTags={myVotedTags.get(pair[0].id) ?? new Set()}
-            onVote={user ? (tag) => handleTagVote(pair[0].id, tag) : null}
-          />
-          <TinderCard
-            profile={pair[0]}
-            imageUrls={leftImgs}
-            side="left"
-            onVote={() => handleVote(pair[0], pair[1])}
-            showMogs={leftShowMogs}
-            showNope={leftShowNope}
-          />
+        <div ref={leftCardRef} className="flex flex-col items-center flex-1" style={{ maxWidth: "200px" }}>
+          <div className="relative w-full">
+            {/* Tags float above the card — grow upward so the card stays fixed */}
+            <div className="absolute left-0 right-0 z-20" style={{ bottom: "100%" }}>
+              <ProfileTags
+                tags={pairTags.get(pair[0].id) ?? []}
+                myVotedTags={myVotedTags.get(pair[0].id) ?? new Set()}
+                onVote={user ? (tag) => handleTagVote(pair[0].id, tag) : null}
+              />
+            </div>
+            <TinderCard
+              profile={pair[0]}
+              imageUrls={leftImgs}
+              side="left"
+              onVote={() => handleVote(pair[0], pair[1])}
+              showMogs={leftShowMogs}
+              showNope={leftShowNope}
+            />
+          </div>
         </div>
 
         {/* VS badge */}
@@ -605,20 +646,25 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
         </div>
 
         {/* ── Right card ── */}
-        <div ref={rightCardRef} className="flex flex-col items-center flex-1" style={{ maxWidth: "200px", position: "relative" }}>
-          <ProfileTags
-            tags={pairTags.get(pair[1].id) ?? []}
-            myVotedTags={myVotedTags.get(pair[1].id) ?? new Set()}
-            onVote={user ? (tag) => handleTagVote(pair[1].id, tag) : null}
-          />
-          <TinderCard
-            profile={pair[1]}
-            imageUrls={rightImgs}
-            side="right"
-            onVote={() => handleVote(pair[1], pair[0])}
-            showMogs={rightShowMogs}
-            showNope={rightShowNope}
-          />
+        <div ref={rightCardRef} className="flex flex-col items-center flex-1" style={{ maxWidth: "200px" }}>
+          <div className="relative w-full">
+            {/* Tags float above the card — grow upward so the card stays fixed */}
+            <div className="absolute left-0 right-0 z-20" style={{ bottom: "100%" }}>
+              <ProfileTags
+                tags={pairTags.get(pair[1].id) ?? []}
+                myVotedTags={myVotedTags.get(pair[1].id) ?? new Set()}
+                onVote={user ? (tag) => handleTagVote(pair[1].id, tag) : null}
+              />
+            </div>
+            <TinderCard
+              profile={pair[1]}
+              imageUrls={rightImgs}
+              side="right"
+              onVote={() => handleVote(pair[1], pair[0])}
+              showMogs={rightShowMogs}
+              showNope={rightShowNope}
+            />
+          </div>
         </div>
       </div>
 

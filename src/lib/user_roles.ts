@@ -134,7 +134,7 @@ export function buildPermissions(
     canPostThread:       isArenaParticipant || isModerator || isAdmin,
     canApproveProfiles:  isModerator || isAdmin,
     canWriteArticles:    isModerator || isAdmin,
-    canManageNews:       isAdmin,
+    canManageNews:       isModerator || isAdmin,
     canEditAbout:        isAdmin,
     canAccessAdmin:      isAdmin,
     canGrantRoles:       isAdmin,

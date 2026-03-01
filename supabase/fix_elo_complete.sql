@@ -1,38 +1,19 @@
 -- =============================================================================
--- Unified ELO System — One ELO Per Root Thing
+-- Complete ELO Fix — Run in Supabase SQL Editor
 --
--- Moves from per-sub-category ELO to a single ELO per root category (Men/Women).
--- All swiping within any sub-category feeds the same root ELO.
--- Sub-category leaderboards become filtered views of the root ELO.
+-- Fixes:
+-- 1. get_root_arena_id ORDER BY DESC (find highest ancestor)
+-- 2. get_root_arena_id_for_profile ORDER BY DESC
+-- 3. record_match: independent root resolution for winner/loser in "all" arena
+-- 4. record_match: skip arena-specific ELO for aggregate arenas ("all","members")
+-- 5. Ensures sync triggers exist and work correctly
+-- 6. Recalculates all ELO from scratch
 --
--- Run in Supabase SQL Editor. Safe to re-run (idempotent).
+-- Safe to re-run (idempotent).
 -- =============================================================================
 
 
--- ── PART 1: Create root category arenas ──────────────────────────────────────
-
-INSERT INTO arenas (name, slug, description, is_official, category_id, arena_tier, affects_elo, visibility, arena_type)
-SELECT 'All Men', 'men', 'All male profiles — unified ELO', true, c.id, 'official', true, 'public', 'fixed'
-FROM categories c WHERE c.slug = 'men'
-ON CONFLICT (slug) DO UPDATE SET
-  category_id = EXCLUDED.category_id,
-  is_official = true,
-  arena_tier = 'official',
-  affects_elo = true;
-
-INSERT INTO arenas (name, slug, description, is_official, category_id, arena_tier, affects_elo, visibility, arena_type)
-SELECT 'All Women', 'women', 'All female profiles — unified ELO', true, c.id, 'official', true, 'public', 'fixed'
-FROM categories c WHERE c.slug = 'women'
-ON CONFLICT (slug) DO UPDATE SET
-  category_id = EXCLUDED.category_id,
-  is_official = true,
-  arena_tier = 'official',
-  affects_elo = true;
-
-
--- ── PART 2: Helper — get_root_arena_id(arena_id) ────────────────────────────
--- Given any arena, resolves to its root category's arena.
--- "all"/"members" → self. Has category_id → walk up to root → find root arena.
+-- ── 1. Fix get_root_arena_id ─────────────────────────────────────────────────
 
 CREATE OR REPLACE FUNCTION get_root_arena_id(p_arena_id uuid)
 RETURNS uuid
@@ -45,7 +26,6 @@ DECLARE
   v_root_arena_id uuid;
   v_arena_slug text;
 BEGIN
-  -- Special aggregate arenas return themselves
   SELECT slug, category_id INTO v_arena_slug, v_category_id
   FROM arenas WHERE id = p_arena_id;
 
@@ -53,15 +33,10 @@ BEGIN
     RETURN p_arena_id;
   END IF;
 
-  -- No category → can't determine root
   IF v_category_id IS NULL THEN
     RETURN NULL;
   END IF;
 
-  -- Walk up the category tree and find the FIRST ancestor that has an
-  -- official arena. This correctly handles hierarchies where the true
-  -- root (e.g. "Humans") has no arena, but intermediate categories
-  -- like "Men"/"Women" do.
   WITH RECURSIVE ancestors AS (
     SELECT id, parent_id, 0 AS lvl FROM categories WHERE id = v_category_id
     UNION ALL
@@ -72,7 +47,7 @@ BEGIN
   SELECT ar.id INTO v_root_arena_id
   FROM ancestors anc
   JOIN arenas ar ON ar.category_id = anc.id AND ar.is_official = true
-  ORDER BY anc.lvl DESC   -- find HIGHEST ancestor with arena (root)
+  ORDER BY anc.lvl DESC   -- HIGHEST ancestor with arena = root
   LIMIT 1;
 
   RETURN v_root_arena_id;
@@ -80,8 +55,7 @@ END;
 $$;
 
 
--- ── PART 3: Helper — get_root_arena_id_for_profile(profile_id) ──────────────
--- For arenas with no category_id: determine root from the profile's categories.
+-- ── 2. Fix get_root_arena_id_for_profile ─────────────────────────────────────
 
 CREATE OR REPLACE FUNCTION get_root_arena_id_for_profile(p_profile_id uuid)
 RETURNS uuid
@@ -92,8 +66,6 @@ AS $$
 DECLARE
   v_root_arena_id uuid;
 BEGIN
-  -- Walk up the profile's category ancestors and find the HIGHEST
-  -- ancestor that has an official arena (e.g. "Men" or "Women").
   WITH profile_cat AS (
     SELECT category_id FROM profile_categories
     WHERE profile_id = p_profile_id
@@ -111,7 +83,7 @@ BEGIN
   SELECT ar.id INTO v_root_arena_id
   FROM ancestors anc
   JOIN arenas ar ON ar.category_id = anc.id AND ar.is_official = true
-  ORDER BY anc.lvl DESC   -- find HIGHEST ancestor with arena (root)
+  ORDER BY anc.lvl DESC   -- HIGHEST ancestor with arena = root
   LIMIT 1;
 
   RETURN v_root_arena_id;
@@ -119,12 +91,8 @@ END;
 $$;
 
 
--- ── PART 4: Modified record_match ────────────────────────────────────────────
--- Core change: resolves root arena before ELO calculation.
--- ELO is stored on the root arena's arena_profile_stats row.
--- Match history still records the original arena_id.
+-- ── 3. Fix record_match ─────────────────────────────────────────────────────
 
--- Drop existing function first (return type changed)
 DROP FUNCTION IF EXISTS record_match(uuid, uuid, uuid, uuid);
 
 CREATE OR REPLACE FUNCTION record_match(
@@ -145,7 +113,7 @@ SET search_path = public
 AS $$
 DECLARE
   v_root_arena_id uuid;
-  v_loser_root_id uuid;   -- loser may have a different root (cross-category "all" matches)
+  v_loser_root_id uuid;
   v_arena_slug text;
   v_is_official boolean;
   v_arena_tier text;
@@ -155,7 +123,6 @@ DECLARE
   v_l_new int;
   v_expected_w float;
   v_k int := 32;
-  -- Arena-specific ELO (independent calculation per sub-arena)
   v_aw_elo int;
   v_al_elo int;
   v_aw_new int;
@@ -167,17 +134,15 @@ BEGIN
   FROM arenas WHERE id = p_arena_id;
 
   IF COALESCE(v_arena_tier, 'custom') = 'custom' AND NOT COALESCE(v_is_official, false) THEN
-    -- Custom/non-official arenas: isolated ELO only — does NOT affect global economy
     v_root_arena_id := p_arena_id;
     v_loser_root_id := p_arena_id;
   ELSIF v_arena_slug = 'all' THEN
     -- "all" arena: resolve root from each player's profile independently
-    -- (handles cross-category matches, e.g. Man vs Woman)
     v_root_arena_id := get_root_arena_id_for_profile(p_winner_id);
     v_loser_root_id := get_root_arena_id_for_profile(p_loser_id);
   ELSE
     v_root_arena_id := get_root_arena_id(p_arena_id);
-    v_loser_root_id := v_root_arena_id;  -- same arena for both in sub-arenas
+    v_loser_root_id := v_root_arena_id;
   END IF;
 
   -- Fallbacks for winner root
@@ -214,7 +179,6 @@ BEGIN
   v_w_new := v_w_elo + round(v_k * (1.0 - v_expected_w))::int;
   v_l_new := v_l_elo + round(v_k * (0.0 - (1.0 - v_expected_w)))::int;
 
-  -- Floor at 100
   v_w_new := GREATEST(100, v_w_new);
   v_l_new := GREATEST(100, v_l_new);
 
@@ -226,7 +190,7 @@ BEGIN
         wins       = arena_profile_stats.wins + 1,
         matches    = arena_profile_stats.matches + 1;
 
-  -- ── Upsert ROOT arena stats for loser (may differ from winner's root) ───
+  -- ── Upsert ROOT arena stats for loser ───────────────────────────────────
   INSERT INTO arena_profile_stats (arena_id, profile_id, elo_rating, wins, losses, matches)
   VALUES (v_loser_root_id, p_loser_id, v_l_new, 0, 1, 1)
   ON CONFLICT (arena_id, profile_id) DO UPDATE
@@ -235,9 +199,7 @@ BEGIN
         matches    = arena_profile_stats.matches + 1;
 
   -- ── Arena-specific ELO (independent per sub-arena) ──────────────────────
-  -- When swiping in a sub-arena, also maintain that arena's own ELO ladder.
-  -- This lets users toggle between "Global ELO" and "Arena ELO" on leaderboards.
-  -- Skip for aggregate arenas ("all", "members") — they're populated by sync trigger only.
+  -- Skip for aggregate arenas ("all", "members") — they're populated by sync trigger.
   IF v_root_arena_id IS DISTINCT FROM p_arena_id
      AND v_arena_slug NOT IN ('all', 'members') THEN
     SELECT COALESCE(
@@ -271,12 +233,12 @@ BEGIN
           matches    = arena_profile_stats.matches + 1;
   END IF;
 
-  -- ── Record match history (original arena for audit) ─────────────────────
+  -- ── Record match history ────────────────────────────────────────────────
   INSERT INTO matches (winner_id, loser_id, winner_elo_before, loser_elo_before,
                        winner_elo_after, loser_elo_after, arena_id)
   VALUES (p_winner_id, p_loser_id, v_w_elo, v_l_elo, v_w_new, v_l_new, p_arena_id);
 
-  -- ── Record user vote (original arena for history) ───────────────────────
+  -- ── Record user vote ────────────────────────────────────────────────────
   IF p_voter_id IS NOT NULL THEN
     INSERT INTO user_votes (voter_id, arena_id, profile_a, profile_b, winner_id)
     VALUES (
@@ -295,100 +257,123 @@ END;
 $$;
 
 
--- ── PART 5: Update sync trigger — root arenas → "all" ───────────────────────
--- The existing sync_all_arena_elo trigger still works: it propagates any
--- non-"all"/non-"members" arena stats to "all". Since record_match now writes
--- to root arenas ("men", "women"), the trigger naturally propagates root → "all".
--- We just need to update the recursion guard to also skip root arena slugs
--- from triggering further propagation to themselves.
--- (No change needed — the trigger already skips "all"/"members" and propagates
--- everything else to "all". Root arenas propagate to "all" correctly.)
+-- ── 4. Ensure sync triggers exist ───────────────────────────────────────────
+
+-- 4a. Root arenas → "all" arena
+DROP TRIGGER IF EXISTS sync_all_arena_elo ON arena_profile_stats;
+DROP FUNCTION IF EXISTS sync_all_arena_elo();
+
+CREATE OR REPLACE FUNCTION sync_all_arena_elo()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_all_arena_id UUID;
+  v_resolved_root UUID;
+  v_elo_delta    INT;
+  v_win_delta    INT;
+  v_loss_delta   INT;
+  v_match_delta  INT;
+BEGIN
+  SELECT id INTO v_all_arena_id FROM arenas WHERE slug = 'all' LIMIT 1;
+  IF v_all_arena_id IS NULL THEN RETURN NEW; END IF;
+
+  -- Recursion guard: skip "all" and "members"
+  IF EXISTS (
+    SELECT 1 FROM arenas WHERE id = NEW.arena_id AND slug IN ('all', 'members')
+  ) THEN
+    RETURN NEW;
+  END IF;
+
+  -- Only propagate from ROOT arenas (those that resolve to themselves)
+  v_resolved_root := get_root_arena_id(NEW.arena_id);
+  IF v_resolved_root IS NULL OR v_resolved_root IS DISTINCT FROM NEW.arena_id THEN
+    RETURN NEW;
+  END IF;
+
+  IF TG_OP = 'UPDATE' THEN
+    v_elo_delta   := NEW.elo_rating - OLD.elo_rating;
+    v_win_delta   := NEW.wins       - OLD.wins;
+    v_loss_delta  := NEW.losses     - OLD.losses;
+    v_match_delta := NEW.matches    - OLD.matches;
+
+    INSERT INTO arena_profile_stats
+      (arena_id, profile_id, elo_rating, wins, losses, matches)
+    VALUES
+      (v_all_arena_id, NEW.profile_id,
+       1200 + v_elo_delta, v_win_delta, v_loss_delta, v_match_delta)
+    ON CONFLICT (arena_id, profile_id) DO UPDATE
+      SET elo_rating = arena_profile_stats.elo_rating + v_elo_delta,
+          wins       = arena_profile_stats.wins       + v_win_delta,
+          losses     = arena_profile_stats.losses     + v_loss_delta,
+          matches    = arena_profile_stats.matches    + v_match_delta;
+
+  ELSIF TG_OP = 'INSERT' THEN
+    v_elo_delta   := NEW.elo_rating - 1200;
+    v_win_delta   := NEW.wins;
+    v_loss_delta  := NEW.losses;
+    v_match_delta := NEW.matches;
+
+    INSERT INTO arena_profile_stats
+      (arena_id, profile_id, elo_rating, wins, losses, matches)
+    VALUES
+      (v_all_arena_id, NEW.profile_id,
+       1200 + v_elo_delta, v_win_delta, v_loss_delta, v_match_delta)
+    ON CONFLICT (arena_id, profile_id) DO UPDATE
+      SET elo_rating = arena_profile_stats.elo_rating + v_elo_delta,
+          wins       = arena_profile_stats.wins       + v_win_delta,
+          losses     = arena_profile_stats.losses     + v_loss_delta,
+          matches    = arena_profile_stats.matches    + v_match_delta;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER sync_all_arena_elo
+AFTER INSERT OR UPDATE ON arena_profile_stats
+FOR EACH ROW
+EXECUTE FUNCTION sync_all_arena_elo();
+
+-- 4b. "all" arena → profiles table
+DROP TRIGGER IF EXISTS sync_profiles_from_all_arena ON arena_profile_stats;
+
+CREATE OR REPLACE FUNCTION sync_profiles_from_all_arena()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM arenas WHERE id = NEW.arena_id AND slug = 'all'
+  ) THEN
+    RETURN NEW;
+  END IF;
+
+  UPDATE profiles
+  SET elo_rating    = NEW.elo_rating,
+      total_wins    = NEW.wins,
+      total_losses  = NEW.losses,
+      total_matches = NEW.matches
+  WHERE id = NEW.profile_id;
+
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER sync_profiles_from_all_arena
+AFTER INSERT OR UPDATE ON arena_profile_stats
+FOR EACH ROW
+EXECUTE FUNCTION sync_profiles_from_all_arena();
 
 
--- ── PART 6: Backfill — merge sub-arena stats into root arenas ───────────────
+-- ── 5. Recalculate all ELO from scratch ──────────────────────────────────────
 
--- 6a. Merge all "men" sub-arena stats into the "men" root arena
-WITH men_root AS (
-  SELECT id FROM arenas WHERE slug = 'men'
-),
-men_descendant_cats AS (
-  SELECT id FROM categories WHERE thing_type = 'men' AND depth > 0
-),
-men_sub_arenas AS (
-  SELECT a.id AS arena_id
-  FROM arenas a
-  WHERE a.category_id IN (SELECT id FROM men_descendant_cats)
-    AND a.slug NOT IN ('all', 'members', 'men')
-),
-merged AS (
-  SELECT
-    aps.profile_id,
-    GREATEST(100, 1200 + SUM(aps.elo_rating - 1200)) AS merged_elo,
-    SUM(aps.wins)    AS merged_wins,
-    SUM(aps.losses)  AS merged_losses,
-    SUM(aps.matches) AS merged_matches
-  FROM arena_profile_stats aps
-  WHERE aps.arena_id IN (SELECT arena_id FROM men_sub_arenas)
-  GROUP BY aps.profile_id
-)
-INSERT INTO arena_profile_stats (arena_id, profile_id, elo_rating, wins, losses, matches)
-SELECT
-  (SELECT id FROM men_root),
-  m.profile_id,
-  m.merged_elo,
-  m.merged_wins,
-  m.merged_losses,
-  m.merged_matches
-FROM merged m
-ON CONFLICT (arena_id, profile_id) DO UPDATE
-SET elo_rating = EXCLUDED.elo_rating,
-    wins       = EXCLUDED.wins,
-    losses     = EXCLUDED.losses,
-    matches    = EXCLUDED.matches;
-
--- 6b. Merge all "women" sub-arena stats into the "women" root arena
-WITH women_root AS (
-  SELECT id FROM arenas WHERE slug = 'women'
-),
-women_descendant_cats AS (
-  SELECT id FROM categories WHERE thing_type = 'women' AND depth > 0
-),
-women_sub_arenas AS (
-  SELECT a.id AS arena_id
-  FROM arenas a
-  WHERE a.category_id IN (SELECT id FROM women_descendant_cats)
-    AND a.slug NOT IN ('all', 'members', 'women')
-),
-merged AS (
-  SELECT
-    aps.profile_id,
-    GREATEST(100, 1200 + SUM(aps.elo_rating - 1200)) AS merged_elo,
-    SUM(aps.wins)    AS merged_wins,
-    SUM(aps.losses)  AS merged_losses,
-    SUM(aps.matches) AS merged_matches
-  FROM arena_profile_stats aps
-  WHERE aps.arena_id IN (SELECT arena_id FROM women_sub_arenas)
-  GROUP BY aps.profile_id
-)
-INSERT INTO arena_profile_stats (arena_id, profile_id, elo_rating, wins, losses, matches)
-SELECT
-  (SELECT id FROM women_root),
-  m.profile_id,
-  m.merged_elo,
-  m.merged_wins,
-  m.merged_losses,
-  m.merged_matches
-FROM merged m
-ON CONFLICT (arena_id, profile_id) DO UPDATE
-SET elo_rating = EXCLUDED.elo_rating,
-    wins       = EXCLUDED.wins,
-    losses     = EXCLUDED.losses,
-    matches    = EXCLUDED.matches;
-
-
--- ── PART 7: Recalculate "all" arena from root arenas only ───────────────────
-
-WITH correct_stats AS (
+-- 5a. Recalculate "all" arena from root arenas
+WITH root_arena_stats AS (
   SELECT
     aps.profile_id,
     GREATEST(100, 1200 + SUM(aps.elo_rating - 1200)) AS correct_elo,
@@ -403,19 +388,19 @@ WITH correct_stats AS (
 INSERT INTO arena_profile_stats (arena_id, profile_id, elo_rating, wins, losses, matches)
 SELECT
   (SELECT id FROM arenas WHERE slug = 'all'),
-  cs.profile_id,
-  cs.correct_elo,
-  cs.total_wins,
-  cs.total_losses,
-  cs.total_matches
-FROM correct_stats cs
+  rs.profile_id,
+  rs.correct_elo,
+  rs.total_wins,
+  rs.total_losses,
+  rs.total_matches
+FROM root_arena_stats rs
 ON CONFLICT (arena_id, profile_id) DO UPDATE
 SET elo_rating = EXCLUDED.elo_rating,
     wins       = EXCLUDED.wins,
     losses     = EXCLUDED.losses,
     matches    = EXCLUDED.matches;
 
--- Sync profiles table from "all" arena
+-- 5b. Sync profiles from "all" arena
 UPDATE profiles p
 SET
   elo_rating    = aps.elo_rating,
@@ -428,7 +413,7 @@ WHERE a.slug = 'all'
   AND aps.profile_id = p.id;
 
 
--- ── PART 8: Updated admin_fix_elo_sync — aggregates from root arenas only ───
+-- ── 6. Update admin_fix_elo_sync ─────────────────────────────────────────────
 
 CREATE OR REPLACE FUNCTION admin_fix_elo_sync()
 RETURNS TEXT
@@ -444,14 +429,12 @@ BEGIN
     RAISE EXCEPTION 'Forbidden';
   END IF;
 
-  -- Step 1: Recalculate "all" arena from root arenas only
-  -- Dynamically finds all root arenas (official arenas linked to root categories)
   WITH root_arenas AS (
     SELECT a.id
     FROM arenas a
-    JOIN categories c ON c.id = a.category_id
-    WHERE c.parent_id IS NULL AND c.depth = 0
-      AND a.is_official = true
+    WHERE a.is_official = true
+      AND a.slug NOT IN ('all', 'members')
+      AND get_root_arena_id(a.id) = a.id
   ),
   correct_stats AS (
     SELECT
@@ -476,7 +459,6 @@ BEGIN
 
   GET DIAGNOSTICS arena_rows = ROW_COUNT;
 
-  -- Step 2: Sync profiles table from "all" arena
   UPDATE profiles p
   SET
     elo_rating    = aps.elo_rating,
@@ -490,46 +472,6 @@ BEGIN
 
   GET DIAGNOSTICS profile_rows = ROW_COUNT;
 
-  RETURN 'Fixed ' || arena_rows || ' arena rows + ' || profile_rows || ' profile rows. Aggregated from root arenas (men/women) only.';
+  RETURN 'Fixed ' || arena_rows || ' arena rows + ' || profile_rows || ' profile rows.';
 END;
 $$;
-
-
--- ── PART 9: Auto-create root arena when a new root category is added ─────────
--- When a new root category (depth=0, parent_id IS NULL) is inserted,
--- automatically create a matching official arena so the unified ELO system works.
-
-CREATE OR REPLACE FUNCTION auto_create_root_arena()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-BEGIN
-  IF NEW.parent_id IS NULL AND COALESCE(NEW.depth, 0) = 0 THEN
-    INSERT INTO arenas (
-      name, slug, description, is_official, category_id,
-      arena_tier, affects_elo, visibility, arena_type
-    )
-    VALUES (
-      'All ' || INITCAP(NEW.name),
-      NEW.slug,
-      'All ' || NEW.name || ' profiles — unified ELO',
-      true,
-      NEW.id,
-      'official',
-      true,
-      'public',
-      'fixed'
-    )
-    ON CONFLICT (slug) DO NOTHING;
-  END IF;
-  RETURN NEW;
-END;
-$$;
-
-DROP TRIGGER IF EXISTS trg_auto_create_root_arena ON categories;
-CREATE TRIGGER trg_auto_create_root_arena
-  AFTER INSERT ON categories
-  FOR EACH ROW
-  EXECUTE FUNCTION auto_create_root_arena();

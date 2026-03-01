@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { createBrowserClient } from "@supabase/ssr";
 import { useAuth, usePermissions, useImpersonation } from "@/context/AuthContext";
@@ -15,6 +15,7 @@ interface Thread {
   created_at: string;
   is_locked: boolean;
   author_name: string | null;
+  author_id: string | null;
   vote_score: number;
 }
 
@@ -25,6 +26,7 @@ interface Reply {
   created_at: string;
   likes: number;
   author_name: string | null;
+  author_id: string | null;
 }
 
 function db() {
@@ -46,6 +48,7 @@ function timeAgo(dateStr: string): string {
 
 export default function ThreadPage() {
   const { threadId } = useParams<{ threadId: string }>();
+  const router = useRouter();
   const { user } = useAuth();
   const perms = usePermissions();
   const { isImpersonating, profile: impProfile } = useImpersonation();
@@ -56,6 +59,9 @@ export default function ThreadPage() {
   const [replyText, setReplyText] = useState("");
   const [replyImage, setReplyImage] = useState("");
   const [posting, setPosting] = useState(false);
+  const [confirmDeleteThread, setConfirmDeleteThread] = useState(false);
+  const [confirmDeleteReply, setConfirmDeleteReply] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   // Map of targetId → user's vote (+1, -1, or 0)
   const [myVotes, setMyVotes] = useState<Map<string, number>>(new Map());
 
@@ -64,12 +70,12 @@ export default function ThreadPage() {
     Promise.all([
       db()
         .from("forum_threads")
-        .select("id, title, content, image_url, created_at, is_locked, author_name, vote_score")
+        .select("id, title, content, image_url, created_at, is_locked, author_name, author_id, vote_score")
         .eq("id", threadId)
         .single(),
       db()
         .from("forum_replies")
-        .select("id, content, image_url, created_at, likes, author_name")
+        .select("id, content, image_url, created_at, likes, author_name, author_id")
         .eq("thread_id", threadId)
         .order("created_at"),
     ]).then(([{ data: t }, { data: r }]) => {
@@ -134,6 +140,31 @@ export default function ThreadPage() {
         .order("created_at")
         .then(({ data }) => setReplies((data ?? []) as Reply[]));
     }
+  }
+
+  async function deleteThread() {
+    if (!thread) return;
+    setDeletingId(thread.id);
+    const { error } = await db().from("forum_threads").delete().eq("id", thread.id);
+    setDeletingId(null);
+    setConfirmDeleteThread(false);
+    if (!error) router.push("/forum");
+  }
+
+  async function deleteReply(replyId: string) {
+    setDeletingId(replyId);
+    const { error } = await db().from("forum_replies").delete().eq("id", replyId);
+    setDeletingId(null);
+    setConfirmDeleteReply(null);
+    if (!error) setReplies((prev) => prev.filter((r) => r.id !== replyId));
+  }
+
+  // Can this user delete this item? Admin: always. Mod: non-admin content. Author: own content.
+  function canDelete(authorId: string | null): boolean {
+    if (perms.isAdmin) return true;
+    if (perms.isModerator) return true; // RLS enforces admin-author protection
+    if (user && authorId === user.id) return true;
+    return false;
   }
 
   if (loading) {
@@ -209,6 +240,15 @@ export default function ThreadPage() {
                   🔒 Locked
                 </span>
               )}
+              {canDelete(thread.author_id) && (
+                <button
+                  onClick={() => setConfirmDeleteThread(true)}
+                  className="ml-auto w-7 h-7 flex items-center justify-center rounded-lg text-[11px] transition-colors bg-game-red/10 text-game-red border border-game-red/20 hover:bg-game-red/20"
+                  title="Delete thread"
+                >
+                  🗑
+                </button>
+              )}
             </div>
             <h1 className="text-white font-black text-xl leading-snug mb-3">
               {thread.title}
@@ -247,6 +287,15 @@ export default function ThreadPage() {
                 <span className="text-[10px] font-bold text-navy-400">
                   {reply.author_name ?? "Anon"} · {timeAgo(reply.created_at)}
                 </span>
+                {canDelete(reply.author_id) && (
+                  <button
+                    onClick={() => setConfirmDeleteReply(reply.id)}
+                    className="ml-auto w-6 h-6 flex items-center justify-center rounded-md text-[10px] transition-colors bg-game-red/10 text-game-red border border-game-red/20 hover:bg-game-red/20"
+                    title="Delete reply"
+                  >
+                    🗑
+                  </button>
+                )}
               </div>
               {reply.image_url && (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -319,6 +368,38 @@ export default function ThreadPage() {
       {thread.is_locked && (
         <div className="rounded-xl px-4 py-3 text-xs font-bold text-center bg-navy-800 border border-navy-500 text-navy-200">
           🔒 This thread is locked
+        </div>
+      )}
+
+      {/* Delete thread modal */}
+      {confirmDeleteThread && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)" }} onClick={() => setConfirmDeleteThread(false)}>
+          <div className="w-80 rounded-2xl p-6 space-y-4 bg-navy-800 border border-game-red/30" onClick={(e) => e.stopPropagation()}>
+            <p className="text-white font-black text-base">Delete this thread?</p>
+            <p className="text-sm leading-snug text-navy-200">This will also delete all replies. This cannot be undone.</p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setConfirmDeleteThread(false)} className="px-4 py-2 rounded-xl text-sm font-bold text-navy-200 hover:text-white transition-colors">Cancel</button>
+              <button onClick={deleteThread} disabled={deletingId === thread.id} className="px-4 py-2 rounded-xl text-sm font-black disabled:opacity-50 transition-colors bg-game-red text-white">
+                {deletingId === thread.id ? "Deleting\u2026" : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete reply modal */}
+      {confirmDeleteReply && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)" }} onClick={() => setConfirmDeleteReply(null)}>
+          <div className="w-80 rounded-2xl p-6 space-y-4 bg-navy-800 border border-game-red/30" onClick={(e) => e.stopPropagation()}>
+            <p className="text-white font-black text-base">Delete this reply?</p>
+            <p className="text-sm leading-snug text-navy-200">This cannot be undone.</p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setConfirmDeleteReply(null)} className="px-4 py-2 rounded-xl text-sm font-bold text-navy-200 hover:text-white transition-colors">Cancel</button>
+              <button onClick={() => deleteReply(confirmDeleteReply)} disabled={deletingId === confirmDeleteReply} className="px-4 py-2 rounded-xl text-sm font-black disabled:opacity-50 transition-colors bg-game-red text-white">
+                {deletingId === confirmDeleteReply ? "Deleting\u2026" : "Delete"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

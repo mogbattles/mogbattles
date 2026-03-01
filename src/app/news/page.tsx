@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createBrowserClient } from "@supabase/ssr";
-import { usePermissions } from "@/context/AuthContext";
+import { useAuth, usePermissions } from "@/context/AuthContext";
 
 interface NewsPost {
   id: string;
@@ -11,6 +11,7 @@ interface NewsPost {
   image_url: string | null;
   published_at: string;
   is_published: boolean;
+  author_id: string | null;
 }
 
 type ConfirmDelete = { id: string; title: string } | null;
@@ -34,29 +35,31 @@ function timeAgo(dateStr: string): string {
 }
 
 export default function NewsPage() {
+  const { user } = useAuth();
   const perms = usePermissions();
   const [posts, setPosts] = useState<NewsPost[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Admin: add news form
+  // Add / edit form
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ title: "", content: "", image_url: "" });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<ConfirmDelete>(null);
   const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => {
-    db()
+  async function loadPosts() {
+    const { data } = await db()
       .from("news_posts")
-      .select("id, title, content, image_url, published_at, is_published")
+      .select("id, title, content, image_url, published_at, is_published, author_id")
       .eq("is_published", true)
-      .order("published_at", { ascending: false })
-      .then(({ data }) => {
-        setPosts((data ?? []) as NewsPost[]);
-        setLoading(false);
-      });
-  }, []);
+      .order("published_at", { ascending: false });
+    setPosts((data ?? []) as NewsPost[]);
+    setLoading(false);
+  }
+
+  useEffect(() => { loadPosts(); }, []);
 
   async function deletePost(id: string) {
     setDeleting(true);
@@ -64,29 +67,68 @@ export default function NewsPage() {
     setDeleting(false);
     setConfirmDelete(null);
     if (error) {
-      setMsg("❌ " + (error as { message: string }).message);
+      setMsg("\u274C " + (error as { message: string }).message);
       setTimeout(() => setMsg(null), 3000);
     } else {
       setPosts((prev) => prev.filter((p) => p.id !== id));
     }
   }
 
+  function resetForm() {
+    setForm({ title: "", content: "", image_url: "" });
+    setShowForm(false);
+    setEditingId(null);
+  }
+
+  function startEdit(post: NewsPost) {
+    setEditingId(post.id);
+    setForm({
+      title: post.title,
+      content: post.content ?? "",
+      image_url: post.image_url ?? "",
+    });
+    setShowForm(true);
+  }
+
   async function publishNews() {
     if (!form.title.trim()) return;
     setSaving(true);
-    const { error } = await db()
-      .from("news_posts")
-      .insert({ title: form.title.trim(), content: form.content.trim() || null, image_url: form.image_url.trim() || null, is_published: true });
-    setSaving(false);
-    if (error) {
-      setMsg("❌ " + (error as { message: string }).message);
+
+    if (editingId) {
+      const { error } = await db()
+        .from("news_posts")
+        .update({
+          title: form.title.trim(),
+          content: form.content.trim() || null,
+          image_url: form.image_url.trim() || null,
+        })
+        .eq("id", editingId);
+      setSaving(false);
+      if (error) {
+        setMsg("\u274C " + (error as { message: string }).message);
+      } else {
+        setMsg("\u2705 Updated!");
+        resetForm();
+        loadPosts();
+      }
     } else {
-      setMsg("✅ Published!");
-      setForm({ title: "", content: "", image_url: "" });
-      setShowForm(false);
-      // Re-fetch
-      db().from("news_posts").select("id, title, content, image_url, published_at, is_published").eq("is_published", true).order("published_at", { ascending: false })
-        .then(({ data }) => setPosts((data ?? []) as NewsPost[]));
+      const { error } = await db()
+        .from("news_posts")
+        .insert({
+          title: form.title.trim(),
+          content: form.content.trim() || null,
+          image_url: form.image_url.trim() || null,
+          is_published: true,
+          author_id: user?.id ?? null,
+        });
+      setSaving(false);
+      if (error) {
+        setMsg("\u274C " + (error as { message: string }).message);
+      } else {
+        setMsg("\u2705 Published!");
+        resetForm();
+        loadPosts();
+      }
     }
     setTimeout(() => setMsg(null), 3000);
   }
@@ -106,24 +148,26 @@ export default function NewsPage() {
         </div>
         {perms.canManageNews && (
           <button
-            onClick={() => setShowForm((v) => !v)}
+            onClick={() => { if (showForm) resetForm(); else setShowForm(true); }}
             className="btn-dark text-xs font-black px-4 py-2 rounded-xl"
           >
-            {showForm ? "Cancel" : "＋ Post News"}
+            {showForm ? "Cancel" : "\uFF0B Post News"}
           </button>
         )}
       </div>
 
       {msg && (
-        <div className={`mb-4 px-4 py-2 rounded-xl text-sm font-bold bg-navy-700 ${msg.startsWith("✅") ? "text-game-green" : "text-game-red"}`}>
+        <div className={`mb-4 px-4 py-2 rounded-xl text-sm font-bold bg-navy-700 ${msg.startsWith("\u2705") ? "text-game-green" : "text-game-red"}`}>
           {msg}
         </div>
       )}
 
-      {/* Admin: post form */}
+      {/* Post / Edit form */}
       {showForm && perms.canManageNews && (
         <div className="mb-6 game-card rounded-2xl p-5 space-y-3 !border-purple/25">
-          <p className="text-xs font-black uppercase tracking-widest text-purple-bright">New Post</p>
+          <p className="text-xs font-black uppercase tracking-widest text-purple-bright">
+            {editingId ? "Edit Post" : "New Post"}
+          </p>
           <input
             type="text"
             placeholder="Headline *"
@@ -151,7 +195,7 @@ export default function NewsPage() {
               disabled={saving || !form.title.trim()}
               className="btn-purple px-6 py-2 rounded-xl text-sm font-black disabled:opacity-50 transition-colors"
             >
-              {saving ? "Publishing…" : "Publish"}
+              {saving ? "Saving\u2026" : editingId ? "Save Changes" : "Publish"}
             </button>
           </div>
         </div>
@@ -202,13 +246,22 @@ export default function NewsPage() {
                     </p>
                   </div>
                   {perms.canManageNews && (
-                    <button
-                      onClick={() => setConfirmDelete({ id: post.id, title: post.title })}
-                      className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-sm transition-colors bg-game-red/10 text-game-red border border-game-red/20 hover:bg-game-red/20"
-                      title="Delete post"
-                    >
-                      🗑
-                    </button>
+                    <div className="flex gap-1.5 shrink-0">
+                      <button
+                        onClick={() => startEdit(post)}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg text-sm transition-colors bg-purple/10 text-purple-bright border border-purple/20 hover:bg-purple/20"
+                        title="Edit post"
+                      >
+                        ✎
+                      </button>
+                      <button
+                        onClick={() => setConfirmDelete({ id: post.id, title: post.title })}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg text-sm transition-colors bg-game-red/10 text-game-red border border-game-red/20 hover:bg-game-red/20"
+                        title="Delete post"
+                      >
+                        🗑
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -244,7 +297,7 @@ export default function NewsPage() {
                 disabled={deleting}
                 className="px-4 py-2 rounded-xl text-sm font-black disabled:opacity-50 transition-colors bg-game-red text-white"
               >
-                {deleting ? "Deleting…" : "Delete"}
+                {deleting ? "Deleting\u2026" : "Delete"}
               </button>
             </div>
           </div>
