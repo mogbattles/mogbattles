@@ -104,9 +104,9 @@ export default function FriendsLeaderboardPage() {
             href="/leaderboard/members"
             className="inline-block py-2.5 px-5 rounded-xl font-black text-sm uppercase tracking-wide"
             style={{
-              background: "rgba(253,41,123,0.15)",
-              border: "1px solid rgba(253,41,123,0.4)",
-              color: "var(--accent)",
+              background: "var(--bg-elevated)",
+              border: "1px solid var(--border-hover)",
+              color: "var(--text-primary)",
             }}
           >
             Browse Players

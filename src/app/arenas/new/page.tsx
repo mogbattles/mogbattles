@@ -202,9 +202,9 @@ export default function NewArenaPage() {
                     }}
                     className="px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all"
                     style={selectedRoot?.id === root.id ? {
-                      background: "rgba(253,41,123,0.1)",
-                      color: "var(--accent)",
-                      border: "1px solid rgba(253,41,123,0.4)",
+                      background: "var(--bg-elevated)",
+                      color: "var(--text-primary)",
+                      border: "1px solid var(--border-hover)",
                     } : {
                       background: "var(--bg-card)",
                       color: "var(--text-muted)",
@@ -227,9 +227,9 @@ export default function NewArenaPage() {
                 onClick={() => setCategoryId(null)}
                 className="px-3 py-2 rounded-xl text-xs font-bold transition-all"
                 style={!categoryId ? {
-                  background: "rgba(253,41,123,0.1)",
-                  color: "var(--accent)",
-                  border: "1px solid rgba(253,41,123,0.4)",
+                  background: "var(--bg-elevated)",
+                  color: "var(--text-primary)",
+                  border: "1px solid var(--border-hover)",
                 } : {
                   background: "var(--bg-card)",
                   color: "var(--text-muted)",
@@ -244,9 +244,9 @@ export default function NewArenaPage() {
                   onClick={() => setCategoryId(cat.id)}
                   className="px-3 py-2 rounded-xl text-xs font-bold transition-all"
                   style={categoryId === cat.id ? {
-                    background: "rgba(253,41,123,0.1)",
-                    color: "var(--accent)",
-                    border: "1px solid rgba(253,41,123,0.4)",
+                    background: "var(--bg-elevated)",
+                    color: "var(--text-primary)",
+                    border: "1px solid var(--border-hover)",
                   } : {
                     background: "var(--bg-card)",
                     color: "var(--text-muted)",

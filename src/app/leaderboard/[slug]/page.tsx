@@ -42,7 +42,7 @@ export default async function LeaderboardArenaPage({
         <h1
           className="text-3xl sm:text-4xl font-black tracking-tight"
           style={{
-            background: "linear-gradient(90deg, #FD297B 0%, #FF5864 40%, #FF655B 100%)",
+            background: "var(--text-primary)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             backgroundClip: "text",

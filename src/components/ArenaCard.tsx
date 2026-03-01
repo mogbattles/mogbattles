@@ -145,12 +145,12 @@ export default function ArenaCard({
             <Link href={`/swipe/${slug}`}
               className="flex-1 text-center py-2.5 rounded-xl text-[12px] font-black uppercase tracking-wide transition-all"
               style={{
-                background: "rgba(253,41,123,0.1)",
+                background: "var(--bg-elevated)",
                 color: "var(--accent)",
-                border: "1px solid rgba(253,41,123,0.25)",
+                border: "1px solid var(--border)",
               }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(253,41,123,0.18)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(253,41,123,0.1)"; }}>
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--bg-elevated)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--border-hover)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--bg-elevated)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--border)"; }}>
               {"\u2694\uFE0F"} Battle
             </Link>
             <Link href={`/leaderboard/${slug}`}
@@ -243,12 +243,12 @@ export default function ArenaCard({
             <Link href={`/swipe/${slug}`}
               className="flex-1 text-center py-2 rounded-xl text-[11px] font-black uppercase tracking-wide transition-all"
               style={{
-                background: "rgba(253,41,123,0.1)",
+                background: "var(--bg-elevated)",
                 color: "var(--accent)",
-                border: "1px solid rgba(253,41,123,0.25)",
+                border: "1px solid var(--border)",
               }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(253,41,123,0.18)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(253,41,123,0.1)"; }}>
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--bg-elevated)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--border-hover)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--bg-elevated)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--border)"; }}>
               {"\u2694\uFE0F"} Battle
             </Link>
             <Link href={`/leaderboard/${slug}`}

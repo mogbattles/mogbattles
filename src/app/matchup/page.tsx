@@ -251,7 +251,7 @@ export default function MatchupPage() {
                 <div className="flex rounded-full overflow-hidden h-3 gap-0.5">
                   <div
                     className="transition-all duration-700"
-                    style={{ width: `${aWinPct}%`, background: "linear-gradient(90deg, #FD297B, #FF5864)" }}
+                    style={{ width: `${aWinPct}%`, background: "var(--text-primary)" }}
                   />
                   <div
                     className="transition-all duration-700"

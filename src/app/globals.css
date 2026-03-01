@@ -2,7 +2,7 @@
 
 /* ═══════════════════════════════════════════════════════════════════════════════
    MogBattles — Design System v3
-   Clean Neutral + Tinder Accent · Dark/Light Mode
+   Clean Neutral · Black/White/Grey · Dark/Light Mode
    ═══════════════════════════════════════════════════════════════════════════════ */
 
 /* ─── Custom Tailwind theme tokens ───────────────────────────────────────────── */
@@ -21,9 +21,9 @@
   --color-navy-200:  #666666;
   --color-navy-100:  #999999;
 
-  /* Accent — Tinder pink (used sparingly) */
-  --color-accent:     #FD297B;
-  --color-accent-hover: #FF5864;
+  /* Accent — neutral (clean black/white/grey palette) */
+  --color-accent:     #333333;
+  --color-accent-hover: #555555;
 
   /* Rank metals */
   --color-gold:       #F0C040;
@@ -58,10 +58,10 @@
   --border:        #2A2A2A;
   --border-hover:  #444444;
 
-  /* Accent (Tinder pink — used sparingly: logo, CTAs, active indicators) */
-  --accent:        #FD297B;
-  --accent-hover:  #FF5864;
-  --accent-glow:   rgba(253, 41, 123, 0.3);
+  /* Accent — neutral white for dark mode */
+  --accent:        #FFFFFF;
+  --accent-hover:  #CCCCCC;
+  --accent-glow:   rgba(255, 255, 255, 0.15);
 
   /* Rank colors */
   --gold:   #F0C040;
@@ -74,7 +74,7 @@
 
   /* Legacy glow vars */
   --gold-glow:   rgba(240, 192, 64, 0.45);
-  --accent-glow-strong: rgba(253, 41, 123, 0.5);
+  --accent-glow-strong: rgba(255, 255, 255, 0.25);
 
   /* Scrollbar */
   --scrollbar-track: #0A0A0A;
@@ -103,10 +103,10 @@
   --border:        #E0E0E0;
   --border-hover:  #CCCCCC;
 
-  /* Accent stays the same */
-  --accent:        #FD297B;
-  --accent-hover:  #FF5864;
-  --accent-glow:   rgba(253, 41, 123, 0.2);
+  /* Accent — neutral black for light mode */
+  --accent:        #1A1A1A;
+  --accent-hover:  #333333;
+  --accent-glow:   rgba(0, 0, 0, 0.1);
 
   /* Rank colors stay */
   --gold:   #D4A800;
@@ -118,7 +118,7 @@
   --danger:  #C0392B;
 
   --gold-glow:   rgba(212, 168, 0, 0.3);
-  --accent-glow-strong: rgba(253, 41, 123, 0.3);
+  --accent-glow-strong: rgba(0, 0, 0, 0.15);
 
   /* Scrollbar */
   --scrollbar-track: #F0F0F0;
@@ -290,19 +290,19 @@ main {
 
 /* ─── Reusable utilities ──────────────────────────────────────────────────── */
 
-/* Primary accent button — Tinder gradient */
+/* Primary accent button — clean neutral */
 .btn-accent {
-  background: linear-gradient(135deg, #FD297B 0%, #FF5864 50%, #FF655B 100%);
-  color: #fff;
+  background: var(--text-primary);
+  color: var(--bg-primary);
   font-weight: 800;
   letter-spacing: 0.04em;
-  box-shadow: 0 4px 0 #C41E5F, 0 4px 16px var(--accent-glow);
+  box-shadow: 0 4px 0 var(--border), 0 4px 16px rgba(0,0,0,0.15);
   transition: all 0.12s ease;
   border: none;
   cursor: pointer;
 }
-.btn-accent:hover  { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 6px 0 #C41E5F, 0 6px 24px var(--accent-glow); }
-.btn-accent:active { transform: translateY(3px); box-shadow: 0 1px 0 #C41E5F, 0 1px 8px var(--accent-glow); }
+.btn-accent:hover  { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 6px 0 var(--border), 0 6px 24px rgba(0,0,0,0.2); }
+.btn-accent:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--border), 0 1px 8px rgba(0,0,0,0.1); }
 
 /* Gold CTA button — 3D press effect (kept for rank/special) */
 .btn-gold {
@@ -363,7 +363,7 @@ main {
 }
 
 .text-gradient-accent {
-  background: linear-gradient(90deg, #FD297B 0%, #FF5864 50%, #FF655B 100%);
+  background: linear-gradient(90deg, #666666 0%, #999999 50%, #666666 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -405,7 +405,7 @@ main {
   width: 100%;
 }
 .game-input::placeholder { color: var(--text-muted); }
-.game-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+.game-input:focus { border-color: var(--border-hover); box-shadow: 0 0 0 3px var(--accent-glow); }
 
 /* ─── Badge & pill utilities ─────────────────────────────────────────────────── */
 .badge-gold {
@@ -420,8 +420,8 @@ main {
 }
 
 .badge-accent {
-  background: linear-gradient(135deg, #FD297B, #FF5864);
-  color: #fff;
+  background: var(--text-primary);
+  color: var(--bg-primary);
   font-weight: 800;
   font-size: 10px;
   padding: 2px 8px;

@@ -104,7 +104,7 @@ function NewThreadForm({
   }
 
   return (
-    <div className="game-card rounded-2xl p-5 space-y-3 mb-6" style={{ borderColor: "rgba(253,41,123,0.25)" }}>
+    <div className="game-card rounded-2xl p-5 space-y-3 mb-6" style={{ borderColor: "var(--border)" }}>
       <p className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--accent)" }}>New Thread</p>
 
       {msg && <p className="text-xs font-bold text-game-red">{msg}</p>}
@@ -215,7 +215,7 @@ export default function ForumPage() {
             onClick={() => switchBoard(null)}
             className={`shrink-0 text-xs font-black px-3.5 py-1.5 rounded-full border transition-all duration-150 ${
               activeBoard === null
-                ? "text-white border-transparent shadow-[0_0_12px_rgba(253,41,123,0.3)]"
+                ? "text-white border-transparent shadow-[0_0_12px_rgba(128,128,128,0.15)]"
                 : "bg-navy-800 text-navy-200 border-navy-500 hover:border-navy-300"
             }`}
             style={activeBoard === null ? { background: "var(--accent)" } : undefined}
@@ -228,7 +228,7 @@ export default function ForumPage() {
               onClick={() => switchBoard(board.id)}
               className={`shrink-0 text-xs font-black px-3.5 py-1.5 rounded-full border transition-all duration-150 ${
                 activeBoard === board.id
-                  ? "text-white border-transparent shadow-[0_0_12px_rgba(253,41,123,0.3)]"
+                  ? "text-white border-transparent shadow-[0_0_12px_rgba(128,128,128,0.15)]"
                   : "bg-navy-800 text-navy-200 border-navy-500 hover:border-navy-300"
               }`}
               style={activeBoard === board.id ? { background: "var(--accent)" } : undefined}

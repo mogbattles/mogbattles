@@ -207,7 +207,7 @@ export default function ThreadPage() {
       </Link>
 
       {/* OP post */}
-      <div className="rounded-2xl overflow-hidden mb-4 game-card" style={{ borderColor: "rgba(253,41,123,0.2)" }}>
+      <div className="rounded-2xl overflow-hidden mb-4 game-card" style={{ borderColor: "var(--border)" }}>
         {thread.image_url && (
           // eslint-disable-next-line @next/next/no-img-element
           <img

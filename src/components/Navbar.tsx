@@ -78,29 +78,19 @@ export default function Navbar() {
         borderBottom: "1px solid var(--nav-border)",
       }}
     >
-      {/* Logo — wow.gif + MARVEL-style MOGBATTLES */}
-      <Link href="/explore" className="flex items-center gap-2 shrink-0">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="https://media.tenor.com/ONQPr0qrCXMAAAAM/wow.gif"
-          alt="wow"
-          style={{ height: "28px", width: "auto", borderRadius: "4px" }}
-        />
+      {/* Logo — Tinder-style clean typography */}
+      <Link href="/explore" className="flex items-center shrink-0">
         <span
           style={{
-            fontFamily: "'Bebas Neue', sans-serif",
-            fontSize: "22px",
-            letterSpacing: "0.12em",
-            fontWeight: 400,
-            color: "#FFFFFF",
-            background: "linear-gradient(135deg, #FD297B, #FF5864, #FF655B)",
-            padding: "2px 10px",
-            borderRadius: "4px",
-            lineHeight: "1.2",
-            display: "inline-block",
+            fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+            fontSize: "24px",
+            fontWeight: 800,
+            letterSpacing: "-0.02em",
+            color: "var(--text-primary)",
+            lineHeight: "1",
           }}
         >
-          MOGBATTLES
+          Mogbattles
         </span>
       </Link>
 
@@ -118,7 +108,7 @@ export default function Navbar() {
               href={link.href}
               className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-bold transition-all duration-150"
               style={{
-                color: isActive ? "var(--accent)" : "var(--text-muted)",
+                color: isActive ? "var(--text-primary)" : "var(--text-muted)",
                 background: isActive ? "var(--bg-elevated)" : "transparent",
                 border: isActive ? "1px solid var(--border)" : "1px solid transparent",
               }}
@@ -147,29 +137,32 @@ export default function Navbar() {
 
       {/* Right side: theme toggle + community menu */}
       <div className="flex items-center gap-2 shrink-0">
-        {/* Theme toggle */}
+        {/* Theme toggle — moon outline (light) / filled moon (dark) */}
         <button
           onClick={toggleTheme}
-          className="flex items-center justify-center rounded-xl transition-all duration-200"
+          className="flex items-center justify-center rounded-full transition-all duration-200"
           style={{
             width: "36px",
             height: "36px",
-            background: "var(--bg-elevated)",
+            background: "transparent",
             border: "1px solid var(--border)",
             color: "var(--text-secondary)",
-            fontSize: "16px",
           }}
           title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
         >
-          <span
-            style={{
-              display: "inline-block",
-              transition: "transform 0.3s ease",
-              transform: theme === "dark" ? "rotate(0deg)" : "rotate(180deg)",
-            }}
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill={theme === "dark" ? "currentColor" : "none"}
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ transition: "all 0.3s ease" }}
           >
-            {theme === "dark" ? "🌙" : "☀️"}
-          </span>
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
         </button>
 
         {/* More menu */}
@@ -221,7 +214,7 @@ export default function Navbar() {
                       <div className="min-w-0">
                         <p
                           className="text-sm font-bold leading-tight"
-                          style={{ color: isActive ? "var(--accent)" : "var(--text-primary)" }}
+                          style={{ color: "var(--text-primary)" }}
                         >
                           {item.label}
                         </p>

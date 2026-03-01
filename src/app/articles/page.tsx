@@ -189,7 +189,7 @@ export default function ArticlesPage() {
 
       {/* Write / Edit form */}
       {showForm && perms.canWriteArticles && (
-        <div className="mb-6 game-card rounded-2xl p-5 space-y-3" style={{ borderColor: "rgba(253,41,123,0.25)" }}>
+        <div className="mb-6 game-card rounded-2xl p-5 space-y-3" style={{ borderColor: "var(--border)" }}>
           <p className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--accent)" }}>
             {editingId ? "Edit Article" : "New Article"}
           </p>
@@ -264,7 +264,7 @@ export default function ArticlesPage() {
                   <button
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); startEdit(article); }}
                     className="w-7 h-7 flex items-center justify-center rounded-lg text-[11px] transition-colors"
-                    style={{ background: "rgba(253,41,123,0.1)", color: "var(--accent)", border: "1px solid rgba(253,41,123,0.2)" }}
+                    style={{ background: "var(--bg-elevated)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}
                     title="Edit"
                   >
                     ✎

@@ -74,7 +74,7 @@ export default function ImageVotePopup({
               className="relative rounded-lg overflow-hidden transition-all"
               style={{
                 aspectRatio: "3/4",
-                border: `2px solid ${voted ? "rgba(253,41,123,0.7)" : "var(--border)"}`,
+                border: `2px solid ${voted ? "var(--border-hover)" : "var(--border)"}`,
                 boxShadow: voted ? "0 0 8px var(--accent-glow)" : "none",
                 cursor: userId ? "pointer" : "not-allowed",
               }}
@@ -89,7 +89,7 @@ export default function ImageVotePopup({
               <div
                 className="absolute bottom-0.5 right-0.5 text-[9px] font-black px-1 rounded"
                 style={{
-                  background: voted ? "rgba(253,41,123,0.92)" : "rgba(0,0,0,0.82)",
+                  background: voted ? "var(--text-primary)" : "rgba(0,0,0,0.82)",
                   color: voted ? "#fff" : "var(--text-secondary)",
                 }}
               >

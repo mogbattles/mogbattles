@@ -10,10 +10,10 @@ export default function ImpersonationBanner() {
     <div
       className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-center gap-3 py-2 px-4 text-sm font-bold"
       style={{
-        background: "linear-gradient(90deg, rgba(253,41,123,0.95), rgba(255,88,100,0.95))",
-        color: "#fff",
+        background: "var(--text-primary)",
+        color: "var(--bg-primary)",
         backdropFilter: "blur(8px)",
-        boxShadow: "0 2px 12px rgba(253,41,123,0.4)",
+        boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
       }}
     >
       {profile.image_url && (

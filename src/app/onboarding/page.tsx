@@ -109,7 +109,7 @@ function CountryPicker({
                 type="button"
                 onMouseDown={() => select(c.name)}
                 className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors"
-                style={{ color: "#fff" }}
+                style={{ color: "var(--text-primary)" }}
                 onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--bg-card)"; }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
               >
@@ -308,7 +308,7 @@ export default function OnboardingPage() {
         <h1
           className="text-3xl font-black mb-1"
           style={{
-            background: "linear-gradient(90deg, #FD297B 0%, #FF5864 40%, #FF655B 100%)",
+            background: "var(--text-primary)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
           }}
@@ -356,7 +356,7 @@ export default function OnboardingPage() {
                 className="flex-1 py-3 rounded-xl border font-bold text-sm transition-colors capitalize disabled:opacity-50"
                 style={
                   gender === g
-                    ? { background: "rgba(253,41,123,0.1)", border: "1px solid rgba(253,41,123,0.4)", color: "var(--accent)" }
+                    ? { background: "var(--bg-elevated)", border: "1px solid var(--border-hover)", color: "var(--accent)" }
                     : { background: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--text-muted)" }
                 }
               >

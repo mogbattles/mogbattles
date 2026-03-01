@@ -181,13 +181,13 @@ function CompactBattleCard({
               style={{ opacity: votedFor && votedFor !== pa.id ? 0.5 : 1 }}
               onError={(e) => { (e.target as HTMLImageElement).src = fb(pa.name); }} />
             <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%)" }} />
-            {votedFor === pa.id && <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-full text-[8px] font-black" style={{ background: "var(--accent)", color: "#fff" }}>YOUR PICK</div>}
+            {votedFor === pa.id && <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-full text-[8px] font-black" style={{ background: "var(--accent)", color: "var(--bg-primary)" }}>YOUR PICK</div>}
             <p className="absolute bottom-5 left-1.5 right-1 text-white font-black text-[10px] leading-tight truncate">{pa.name}</p>
             <span className="absolute bottom-1 left-1.5 font-black text-sm" style={{ color: votedFor === pa.id ? "var(--accent)" : "var(--text-muted)" }}>{aPct}%</span>
           </button>
           <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10">
             <div className="w-6 h-6 flex items-center justify-center rounded-full font-black text-[8px]"
-              style={{ background: "var(--bg-primary)", border: "2px solid rgba(253,41,123,0.3)", color: "var(--accent)" }}>VS</div>
+              style={{ background: "var(--bg-primary)", border: "2px solid var(--border)", color: "var(--accent)" }}>VS</div>
           </div>
           <button onClick={() => handleVote(pb.id)} disabled={voting}
             className="flex-1 relative overflow-hidden text-left"
@@ -198,7 +198,7 @@ function CompactBattleCard({
               style={{ opacity: votedFor && votedFor !== pb.id ? 0.5 : 1 }}
               onError={(e) => { (e.target as HTMLImageElement).src = fb(pb.name); }} />
             <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%)" }} />
-            {votedFor === pb.id && <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-full text-[8px] font-black" style={{ background: "var(--accent)", color: "#fff" }}>YOUR PICK</div>}
+            {votedFor === pb.id && <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-full text-[8px] font-black" style={{ background: "var(--accent)", color: "var(--bg-primary)" }}>YOUR PICK</div>}
             <p className="absolute bottom-5 left-1 right-1.5 text-white font-black text-[10px] leading-tight truncate text-right">{pb.name}</p>
             <span className="absolute bottom-1 right-1.5 font-black text-sm" style={{ color: votedFor === pb.id ? "var(--accent)" : "var(--text-muted)" }}>{bPct}%</span>
           </button>
@@ -208,7 +208,7 @@ function CompactBattleCard({
           <div className="flex items-center gap-1.5 mb-1">
             <span className="text-[9px] font-black" style={{ color: votedFor === pa.id ? "var(--accent)" : "var(--text-muted)" }}>{aPct}%</span>
             <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: "var(--bg-elevated)" }}>
-              <div className="h-full rounded-full transition-all duration-700" style={{ width: `${aPct}%`, background: "linear-gradient(90deg, var(--accent), #FF5864 50%, var(--gold))" }} />
+              <div className="h-full rounded-full transition-all duration-700" style={{ width: `${aPct}%`, background: "linear-gradient(90deg, var(--text-secondary), var(--text-primary) 50%, var(--text-secondary))" }} />
             </div>
             <span className="text-[9px] font-black text-right" style={{ color: votedFor === pb.id ? "var(--accent)" : "var(--text-muted)" }}>{bPct}%</span>
           </div>
@@ -691,7 +691,7 @@ export default function ExplorePage() {
       {/* ── Search bar (full width) ── */}
       <div ref={searchRef} className="relative mb-6">
         <div className="flex items-center gap-2 px-4 py-3 rounded-2xl"
-          style={{ background: "var(--bg-card)", border: `1px solid ${query ? "rgba(253,41,123,0.3)" : "var(--border)"}` }}>
+          style={{ background: "var(--bg-card)", border: `1px solid ${query ? "var(--border-hover)" : "var(--border)"}` }}>
           <span className="text-base shrink-0" style={{ color: "var(--text-muted)" }}>{"\uD83D\uDD0D"}</span>
           <input type="search" placeholder="Search arenas or people..." value={query} onChange={handleQueryChange}
             className="flex-1 bg-transparent text-white text-sm focus:outline-none" style={{ caretColor: "var(--accent)" }} />
@@ -717,9 +717,9 @@ export default function ExplorePage() {
                 <button key={root.id} onClick={() => handleRootSwitch(root)}
                   className="px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all"
                   style={selectedRoot?.id === root.id ? {
-                    background: "rgba(253,41,123,0.12)",
+                    background: "var(--bg-elevated)",
                     color: "var(--accent)",
-                    border: "1px solid rgba(253,41,123,0.3)",
+                    border: "1px solid var(--border)",
                   } : {
                     background: "transparent",
                     color: "var(--text-muted)",
@@ -766,10 +766,10 @@ export default function ExplorePage() {
               <button onClick={() => handleCategorySelect(null)}
                 className="shrink-0 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all hover:scale-[1.03] active:scale-[0.97]"
                 style={!selectedCategory ? {
-                  background: "rgba(253,41,123,0.12)",
+                  background: "var(--bg-elevated)",
                   color: "var(--accent)",
-                  border: "1px solid rgba(253,41,123,0.3)",
-                  boxShadow: "0 0 12px rgba(253,41,123,0.1)",
+                  border: "1px solid var(--border)",
+                  boxShadow: "0 0 12px rgba(128,128,128,0.15)",
                 } : {
                   background: "var(--bg-card)",
                   color: "var(--text-muted)",
@@ -781,10 +781,10 @@ export default function ExplorePage() {
                 <button key={cat.id} onClick={() => handleCategorySelect(cat)}
                   className="shrink-0 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all hover:scale-[1.03] active:scale-[0.97]"
                   style={selectedCategory?.id === cat.id ? {
-                    background: "rgba(253,41,123,0.12)",
+                    background: "var(--bg-elevated)",
                     color: "var(--accent)",
-                    border: "1px solid rgba(253,41,123,0.3)",
-                    boxShadow: "0 0 12px rgba(253,41,123,0.1)",
+                    border: "1px solid var(--border)",
+                    boxShadow: "0 0 12px rgba(128,128,128,0.15)",
                   } : {
                     background: "var(--bg-card)",
                     color: "var(--text-muted)",
@@ -858,7 +858,7 @@ export default function ExplorePage() {
                         <div className="flex gap-2">
                           <Link href={`/swipe/${arena.slug}`}
                             className="flex-1 text-center py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wide transition-all"
-                            style={{ background: "rgba(253,41,123,0.1)", color: "var(--accent)", border: "1px solid rgba(253,41,123,0.25)" }}>
+                            style={{ background: "var(--bg-elevated)", color: "var(--accent)", border: "1px solid var(--border)" }}>
                             {"\u2694\uFE0F"} Battle
                           </Link>
                           <Link href={`/leaderboard/${arena.slug}`}
@@ -987,7 +987,7 @@ export default function ExplorePage() {
                 <div className="flex items-center gap-2">
                   <Link href={user ? "/arenas/new" : "/profile"}
                     className="text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-full transition-all hover:scale-105"
-                    style={{ color: "var(--accent)", background: "rgba(253,41,123,0.1)", border: "1px solid rgba(253,41,123,0.2)" }}>
+                    style={{ color: "var(--accent)", background: "var(--bg-elevated)", border: "1px solid var(--border)" }}>
                     + Create
                   </Link>
                   <button onClick={() => scrollSection(customScrollRef, "left")}
@@ -1038,7 +1038,7 @@ export default function ExplorePage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
             <Link href="/swipe/all"
               className="group rounded-2xl p-4 text-center transition-all duration-200 hover:scale-[1.03] active:scale-[0.98]"
-              style={{ background: "linear-gradient(135deg, rgba(253,41,123,0.1), rgba(253,41,123,0.03))", border: "1px solid rgba(253,41,123,0.2)" }}>
+              style={{ background: "linear-gradient(135deg, rgba(128,128,128,0.1), rgba(128,128,128,0.03))", border: "1px solid var(--border)" }}>
               <span className="text-3xl block mb-2">{"\u2694\uFE0F"}</span>
               <span className="text-xs font-black uppercase tracking-wider" style={{ color: "var(--accent)" }}>Quick Battle</span>
             </Link>

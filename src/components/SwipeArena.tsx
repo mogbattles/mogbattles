@@ -484,7 +484,7 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
             <span style={{ color: "var(--text-muted)" }}>{profile.wins}W-{profile.losses}L</span>
             {winRate !== null && (
               <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold"
-                style={{ background: "rgba(253,41,123,0.15)", color: "var(--accent)" }}>
+                style={{ background: "var(--bg-elevated)", color: "var(--accent)" }}>
                 {winRate}%
               </span>
             )}
@@ -539,7 +539,7 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
     return (
       <div className="flex flex-col items-center justify-center gap-4" style={{ height: "70vh" }}>
         <div className="w-14 h-14 rounded-full border-4 border-transparent animate-spin"
-          style={{ borderTopColor: "var(--accent)", borderRightColor: "rgba(253,41,123,0.25)", boxShadow: "0 0 20px rgba(253,41,123,0.3)" }} />
+          style={{ borderTopColor: "var(--accent)", borderRightColor: "var(--border)", boxShadow: "0 0 20px rgba(128,128,128,0.15)" }} />
         <p className="font-heading tracking-widest text-sm" style={{ color: "var(--text-muted)" }}>LOADING BATTLES</p>
       </div>
     );
@@ -560,7 +560,7 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
   if (exhausted) {
     return (
       <div className="flex flex-col items-center text-center mt-12 px-4 max-w-sm mx-auto">
-        <div className="text-7xl mb-5 crown-float" style={{ filter: "drop-shadow(0 0 16px rgba(253,41,123,0.5))" }}>&#127942;</div>
+        <div className="text-7xl mb-5 crown-float" style={{ filter: "drop-shadow(0 0 16px rgba(128,128,128,0.2))" }}>&#127942;</div>
         <h2 className="text-white font-heading tracking-wide text-4xl mb-2">Arena Conquered!</h2>
         <p className="text-sm mb-8" style={{ color: "var(--text-muted)" }}>
           You&apos;ve voted on every matchup in <span style={{ color: "var(--accent)", fontWeight: 800 }}>{arena.name}</span>.
@@ -600,7 +600,7 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
         </div>
         <div className="flex items-center justify-center gap-3">
           <span className="font-heading tracking-wide text-4xl text-white" style={{ lineHeight: 1 }}>WHO</span>
-          <span className="font-heading tracking-wide text-4xl" style={{ color: "var(--accent)", lineHeight: 1, textShadow: "0 0 20px rgba(253,41,123,0.4)" }}>MOGS?</span>
+          <span className="font-heading tracking-wide text-4xl" style={{ color: "var(--accent)", lineHeight: 1, textShadow: "0 0 20px rgba(128,128,128,0.2)" }}>MOGS?</span>
         </div>
       </div>
 
@@ -608,7 +608,7 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
       {lastResult && (
         <div className="text-center mb-3" style={{ animation: "resultSlide 0.35s ease-out both" }}>
           <span className="inline-block font-black px-5 py-2 rounded-full text-sm uppercase tracking-widest"
-            style={{ background: "linear-gradient(135deg, #FD297B, #FF5864)", color: "#fff", boxShadow: "0 0 30px rgba(253,41,123,0.6)" }}>
+            style={{ background: "var(--text-primary)", color: "var(--bg-primary)", boxShadow: "0 0 30px rgba(128,128,128,0.2)" }}>
             {lastResult}
           </span>
         </div>
@@ -649,7 +649,7 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
             <span className="font-heading tracking-wide text-4xl"
               style={{
                 color: "var(--accent)",
-                textShadow: "0 0 24px rgba(253,41,123,0.6), 0 0 48px rgba(253,41,123,0.2)",
+                textShadow: "0 0 24px rgba(128,128,128,0.2), 0 0 48px rgba(128,128,128,0.1)",
                 lineHeight: 1,
               }}>
               VS
@@ -701,9 +701,9 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
           style={{ background: "rgba(0,0,0,0.92)", backdropFilter: "blur(8px)" }}
           onClick={() => setShowSignInGate(false)}>
           <div className="max-w-xs w-full rounded-2xl p-8 text-center"
-            style={{ background: "var(--bg-card)", border: "1px solid rgba(253,41,123,0.25)", boxShadow: "0 0 40px rgba(253,41,123,0.1)" }}
+            style={{ background: "var(--bg-card)", border: "1px solid var(--border)", boxShadow: "0 0 40px rgba(0,0,0,0.2)" }}
             onClick={(e) => e.stopPropagation()}>
-            <div className="text-5xl mb-4" style={{ filter: "drop-shadow(0 0 12px rgba(253,41,123,0.4))" }}>&#9876;&#65039;</div>
+            <div className="text-5xl mb-4" style={{ filter: "drop-shadow(0 0 12px rgba(128,128,128,0.15))" }}>&#9876;&#65039;</div>
             <h2 className="text-white font-black text-xl mb-2 tracking-tight">Join the Arena</h2>
             <p className="text-sm mb-6 leading-relaxed" style={{ color: "var(--text-muted)" }}>
               Sign in to vote in battles, track your history, and compete on the leaderboard.

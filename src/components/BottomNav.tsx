@@ -77,7 +77,7 @@ export default function BottomNav() {
                 style={{
                   width:      isActive ? "36px" : "0px",
                   height:     "3px",
-                  background: "linear-gradient(90deg, #FD297B, #FF5864)",
+                  background: "var(--text-primary)",
                   boxShadow:  isActive ? "0 0 12px var(--accent-glow), 0 0 24px var(--accent-glow)" : "none",
                   transform:  "translateX(-50%)",
                   opacity:    isActive ? 1 : 0,

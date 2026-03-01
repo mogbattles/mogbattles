@@ -254,7 +254,7 @@ export default function ProfilePage() {
     <div className="max-w-md mx-auto px-4 py-8">
       {/* Welcome banner */}
       {isWelcome && (
-        <div className="mb-6 rounded-2xl p-4 text-center" style={{ background: "rgba(253,41,123,0.08)", border: "1px solid rgba(253,41,123,0.25)" }}>
+        <div className="mb-6 rounded-2xl p-4 text-center" style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }}>
           <div className="text-2xl mb-1">🎉</div>
           <p className="font-bold text-sm" style={{ color: "var(--accent)" }}>
             You&apos;re in the arena! Your profile is live — go see how you rank.
@@ -356,8 +356,8 @@ export default function ProfilePage() {
               href="/onboarding"
               className="block rounded-2xl p-5 transition-colors group"
               style={{
-                background: "linear-gradient(90deg, rgba(253,41,123,0.12), var(--bg-card))",
-                border: "1px solid rgba(253,41,123,0.3)",
+                background: "var(--bg-elevated)",
+                border: "1px solid var(--border)",
               }}
             >
               <div className="flex items-center gap-4">

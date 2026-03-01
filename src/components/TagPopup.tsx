@@ -123,8 +123,8 @@ export default function TagPopup({
             }}
             className="shrink-0 w-6 h-6 flex items-center justify-center rounded-lg transition-all mt-0.5"
             style={{
-              background: view === "photos" ? "rgba(253,41,123,0.12)" : "var(--bg-elevated)",
-              border: `1px solid ${view === "photos" ? "rgba(253,41,123,0.4)" : "var(--border)"}`,
+              background: view === "photos" ? "var(--bg-elevated)" : "var(--bg-elevated)",
+              border: `1px solid ${view === "photos" ? "var(--border-hover)" : "var(--border)"}`,
               color: view === "photos" ? "var(--accent)" : "var(--text-muted)",
               fontSize: "11px",
             }}
@@ -153,8 +153,8 @@ export default function TagPopup({
                     disabled={!userId}
                     className="flex items-center justify-between w-full text-left px-2 py-1 rounded-lg text-xs font-bold transition-all"
                     style={{
-                      background: voted ? "rgba(253,41,123,0.08)" : "var(--bg-elevated)",
-                      border: `1px solid ${voted ? "rgba(253,41,123,0.35)" : "var(--border)"}`,
+                      background: voted ? "var(--bg-elevated)" : "var(--bg-elevated)",
+                      border: `1px solid ${voted ? "var(--border-hover)" : "var(--border)"}`,
                       color: voted ? "var(--accent)" : "var(--text-muted)",
                       cursor: userId ? "pointer" : "not-allowed",
                     }}
@@ -209,8 +209,8 @@ export default function TagPopup({
                     onClick={(e) => { e.stopPropagation(); handleTagSubmit(); }}
                     className="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg font-black text-sm transition-all"
                     style={{
-                      background: tagErr ? "rgba(231,76,60,0.15)" : "rgba(253,41,123,0.12)",
-                      border: `1px solid ${tagErr ? "rgba(231,76,60,0.4)" : "rgba(253,41,123,0.25)"}`,
+                      background: tagErr ? "rgba(231,76,60,0.15)" : "var(--bg-elevated)",
+                      border: `1px solid ${tagErr ? "rgba(231,76,60,0.4)" : "var(--border)"}`,
                       color: tagErr ? "var(--danger)" : "var(--accent)",
                     }}
                   >
@@ -257,7 +257,7 @@ export default function TagPopup({
                     className="relative rounded-lg overflow-hidden transition-all"
                     style={{
                       aspectRatio: "3/4",
-                      border: `2px solid ${voted ? "rgba(253,41,123,0.7)" : "var(--border)"}`,
+                      border: `2px solid ${voted ? "var(--border-hover)" : "var(--border)"}`,
                       boxShadow: voted ? "0 0 8px var(--accent-glow)" : "none",
                       cursor: userId ? "pointer" : "not-allowed",
                     }}
@@ -267,7 +267,7 @@ export default function TagPopup({
                     <div
                       className="absolute bottom-0.5 right-0.5 text-[9px] font-black px-1 rounded"
                       style={{
-                        background: voted ? "rgba(253,41,123,0.92)" : "rgba(0,0,0,0.82)",
+                        background: voted ? "var(--text-primary)" : "rgba(0,0,0,0.82)",
                         color: voted ? "#fff" : "var(--text-secondary)",
                       }}
                     >
@@ -309,8 +309,8 @@ export default function TagPopup({
                   onClick={(e) => { e.stopPropagation(); handleImgSubmit(); }}
                   className="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg font-black text-sm transition-all"
                   style={{
-                    background: imgErr ? "rgba(231,76,60,0.15)" : "rgba(253,41,123,0.12)",
-                    border: `1px solid ${imgErr ? "rgba(231,76,60,0.4)" : "rgba(253,41,123,0.25)"}`,
+                    background: imgErr ? "rgba(231,76,60,0.15)" : "var(--bg-elevated)",
+                    border: `1px solid ${imgErr ? "rgba(231,76,60,0.4)" : "var(--border)"}`,
                     color: imgErr ? "var(--danger)" : "var(--accent)",
                   }}
                 >

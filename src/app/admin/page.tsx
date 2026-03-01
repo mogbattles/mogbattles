@@ -1712,7 +1712,7 @@ export default function AdminPage() {
             <button
               onClick={saveAllArenaThumbnails}
               disabled={savingArenaThumbnail === "all"}
-              className="shrink-0 btn-accent disabled:opacity-50 text-white text-xs font-black px-4 py-2 rounded-lg transition-colors"
+              className="shrink-0 btn-accent disabled:opacity-50 text-xs font-black px-4 py-2 rounded-lg transition-colors"
             >
               {savingArenaThumbnail === "all" ? "Saving all…" : "Save All"}
             </button>
@@ -1740,7 +1740,7 @@ export default function AdminPage() {
                   onClick={() => saveArenaThumbnail(arena.id)}
                   disabled={savingArenaThumbnail === arena.id}
                   className="text-[10px] font-black px-3 py-1 rounded-lg transition-colors disabled:opacity-50"
-                  style={{ background: "rgba(253,41,123,0.15)", color: "var(--accent)", border: "1px solid rgba(253,41,123,0.3)" }}
+                  style={{ background: "var(--bg-elevated)", color: "var(--accent)", border: "1px solid var(--border)" }}
                 >
                   {savingArenaThumbnail === arena.id ? "…" : "Save"}
                 </button>

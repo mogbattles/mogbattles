@@ -87,7 +87,7 @@ export default function AboutPage() {
                 </button>
                 <button onClick={saveContent} disabled={saving}
                   className="text-xs font-black px-4 py-1.5 rounded-lg disabled:opacity-50"
-                  style={{ background: "var(--accent)", color: "#fff" }}
+                  style={{ background: "var(--accent)", color: "var(--bg-primary)" }}
                 >
                   {saving ? "Saving…" : "Save"}
                 </button>
@@ -95,7 +95,7 @@ export default function AboutPage() {
             ) : (
               <button onClick={() => setEditing(true)}
                 className="text-xs font-black px-4 py-1.5 rounded-lg"
-                style={{ background: "rgba(253,41,123,0.1)", color: "var(--accent)", border: "1px solid rgba(253,41,123,0.25)" }}
+                style={{ background: "var(--bg-elevated)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}
               >
                 Edit Page
               </button>
@@ -108,17 +108,14 @@ export default function AboutPage() {
       <div className="text-center mb-12">
         <div
           className="text-6xl mb-6 leading-none"
-          style={{ filter: "drop-shadow(0 0 20px rgba(253,41,123,0.4))" }}
+          style={{ filter: "drop-shadow(0 0 20px rgba(128,128,128,0.2))" }}
         >
           ⚔️
         </div>
         <h1
           className="text-4xl sm:text-5xl font-black tracking-tight mb-4"
           style={{
-            background: "linear-gradient(135deg, #FD297B, #FF5864, #FF655B)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
+            color: "var(--text-primary)",
           }}
         >
           MOGBATTLES

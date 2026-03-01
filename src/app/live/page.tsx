@@ -224,7 +224,7 @@ export default function LivePage() {
 
                   {/* Big play icon overlay */}
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="w-14 h-14 rounded-full flex items-center justify-center bg-accent/90 shadow-[0_0_20px_rgba(253,41,123,0.5)]">
+                    <div className="w-14 h-14 rounded-full flex items-center justify-center bg-accent/90 shadow-[0_0_20px_rgba(128,128,128,0.2)]">
                       <span className="text-xl ml-0.5 text-white">▶</span>
                     </div>
                   </div>

@@ -168,7 +168,7 @@ export default function ManageArenaPage() {
             <button
               onClick={handleCopyInviteLink}
               className="text-xs font-bold px-3 py-2 rounded-lg transition-colors shrink-0"
-              style={{ background: "rgba(253,41,123,0.15)", border: "1px solid rgba(253,41,123,0.3)", color: "var(--accent)" }}
+              style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)", color: "var(--text-secondary)" }}
             >
               {copied ? "Copied!" : "Copy"}
             </button>

@@ -308,8 +308,8 @@ export default function PlayerPage() {
               border: "1px solid rgba(255,255,255,0.12)",
               color: "#aaa",
             } : {
-              background: "rgba(253,41,123,0.15)",
-              border: "1px solid rgba(253,41,123,0.4)",
+              background: "var(--bg-elevated)",
+              border: "1px solid var(--border-hover)",
               color: "var(--accent)",
             }}
           >
@@ -374,7 +374,7 @@ export default function PlayerPage() {
               className="h-full rounded-full transition-all"
               style={{
                 width: `${winRate}%`,
-                background: "linear-gradient(90deg, #FD297B 0%, #FF5864 100%)",
+                background: "var(--text-primary)",
               }}
             />
           </div>

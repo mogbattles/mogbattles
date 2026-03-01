@@ -137,7 +137,7 @@ export default function ArenaDropdown({ currentSlug }: ArenaDropdownProps) {
                 className="text-xs font-bold px-2.5 py-1 rounded-full transition-all"
                 style={{
                   background: filter === f
-                    ? "linear-gradient(135deg, #FD297B, #FF5864)"
+                    ? "var(--text-primary)"
                     : "var(--bg-elevated)",
                   border: `1px solid ${filter === f ? "var(--accent)" : "var(--border)"}`,
                   color: filter === f ? "#fff" : "var(--text-muted)",

@@ -48,8 +48,8 @@ export default function ProfileTags({ tags, myVotedTags, onVote }: ProfileTagsPr
                 disabled={!onVote}
                 className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold transition-all"
                 style={{
-                  background: voted ? "rgba(253,41,123,0.12)" : "rgba(0,0,0,0.7)",
-                  border: `1px solid ${voted ? "rgba(253,41,123,0.4)" : "var(--border)"}`,
+                  background: voted ? "var(--bg-elevated)" : "rgba(0,0,0,0.7)",
+                  border: `1px solid ${voted ? "var(--border-hover)" : "var(--border)"}`,
                   color: voted ? "var(--accent)" : "var(--text-muted)",
                   cursor: onVote ? "pointer" : "default",
                 }}
@@ -109,8 +109,8 @@ export default function ProfileTags({ tags, myVotedTags, onVote }: ProfileTagsPr
                 onClick={(e) => { e.stopPropagation(); handleSubmit(); }}
                 className="w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-black transition-all"
                 style={{
-                  background: tagErr ? "rgba(231,76,60,0.15)" : "rgba(253,41,123,0.12)",
-                  border: `1px solid ${tagErr ? "rgba(231,76,60,0.4)" : "rgba(253,41,123,0.25)"}`,
+                  background: tagErr ? "rgba(231,76,60,0.15)" : "var(--bg-elevated)",
+                  border: `1px solid ${tagErr ? "rgba(231,76,60,0.4)" : "var(--border)"}`,
                   color: tagErr ? "var(--danger)" : "var(--accent)",
                 }}
               >

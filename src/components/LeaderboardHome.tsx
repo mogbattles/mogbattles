@@ -96,7 +96,7 @@ function FriendsCard() {
               <h3 className="text-white font-black text-lg">Friends</h3>
               <span
                 className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
-                style={{ color: "var(--accent)", background: "rgba(253,41,123,0.08)", border: "1px solid rgba(253,41,123,0.15)" }}
+                style={{ color: "var(--accent)", background: "var(--bg-elevated)", border: "1px solid var(--border)" }}
               >
                 NEW
               </span>
@@ -178,7 +178,7 @@ export default function LeaderboardHome() {
         <h1
           className="text-3xl sm:text-4xl font-black mb-1"
           style={{
-            background: "linear-gradient(90deg, #FD297B 0%, #FF5864 40%, #FF655B 100%)",
+            background: "var(--text-primary)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
           }}
