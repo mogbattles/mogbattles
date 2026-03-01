@@ -62,7 +62,7 @@ export default async function LeaderboardArenaPage({
         arenaSlug={slug}
         isSubCategory={
           !!arena.category_id &&
-          arena.is_official &&
+          (arena.is_official || (arena.arena_tier !== "custom")) &&
           !["all", "members", "men", "women"].includes(slug)
         }
       />

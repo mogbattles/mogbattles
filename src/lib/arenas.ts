@@ -329,7 +329,9 @@ export async function getProfilesForArena(
 
   // Resolve root arena for ELO lookup (sub-category arenas share root ELO)
   let statsArenaId = arena.id;
-  if (arena.category_id && arena.is_official) {
+  const isNonCustomArena = arena.is_official ||
+    (arena.arena_tier && arena.arena_tier !== "custom");
+  if (arena.category_id && isNonCustomArena) {
     const rootId = await getRootArenaId(arena.id);
     if (rootId) statsArenaId = rootId;
   }
@@ -393,14 +395,18 @@ export async function getLeaderboardForArena(
   // Resolve root arena for ELO stats
   const { data: thisArena } = await client
     .from("arenas")
-    .select("id, slug, category_id, is_official")
+    .select("id, slug, category_id, is_official, arena_tier")
     .eq("id", arenaId)
     .maybeSingle();
 
   let statsArenaId = arenaId;
   let filterProfileIds: Set<string> | null = null;
 
-  if (thisArena?.category_id && thisArena.is_official && !arenaSpecific) {
+  // Non-custom arenas resolve to root arena for global ELO
+  const isNonCustom = thisArena?.is_official ||
+    (thisArena?.arena_tier && thisArena.arena_tier !== "custom");
+
+  if (thisArena?.category_id && isNonCustom && !arenaSpecific) {
     // Global ELO mode: resolve to root arena, filter by sub-category membership
     const rootId = await getRootArenaId(arenaId);
     if (rootId && rootId !== arenaId) {
@@ -492,18 +498,23 @@ export async function getTopProfilesForArena(
 ): Promise<{ id: string; name: string; image_url: string | null; elo_rating: number }[]> {
   const client = db();
 
-  // Resolve root arena for ELO stats
-  const rootId = await getRootArenaId(arenaId);
+  // Check if this arena should resolve to root (non-custom only)
+  const { data: arenaInfo } = await client
+    .from("arenas")
+    .select("is_official, arena_tier, category_id")
+    .eq("id", arenaId)
+    .maybeSingle();
+
+  const isNonCustom = arenaInfo?.is_official ||
+    (arenaInfo?.arena_tier && arenaInfo.arena_tier !== "custom");
+
+  const rootId = isNonCustom ? await getRootArenaId(arenaId) : null;
   const statsArenaId = rootId ?? arenaId;
 
   // If this is a sub-category, get profile IDs to filter by
   let filterProfileIds: Set<string> | null = null;
   if (rootId && rootId !== arenaId) {
-    const { data: thisArena } = await client
-      .from("arenas")
-      .select("category_id")
-      .eq("id", arenaId)
-      .maybeSingle();
+    const thisArena = arenaInfo;
     if (thisArena?.category_id) {
       const { getCategoryDescendantIds } = await import("@/lib/categories");
       const descendantIds = await getCategoryDescendantIds(thisArena.category_id);
