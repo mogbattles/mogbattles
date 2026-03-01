@@ -92,7 +92,7 @@ function CountryPicker({
           onFocus={() => setOpen(true)}
           placeholder="Search country…"
           disabled={disabled}
-          className={`w-full rounded-xl py-3 text-white focus:outline-none transition-colors disabled:opacity-50 ${value ? "pl-10 pr-4" : "px-4"}`}
+          className={`w-full rounded-xl py-3 text-[color:var(--text-primary)] focus:outline-none transition-colors disabled:opacity-50 ${value ? "pl-10 pr-4" : "px-4"}`}
           style={{ background: "var(--bg-card)", border: "1px solid var(--border)", caretColor: "var(--accent)" }}
           onFocusCapture={(e) => { (e.target as HTMLElement).style.borderColor = "var(--border-hover)"; }}
           onBlurCapture={(e) => { (e.target as HTMLElement).style.borderColor = "var(--border)"; }}
@@ -334,7 +334,7 @@ export default function OnboardingPage() {
             placeholder="How you appear in battles"
             maxLength={60}
             disabled={uploading}
-            className="w-full rounded-xl px-4 py-3 text-white focus:outline-none transition-colors disabled:opacity-50"
+            className="w-full rounded-xl px-4 py-3 text-[color:var(--text-primary)] focus:outline-none transition-colors disabled:opacity-50"
             style={{ background: "var(--bg-card)", border: "1px solid var(--border)", caretColor: "var(--accent)" }}
             onFocus={(e) => { (e.target as HTMLElement).style.borderColor = "var(--border-hover)"; }}
             onBlur={(e) => { (e.target as HTMLElement).style.borderColor = "var(--border)"; }}
@@ -381,7 +381,7 @@ export default function OnboardingPage() {
                 value={heightFt}
                 onChange={(e) => setHeightFt(Number(e.target.value))}
                 disabled={uploading}
-                className="w-full rounded-xl px-4 py-3 text-white focus:outline-none transition-colors disabled:opacity-50"
+                className="w-full rounded-xl px-4 py-3 text-[color:var(--text-primary)] focus:outline-none transition-colors disabled:opacity-50"
                 style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
               >
                 {FEET_OPTIONS.map((f) => (
@@ -394,7 +394,7 @@ export default function OnboardingPage() {
                 value={heightIn}
                 onChange={(e) => setHeightIn(Number(e.target.value))}
                 disabled={uploading}
-                className="w-full rounded-xl px-4 py-3 text-white focus:outline-none transition-colors disabled:opacity-50"
+                className="w-full rounded-xl px-4 py-3 text-[color:var(--text-primary)] focus:outline-none transition-colors disabled:opacity-50"
                 style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
               >
                 {INCH_OPTIONS.map((i) => (
@@ -418,7 +418,7 @@ export default function OnboardingPage() {
             min={50}
             max={500}
             disabled={uploading}
-            className="w-full rounded-xl px-4 py-3 text-white focus:outline-none transition-colors disabled:opacity-50"
+            className="w-full rounded-xl px-4 py-3 text-[color:var(--text-primary)] focus:outline-none transition-colors disabled:opacity-50"
             style={{ background: "var(--bg-card)", border: "1px solid var(--border)", caretColor: "var(--accent)" }}
             onFocus={(e) => { (e.target as HTMLElement).style.borderColor = "var(--border-hover)"; }}
             onBlur={(e) => { (e.target as HTMLElement).style.borderColor = "var(--border)"; }}

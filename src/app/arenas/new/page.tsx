@@ -59,7 +59,7 @@ export default function NewArenaPage() {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] px-4 text-center">
         <div className="text-4xl mb-4">🔒</div>
-        <h2 className="text-white font-black text-xl mb-2">Sign in required</h2>
+        <h2 className="text-[color:var(--text-primary)] font-black text-xl mb-2">Sign in required</h2>
         <p className="text-sm mb-6" style={{ color: "var(--text-muted)" }}>
           You need to be signed in to create an arena.
         </p>
@@ -108,7 +108,7 @@ export default function NewArenaPage() {
         <Link href="/swipe" className="text-xs" style={{ color: "var(--text-muted)" }}>
           ← Back
         </Link>
-        <h1 className="text-3xl font-black text-white mt-3">Create Arena</h1>
+        <h1 className="text-3xl font-black text-[color:var(--text-primary)] mt-3">Create Arena</h1>
         <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
           Build your own mogging community.
         </p>
@@ -126,7 +126,7 @@ export default function NewArenaPage() {
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Chess Players, F1 Drivers, K-Pop Idols…"
             maxLength={60}
-            className="w-full rounded-xl px-4 py-3 text-white focus:outline-none transition-colors"
+            className="w-full rounded-xl px-4 py-3 text-[color:var(--text-primary)] focus:outline-none transition-colors"
             style={{ background: "var(--bg-card)", border: "1px solid var(--border)", caretColor: "var(--accent)" }}
             onFocus={(e) => { (e.target as HTMLElement).style.borderColor = "var(--border-hover)"; }}
             onBlur={(e) => { (e.target as HTMLElement).style.borderColor = "var(--border)"; }}
@@ -143,7 +143,7 @@ export default function NewArenaPage() {
             onChange={(e) => setDescription(e.target.value)}
             placeholder="What is this arena about?"
             rows={2}
-            className="w-full rounded-xl px-4 py-3 text-white focus:outline-none transition-colors resize-none"
+            className="w-full rounded-xl px-4 py-3 text-[color:var(--text-primary)] focus:outline-none transition-colors resize-none"
             style={{ background: "var(--bg-card)", border: "1px solid var(--border)", caretColor: "var(--accent)" }}
             onFocus={(e) => { (e.target as HTMLElement).style.borderColor = "var(--border-hover)"; }}
             onBlur={(e) => { (e.target as HTMLElement).style.borderColor = "var(--border)"; }}
@@ -160,7 +160,7 @@ export default function NewArenaPage() {
             value={thumbnailUrl}
             onChange={(e) => setThumbnailUrl(e.target.value)}
             placeholder="https://example.com/image.jpg"
-            className="w-full rounded-xl px-4 py-3 text-white focus:outline-none transition-colors text-sm"
+            className="w-full rounded-xl px-4 py-3 text-[color:var(--text-primary)] focus:outline-none transition-colors text-sm"
             style={{ background: "var(--bg-card)", border: "1px solid var(--border)", caretColor: "var(--accent)" }}
             onFocus={(e) => { (e.target as HTMLElement).style.borderColor = "var(--border-hover)"; }}
             onBlur={(e) => { (e.target as HTMLElement).style.borderColor = "var(--border)"; }}

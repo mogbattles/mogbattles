@@ -63,7 +63,7 @@ export default function FriendsLeaderboardPage() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-1">
-          <h1 className="text-3xl font-black text-white">🤝 Friends</h1>
+          <h1 className="text-3xl font-black text-[color:var(--text-primary)]">🤝 Friends</h1>
         </div>
         <p className="text-sm" style={{ color: "var(--text-muted)" }}>
           People you mutually follow, ranked by ELO
@@ -96,7 +96,7 @@ export default function FriendsLeaderboardPage() {
           style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
         >
           <p className="text-4xl mb-3">🤝</p>
-          <p className="font-bold text-white mb-1">No friends yet</p>
+          <p className="font-bold text-[color:var(--text-primary)] mb-1">No friends yet</p>
           <p className="text-sm mb-5" style={{ color: "var(--text-muted)" }}>
             Follow someone and have them follow you back to become friends.
           </p>
@@ -129,7 +129,7 @@ export default function FriendsLeaderboardPage() {
               </div>
               <Avatar src={friend.image_url} name={friend.name} size={36} />
               <div className="flex-1 min-w-0">
-                <p className="font-black text-white text-sm truncate">{friend.name}</p>
+                <p className="font-black text-[color:var(--text-primary)] text-sm truncate">{friend.name}</p>
               </div>
               <p className="font-black text-sm shrink-0" style={{ color: "var(--gold)" }}>
                 {friend.elo_rating}

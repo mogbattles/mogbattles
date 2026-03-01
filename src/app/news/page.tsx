@@ -235,7 +235,7 @@ export default function NewsPage() {
                         Latest
                       </span>
                     )}
-                    <h2 className="text-white font-black text-lg leading-snug mb-2">{post.title}</h2>
+                    <h2 className="text-[color:var(--text-primary)] font-black text-lg leading-snug mb-2">{post.title}</h2>
                     {post.content && (
                       <p className="text-sm leading-relaxed mb-3 text-navy-200">
                         {post.content}
@@ -282,7 +282,7 @@ export default function NewsPage() {
             className="w-80 rounded-2xl p-6 space-y-4 bg-navy-800 border border-game-red/30"
             onClick={(e) => e.stopPropagation()}
           >
-            <p className="text-white font-black text-base">Delete this post?</p>
+            <p className="text-[color:var(--text-primary)] font-black text-base">Delete this post?</p>
             <p className="text-sm leading-snug text-navy-200">
               &ldquo;{confirmDelete.title}&rdquo; will be permanently removed. This cannot be undone.
             </p>

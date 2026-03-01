@@ -251,7 +251,7 @@ export default function ThreadPage() {
                 </button>
               )}
             </div>
-            <h1 className="text-white font-black text-xl leading-snug mb-3">
+            <h1 className="text-[color:var(--text-primary)] font-black text-xl leading-snug mb-3">
               {thread.title}
             </h1>
             {thread.content && (
@@ -377,7 +377,7 @@ export default function ThreadPage() {
       {confirmDeleteThread && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)" }} onClick={() => setConfirmDeleteThread(false)}>
           <div className="w-80 rounded-2xl p-6 space-y-4 bg-navy-800 border border-game-red/30" onClick={(e) => e.stopPropagation()}>
-            <p className="text-white font-black text-base">Delete this thread?</p>
+            <p className="text-[color:var(--text-primary)] font-black text-base">Delete this thread?</p>
             <p className="text-sm leading-snug text-navy-200">This will also delete all replies. This cannot be undone.</p>
             <div className="flex gap-3 justify-end">
               <button onClick={() => setConfirmDeleteThread(false)} className="px-4 py-2 rounded-xl text-sm font-bold text-navy-200 hover:text-white transition-colors">Cancel</button>
@@ -393,7 +393,7 @@ export default function ThreadPage() {
       {confirmDeleteReply && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)" }} onClick={() => setConfirmDeleteReply(null)}>
           <div className="w-80 rounded-2xl p-6 space-y-4 bg-navy-800 border border-game-red/30" onClick={(e) => e.stopPropagation()}>
-            <p className="text-white font-black text-base">Delete this reply?</p>
+            <p className="text-[color:var(--text-primary)] font-black text-base">Delete this reply?</p>
             <p className="text-sm leading-snug text-navy-200">This cannot be undone.</p>
             <div className="flex gap-3 justify-end">
               <button onClick={() => setConfirmDeleteReply(null)} className="px-4 py-2 rounded-xl text-sm font-bold text-navy-200 hover:text-white transition-colors">Cancel</button>

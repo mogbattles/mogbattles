@@ -225,7 +225,7 @@ function CompactBattleCard({
             style={{ background: "var(--bg-card)", border: "1px solid var(--border)", boxShadow: "0 0 40px rgba(0,0,0,0.3)" }}
             onClick={(e) => e.stopPropagation()}>
             <div className="text-5xl mb-4">{"\u2694\uFE0F"}</div>
-            <h2 className="text-white font-black text-xl mb-2">Join the Arena</h2>
+            <h2 className="text-[color:var(--text-primary)] font-black text-xl mb-2">Join the Arena</h2>
             <p className="text-sm mb-6" style={{ color: "var(--text-muted)" }}>Sign in to cast your vote.</p>
             <Link href="/profile" className="block btn-accent rounded-xl px-6 py-3 text-sm font-black uppercase tracking-wider"
               onClick={() => setShowSignIn(false)}>Sign In {"\u2192"}</Link>
@@ -263,7 +263,7 @@ function UpcomingBattleCard({ battle }: { battle: FeaturedBattle }) {
           onError={(e) => { (e.target as HTMLImageElement).src = fb(pb.name); }} />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-[10px] font-black text-white truncate">{pa.name} vs {pb.name}</p>
+        <p className="text-[10px] font-black text-[color:var(--text-primary)] truncate">{pa.name} vs {pb.name}</p>
         {battle.label && (
           <p className="text-[9px] font-bold" style={{ color: "var(--gold)" }}>{battle.label}</p>
         )}
@@ -292,7 +292,7 @@ function SearchDropdown({ query, profiles, arenas, onClose }: {
                 alt="" className="w-8 h-8 rounded-full object-cover shrink-0" style={{ border: "1px solid var(--border)" }}
                 onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&background=1a1a1a&color=888&size=48&bold=true`; }} />
               <div className="min-w-0">
-                <p className="text-white font-bold text-sm truncate">{p.name}</p>
+                <p className="text-[color:var(--text-primary)] font-bold text-sm truncate">{p.name}</p>
                 {p.category && <p className="text-[10px] font-bold uppercase" style={{ color: "var(--text-muted)" }}>{p.category.replace(/_/g, " ")}</p>}
               </div>
             </Link>
@@ -307,7 +307,7 @@ function SearchDropdown({ query, profiles, arenas, onClose }: {
               className="flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 transition-colors">
               <span className="text-xl shrink-0">{ARENA_EMOJIS[a.slug] ?? "\u2694\uFE0F"}</span>
               <div className="min-w-0">
-                <p className="text-white font-bold text-sm truncate">{a.name}</p>
+                <p className="text-[color:var(--text-primary)] font-bold text-sm truncate">{a.name}</p>
                 <p className="text-[10px] font-bold" style={{ color: "var(--text-muted)" }}>{a.player_count} players</p>
               </div>
             </Link>
@@ -584,7 +584,7 @@ export default function ExplorePage() {
                     }} />
                   </div>
                 )}
-                <p className="text-white text-xs font-bold leading-snug line-clamp-2 mb-1">{post.title}</p>
+                <p className="text-[color:var(--text-primary)] text-xs font-bold leading-snug line-clamp-2 mb-1">{post.title}</p>
                 {post.content && (
                   <p className="text-[10px] leading-snug line-clamp-2 mb-1" style={{ color: "var(--text-muted)" }}>
                     {post.content.slice(0, 100)}
@@ -622,7 +622,7 @@ export default function ExplorePage() {
                 {topThread.reply_count} {topThread.reply_count === 1 ? "reply" : "replies"}
               </span>
             </div>
-            <p className="text-white text-xs font-bold leading-snug line-clamp-2 mb-1">{topThread.title}</p>
+            <p className="text-[color:var(--text-primary)] text-xs font-bold leading-snug line-clamp-2 mb-1">{topThread.title}</p>
             {topThread.content && (
               <p className="text-[10px] leading-snug line-clamp-2 mb-1.5" style={{ color: "var(--text-muted)" }}>
                 {topThread.content.slice(0, 120)}
@@ -655,7 +655,7 @@ export default function ExplorePage() {
               </div>
             )}
             <div className="p-3">
-              <p className="text-white text-xs font-bold leading-snug line-clamp-2 mb-1">{latestArticle.title}</p>
+              <p className="text-[color:var(--text-primary)] text-xs font-bold leading-snug line-clamp-2 mb-1">{latestArticle.title}</p>
               {latestArticle.content && (
                 <p className="text-[10px] leading-snug line-clamp-2 mb-1.5" style={{ color: "var(--text-muted)" }}>
                   {latestArticle.content.slice(0, 120)}
@@ -694,7 +694,7 @@ export default function ExplorePage() {
           style={{ background: "var(--bg-card)", border: `1px solid ${query ? "var(--border-hover)" : "var(--border)"}` }}>
           <span className="text-base shrink-0" style={{ color: "var(--text-muted)" }}>{"\uD83D\uDD0D"}</span>
           <input type="search" placeholder="Search arenas or people..." value={query} onChange={handleQueryChange}
-            className="flex-1 bg-transparent text-white text-sm focus:outline-none" style={{ caretColor: "var(--accent)" }} />
+            className="flex-1 bg-transparent text-[color:var(--text-primary)] text-sm focus:outline-none" style={{ caretColor: "var(--accent)" }} />
           {query ? (
             <button onClick={clearSearch} className="text-sm shrink-0" style={{ color: "var(--text-muted)" }}>{"\u2715"}</button>
           ) : (
@@ -820,7 +820,7 @@ export default function ExplorePage() {
                           <div className="flex items-center gap-2 min-w-0">
                             <span className="text-lg shrink-0">{icon}</span>
                             <div className="min-w-0">
-                              <h3 className="text-white font-black text-sm leading-tight truncate">{arena.name}</h3>
+                              <h3 className="text-[color:var(--text-primary)] font-black text-sm leading-tight truncate">{arena.name}</h3>
                               <p className="text-[10px] font-bold" style={{ color: "var(--text-muted)" }}>{arena.player_count} players</p>
                             </div>
                           </div>
@@ -847,7 +847,7 @@ export default function ExplorePage() {
                                   style={{ border: "1px solid var(--border)" }}
                                   onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(player.name)}&background=1a1a1a&color=888&size=48&bold=true`; }}
                                 />
-                                <span className="text-[11px] font-bold text-white truncate flex-1">{player.name}</span>
+                                <span className="text-[11px] font-bold text-[color:var(--text-primary)] truncate flex-1">{player.name}</span>
                                 <span className="text-[10px] font-bold shrink-0" style={{ color: "var(--text-primary)" }}>{player.elo_rating}</span>
                               </div>
                             ))}
@@ -887,7 +887,7 @@ export default function ExplorePage() {
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <h2 className="font-heading tracking-wide text-xl sm:text-2xl text-white">OFFICIAL ARENAS</h2>
+                <h2 className="font-heading tracking-wide text-xl sm:text-2xl text-[color:var(--text-primary)]">OFFICIAL ARENAS</h2>
                 <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full hidden sm:inline"
                   style={{ color: "var(--gold)", background: "rgba(240,192,64,0.1)", border: "1px solid rgba(240,192,64,0.2)" }}>
                   {"\u2713"} VERIFIED
@@ -936,7 +936,7 @@ export default function ExplorePage() {
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <h2 className="font-heading tracking-wide text-xl sm:text-2xl text-white">MODERATOR ARENAS</h2>
+                  <h2 className="font-heading tracking-wide text-xl sm:text-2xl text-[color:var(--text-primary)]">MODERATOR ARENAS</h2>
                   <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full hidden sm:inline"
                     style={{ color: "#60A5FA", background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)" }}>
                     {"\uD83D\uDEE1\uFE0F"} TRUSTED
@@ -978,7 +978,7 @@ export default function ExplorePage() {
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <h2 className="font-heading tracking-wide text-xl sm:text-2xl text-white">CUSTOM ARENAS</h2>
+                  <h2 className="font-heading tracking-wide text-xl sm:text-2xl text-[color:var(--text-primary)]">CUSTOM ARENAS</h2>
                   <span className="text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full hidden sm:inline"
                     style={{ color: "var(--text-muted)", background: "var(--bg-elevated)", border: "1px solid var(--border)" }}>
                     COMMUNITY

@@ -215,7 +215,7 @@ export default function ForumPage() {
             onClick={() => switchBoard(null)}
             className={`shrink-0 text-xs font-black px-3.5 py-1.5 rounded-full border transition-all duration-150 ${
               activeBoard === null
-                ? "text-white border-transparent shadow-[0_0_12px_rgba(128,128,128,0.15)]"
+                ? "text-[color:var(--bg-primary)] border-transparent shadow-[0_0_12px_rgba(128,128,128,0.15)]"
                 : "bg-navy-800 text-navy-200 border-navy-500 hover:border-navy-300"
             }`}
             style={activeBoard === null ? { background: "var(--accent)" } : undefined}
@@ -228,7 +228,7 @@ export default function ForumPage() {
               onClick={() => switchBoard(board.id)}
               className={`shrink-0 text-xs font-black px-3.5 py-1.5 rounded-full border transition-all duration-150 ${
                 activeBoard === board.id
-                  ? "text-white border-transparent shadow-[0_0_12px_rgba(128,128,128,0.15)]"
+                  ? "text-[color:var(--bg-primary)] border-transparent shadow-[0_0_12px_rgba(128,128,128,0.15)]"
                   : "bg-navy-800 text-navy-200 border-navy-500 hover:border-navy-300"
               }`}
               style={activeBoard === board.id ? { background: "var(--accent)" } : undefined}
@@ -301,7 +301,7 @@ export default function ForumPage() {
                   )}
                 </div>
 
-                <h3 className="text-white font-black text-sm leading-snug mb-1 line-clamp-2">
+                <h3 className="text-[color:var(--text-primary)] font-black text-sm leading-snug mb-1 line-clamp-2">
                   {thread.title}
                 </h3>
                 {thread.content && (

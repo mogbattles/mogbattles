@@ -244,7 +244,7 @@ export default function ArticlesPage() {
                     />
                   )}
                   <div className="min-w-0 flex-1">
-                    <h2 className="text-white font-black text-base leading-snug mb-1 line-clamp-2">{article.title}</h2>
+                    <h2 className="text-[color:var(--text-primary)] font-black text-base leading-snug mb-1 line-clamp-2">{article.title}</h2>
                     {preview(article.content) && (
                       <p className="text-xs leading-relaxed line-clamp-2 mb-2 text-navy-200">
                         {preview(article.content)}
@@ -294,7 +294,7 @@ export default function ArticlesPage() {
             className="w-80 rounded-2xl p-6 space-y-4 bg-navy-800 border border-game-red/30"
             onClick={(e) => e.stopPropagation()}
           >
-            <p className="text-white font-black text-base">Delete this article?</p>
+            <p className="text-[color:var(--text-primary)] font-black text-base">Delete this article?</p>
             <p className="text-sm leading-snug text-navy-200">
               &ldquo;{confirmDelete.title}&rdquo; will be permanently removed.
             </p>

@@ -122,7 +122,7 @@ export default function AboutPage() {
         </h1>
         {editing ? (
           <textarea value={draft.about_hero} onChange={(e) => setDraft((d) => ({ ...d, about_hero: e.target.value }))}
-            className="w-full rounded-xl px-4 py-3 text-base text-center text-white focus:outline-none resize-none"
+            className="w-full rounded-xl px-4 py-3 text-base text-center text-[color:var(--text-primary)] focus:outline-none resize-none"
             style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
             rows={2}
           />
@@ -133,10 +133,10 @@ export default function AboutPage() {
 
       {/* Body */}
       <div className="mb-10">
-        <h2 className="text-lg font-black text-white mb-4">What is MogBattles?</h2>
+        <h2 className="text-lg font-black text-[color:var(--text-primary)] mb-4">What is MogBattles?</h2>
         {editing ? (
           <textarea value={draft.about_body} onChange={(e) => setDraft((d) => ({ ...d, about_body: e.target.value }))}
-            className="w-full rounded-xl px-4 py-3 text-sm text-white focus:outline-none resize-none"
+            className="w-full rounded-xl px-4 py-3 text-sm text-[color:var(--text-primary)] focus:outline-none resize-none"
             style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
             rows={8}
           />
@@ -151,7 +151,7 @@ export default function AboutPage() {
 
       {/* How it works */}
       <div className="mb-10">
-        <h2 className="text-lg font-black text-white mb-4">How it works</h2>
+        <h2 className="text-lg font-black text-[color:var(--text-primary)] mb-4">How it works</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             { icon: "⚔️", title: "Pick your arena", desc: "Actors, athletes, looksmaxxers, PSL icons — choose who you want to judge." },
@@ -160,7 +160,7 @@ export default function AboutPage() {
           ].map((step) => (
             <div key={step.title} className="rounded-2xl p-4 text-center" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
               <div className="text-3xl mb-2">{step.icon}</div>
-              <p className="text-white font-black text-sm mb-1">{step.title}</p>
+              <p className="text-[color:var(--text-primary)] font-black text-sm mb-1">{step.title}</p>
               <p className="text-xs leading-snug" style={{ color: "var(--text-muted)" }}>{step.desc}</p>
             </div>
           ))}
@@ -169,7 +169,7 @@ export default function AboutPage() {
 
       {/* User tiers */}
       <div className="mb-10">
-        <h2 className="text-lg font-black text-white mb-4">Community tiers</h2>
+        <h2 className="text-lg font-black text-[color:var(--text-primary)] mb-4">Community tiers</h2>
         <div className="space-y-2">
           {[
             { badge: "👤", label: "Guest", desc: "Browse arenas and read the leaderboard. Sign in to vote." },
@@ -182,7 +182,7 @@ export default function AboutPage() {
             <div key={tier.label} className="flex items-start gap-3 rounded-xl p-3" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
               <span className="text-xl shrink-0">{tier.badge}</span>
               <div>
-                <p className="text-white font-black text-sm">{tier.label}</p>
+                <p className="text-[color:var(--text-primary)] font-black text-sm">{tier.label}</p>
                 <p className="text-xs leading-snug" style={{ color: "var(--text-muted)" }}>{tier.desc}</p>
               </div>
             </div>
@@ -192,10 +192,10 @@ export default function AboutPage() {
 
       {/* Team */}
       <div className="mb-10">
-        <h2 className="text-lg font-black text-white mb-4">The team</h2>
+        <h2 className="text-lg font-black text-[color:var(--text-primary)] mb-4">The team</h2>
         {editing ? (
           <textarea value={draft.about_team} onChange={(e) => setDraft((d) => ({ ...d, about_team: e.target.value }))}
-            className="w-full rounded-xl px-4 py-3 text-sm text-white focus:outline-none resize-none"
+            className="w-full rounded-xl px-4 py-3 text-sm text-[color:var(--text-primary)] focus:outline-none resize-none"
             style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
             rows={3}
           />
@@ -208,7 +208,7 @@ export default function AboutPage() {
       <div className="text-center pt-6 border-t" style={{ borderColor: "var(--border)" }}>
         {editing ? (
           <input type="text" value={draft.about_footer} onChange={(e) => setDraft((d) => ({ ...d, about_footer: e.target.value }))}
-            className="w-full text-center rounded-xl px-4 py-3 text-sm text-white focus:outline-none"
+            className="w-full text-center rounded-xl px-4 py-3 text-sm text-[color:var(--text-primary)] focus:outline-none"
             style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
           />
         ) : (

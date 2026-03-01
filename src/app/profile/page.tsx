@@ -165,7 +165,7 @@ export default function ProfilePage() {
       <div className="max-w-md mx-auto px-4 py-16">
         <div className="text-center mb-10">
           <div className="text-5xl mb-4">👤</div>
-          <h1 className="text-3xl font-black text-white mb-2">Sign In</h1>
+          <h1 className="text-3xl font-black text-[color:var(--text-primary)] mb-2">Sign In</h1>
           <p className="text-sm" style={{ color: "var(--text-muted)" }}>
             Sign in to create arenas, track your voting history, and enter the rankings.
           </p>
@@ -174,7 +174,7 @@ export default function ProfilePage() {
         {sent ? (
           <div className="text-center rounded-2xl p-8" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
             <div className="text-4xl mb-3">📧</div>
-            <h2 className="text-white font-bold text-lg mb-2">Check your inbox</h2>
+            <h2 className="text-[color:var(--text-primary)] font-bold text-lg mb-2">Check your inbox</h2>
             <p className="text-sm" style={{ color: "var(--text-muted)" }}>
               We sent a magic link to{" "}
               <span className="font-semibold" style={{ color: "var(--text-secondary)" }}>{email}</span>.
@@ -309,7 +309,7 @@ export default function ProfilePage() {
                   style={{ border: "1px solid var(--border)" }}
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="text-white font-black text-base truncate">{arenaProfile.name}</p>
+                  <p className="text-[color:var(--text-primary)] font-black text-base truncate">{arenaProfile.name}</p>
                   <CategoryBadges profile={arenaProfile} />
                   <div className="flex gap-3 mt-1.5">
                     <span className="font-black text-sm" style={{ color: "var(--text-primary)" }}>{arenaProfile.elo_rating} ELO</span>
@@ -363,7 +363,7 @@ export default function ProfilePage() {
               <div className="flex items-center gap-4">
                 <div className="text-4xl shrink-0">⚔️</div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-white font-black text-base">Enter the Arena</p>
+                  <p className="text-[color:var(--text-primary)] font-black text-base">Enter the Arena</p>
                   <p className="text-sm mt-0.5" style={{ color: "var(--text-muted)" }}>
                     Upload your photos and join the ELO rankings
                   </p>
@@ -381,16 +381,16 @@ export default function ProfilePage() {
             className="flex items-center justify-between w-full rounded-xl px-4 py-3 transition-colors group"
             style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
           >
-            <span className="text-white font-semibold">➕ Create Arena</span>
-            <span className="group-hover:text-white/60 transition-colors" style={{ color: "var(--text-muted)" }}>→</span>
+            <span className="text-[color:var(--text-primary)] font-semibold">➕ Create Arena</span>
+            <span className="group-hover:text-[color:var(--text-muted)] transition-colors" style={{ color: "var(--text-muted)" }}>→</span>
           </Link>
           <Link
             href="/swipe"
             className="flex items-center justify-between w-full rounded-xl px-4 py-3 transition-colors group"
             style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
           >
-            <span className="text-white font-semibold">⚔️ Battle Arenas</span>
-            <span className="group-hover:text-white/60 transition-colors" style={{ color: "var(--text-muted)" }}>→</span>
+            <span className="text-[color:var(--text-primary)] font-semibold">⚔️ Battle Arenas</span>
+            <span className="group-hover:text-[color:var(--text-muted)] transition-colors" style={{ color: "var(--text-muted)" }}>→</span>
           </Link>
           <Link
             href="/admin"
@@ -398,7 +398,7 @@ export default function ProfilePage() {
             style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
           >
             <span className="font-semibold" style={{ color: "var(--text-muted)" }}>🔧 Admin Panel</span>
-            <span className="group-hover:text-white/60 transition-colors" style={{ color: "#353548" }}>→</span>
+            <span className="group-hover:text-[color:var(--text-muted)] transition-colors" style={{ color: "#353548" }}>→</span>
           </Link>
 
           <button
@@ -463,14 +463,14 @@ export default function ProfilePage() {
                     <Avatar url={row.profile_a.image_url} name={row.profile_a.name} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className={`text-sm font-bold truncate ${aWon ? "text-white" : ""}`} style={aWon ? {} : { color: "var(--text-muted)" }}>
+                        <span className={`text-sm font-bold truncate ${aWon ? "text-[color:var(--text-primary)]" : ""}`} style={aWon ? {} : { color: "var(--text-muted)" }}>
                           {row.profile_a.name}
                         </span>
                         <span className="text-xs font-black" style={{ color: aWon ? "var(--accent)" : "#353548" }}>
                           {aWon ? "👑 WON" : "lost"}
                         </span>
                         <span className="text-xs" style={{ color: "#353548" }}>vs</span>
-                        <span className={`text-sm font-bold truncate ${!aWon ? "text-white" : ""}`} style={!aWon ? {} : { color: "var(--text-muted)" }}>
+                        <span className={`text-sm font-bold truncate ${!aWon ? "text-[color:var(--text-primary)]" : ""}`} style={!aWon ? {} : { color: "var(--text-muted)" }}>
                           {row.profile_b.name}
                         </span>
                         {!aWon && <span className="text-xs font-black" style={{ color: "var(--accent)" }}>👑 WON</span>}

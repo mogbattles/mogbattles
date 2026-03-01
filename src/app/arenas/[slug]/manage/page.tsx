@@ -138,7 +138,7 @@ export default function ManageArenaPage() {
         <Link href={`/swipe/${arena.slug}`} className="text-xs" style={{ color: "var(--text-muted)" }}>
           ← View arena
         </Link>
-        <h1 className="text-2xl font-black text-white mt-2">
+        <h1 className="text-2xl font-black text-[color:var(--text-primary)] mt-2">
           Manage: {arena.name}
         </h1>
         <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
@@ -158,7 +158,7 @@ export default function ManageArenaPage() {
       {/* Invite link (for private arenas) */}
       {arena.visibility === "private" && (
         <div className="mb-6 rounded-xl p-4" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-          <h3 className="text-white font-bold text-sm mb-2">🔒 Invite Link</h3>
+          <h3 className="text-[color:var(--text-primary)] font-bold text-sm mb-2">🔒 Invite Link</h3>
           <div className="flex gap-2">
             <code className="flex-1 text-xs rounded-lg px-3 py-2 truncate" style={{ background: "var(--bg-card)", color: "var(--text-muted)" }}>
               {typeof window !== "undefined"
@@ -178,14 +178,14 @@ export default function ManageArenaPage() {
 
       {/* Add member search */}
       <div className="mb-6">
-        <h3 className="text-white font-bold text-sm mb-3">Add a profile</h3>
+        <h3 className="text-[color:var(--text-primary)] font-bold text-sm mb-3">Add a profile</h3>
         <div className="relative">
           <input
             type="text"
             placeholder="Search by name…"
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
-            className="w-full rounded-xl px-4 py-3 text-white text-sm focus:outline-none transition-colors"
+            className="w-full rounded-xl px-4 py-3 text-[color:var(--text-primary)] text-sm focus:outline-none transition-colors"
             style={{ background: "var(--bg-card)", border: "1px solid var(--border)", caretColor: "var(--accent)" }}
             onFocus={(e) => { (e.target as HTMLElement).style.borderColor = "var(--border-hover)"; }}
             onBlur={(e) => { (e.target as HTMLElement).style.borderColor = "var(--border)"; }}
@@ -219,7 +219,7 @@ export default function ManageArenaPage() {
                   style={{ border: "1px solid var(--border)" }}
                 />
                 <div>
-                  <p className="text-white text-sm font-semibold">{r.name}</p>
+                  <p className="text-[color:var(--text-primary)] text-sm font-semibold">{r.name}</p>
                   {r.category && (
                     <p className="text-xs capitalize" style={{ color: "var(--text-muted)" }}>
                       {r.category.replace("_", " ")}
@@ -235,7 +235,7 @@ export default function ManageArenaPage() {
 
       {/* Members list */}
       <div>
-        <h3 className="text-white font-bold text-sm mb-3">
+        <h3 className="text-[color:var(--text-primary)] font-bold text-sm mb-3">
           Members ({members.length})
         </h3>
         {members.length === 0 ? (
@@ -261,7 +261,7 @@ export default function ManageArenaPage() {
                   style={{ border: "1px solid var(--border)" }}
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="text-white font-semibold text-sm truncate">
+                  <p className="text-[color:var(--text-primary)] font-semibold text-sm truncate">
                     {m.name}
                   </p>
                   <p className="text-xs" style={{ color: "var(--text-muted)" }}>

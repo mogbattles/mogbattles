@@ -249,7 +249,7 @@ export default function LivePage() {
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h3 className="text-sm font-black text-white truncate leading-tight">
+                      <h3 className="text-sm font-black text-[color:var(--text-primary)] truncate leading-tight">
                         {stream.title}
                       </h3>
                       <p className="text-[10px] font-bold truncate text-navy-200">
@@ -280,7 +280,7 @@ export default function LivePage() {
           >
             <div className="flex items-center gap-2 mb-4">
               <span className="text-2xl">📡</span>
-              <h2 className="text-lg font-black text-white">Start Streaming</h2>
+              <h2 className="text-lg font-black text-[color:var(--text-primary)]">Start Streaming</h2>
             </div>
 
             <p className="text-xs font-bold mb-4 text-navy-200">

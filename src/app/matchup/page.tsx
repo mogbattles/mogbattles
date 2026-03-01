@@ -103,7 +103,7 @@ function ProfileSearch({
             placeholder="Search by name…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full rounded-xl px-3 py-3 text-white text-sm focus:outline-none transition-colors"
+            className="w-full rounded-xl px-3 py-3 text-[color:var(--text-primary)] text-sm focus:outline-none transition-colors"
             style={{ background: "var(--bg-card)", border: "1px solid var(--border)", caretColor: "var(--accent)" }}
             onFocus={(e) => { (e.target as HTMLElement).style.borderColor = "var(--border-hover)"; }}
             onBlur={(e) => { (e.target as HTMLElement).style.borderColor = "var(--border)"; }}
@@ -125,7 +125,7 @@ function ProfileSearch({
                 >
                   <ProfileAvatar profile={p} size="sm" />
                   <div>
-                    <p className="text-white text-sm font-semibold">{p.name}</p>
+                    <p className="text-[color:var(--text-primary)] text-sm font-semibold">{p.name}</p>
                     {p.category && (
                       <p className="text-xs capitalize" style={{ color: "var(--text-muted)" }}>{p.category.replace("_", " ")}</p>
                     )}
@@ -173,7 +173,7 @@ export default function MatchupPage() {
     <div className="max-w-xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-black text-white mb-1">🥊 Head-to-Head</h1>
+        <h1 className="text-3xl font-black text-[color:var(--text-primary)] mb-1">🥊 Head-to-Head</h1>
         <p className="text-sm" style={{ color: "var(--text-muted)" }}>
           See how the community voted between any two people
         </p>
@@ -225,7 +225,7 @@ export default function MatchupPage() {
               {/* Profile A */}
               <div className="text-center flex-1">
                 <ProfileAvatar profile={profileA} size="lg" />
-                <p className="text-white font-black text-base mt-2 truncate">{stats.profile_a.name}</p>
+                <p className="text-[color:var(--text-primary)] font-black text-base mt-2 truncate">{stats.profile_a.name}</p>
                 <p className="font-black text-3xl mt-1" style={{ color: "var(--text-secondary)" }}>{aWinPct}%</p>
                 <p className="text-xs" style={{ color: "var(--text-muted)" }}>{stats.a_wins} wins</p>
               </div>
@@ -239,7 +239,7 @@ export default function MatchupPage() {
               {/* Profile B */}
               <div className="text-center flex-1">
                 <ProfileAvatar profile={profileB} size="lg" />
-                <p className="text-white font-black text-base mt-2 truncate">{stats.profile_b.name}</p>
+                <p className="text-[color:var(--text-primary)] font-black text-base mt-2 truncate">{stats.profile_b.name}</p>
                 <p className="font-black text-3xl mt-1" style={{ color: "var(--text-secondary)" }}>{bWinPct}%</p>
                 <p className="text-xs" style={{ color: "var(--text-muted)" }}>{stats.b_wins} wins</p>
               </div>
@@ -278,13 +278,13 @@ export default function MatchupPage() {
             <div className="text-center">
               {aWinPct > bWinPct ? (
                 <p className="text-sm" style={{ color: "#ccc" }}>
-                  <span className="text-white font-bold">{aWinPct}%</span> of voters think{" "}
+                  <span className="text-[color:var(--text-primary)] font-bold">{aWinPct}%</span> of voters think{" "}
                   <span className="font-bold" style={{ color: "var(--text-secondary)" }}>{stats.profile_a.name}</span> mogs{" "}
                   {stats.profile_b.name}
                 </p>
               ) : bWinPct > aWinPct ? (
                 <p className="text-sm" style={{ color: "#ccc" }}>
-                  <span className="text-white font-bold">{bWinPct}%</span> of voters think{" "}
+                  <span className="text-[color:var(--text-primary)] font-bold">{bWinPct}%</span> of voters think{" "}
                   <span className="font-bold" style={{ color: "var(--text-secondary)" }}>{stats.profile_b.name}</span> mogs{" "}
                   {stats.profile_a.name}
                 </p>

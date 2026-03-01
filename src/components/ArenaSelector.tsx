@@ -37,7 +37,7 @@ export default function ArenaSelector({ mode }: ArenaSelectorProps) {
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-black text-white">{heading}</h1>
+        <h1 className="text-3xl font-black text-[color:var(--text-primary)]">{heading}</h1>
         <p className="text-navy-200 mt-1 text-sm">{subheading}</p>
       </div>
 

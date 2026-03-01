@@ -50,7 +50,7 @@ function FeaturedCard({ arena }: { arena: ArenaWithCount }) {
           )}
         </div>
 
-        <h3 className="text-white font-heading tracking-wide text-3xl leading-tight mb-1">{arena.name}</h3>
+        <h3 className="text-[color:var(--text-primary)] font-heading tracking-wide text-3xl leading-tight mb-1">{arena.name}</h3>
         {arena.description && (
           <p className="text-sm mb-5" style={{ color: "var(--text-muted)" }}>
             {arena.description}
@@ -93,7 +93,7 @@ function FriendsCard() {
           <span className="text-3xl">🤝</span>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-white font-black text-lg">Friends</h3>
+              <h3 className="text-[color:var(--text-primary)] font-black text-lg">Friends</h3>
               <span
                 className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
                 style={{ color: "var(--accent)", background: "var(--bg-elevated)", border: "1px solid var(--border)" }}

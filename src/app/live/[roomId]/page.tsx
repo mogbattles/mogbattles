@@ -255,7 +255,7 @@ export default function StreamRoomPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-4 text-center">
         <div className="text-5xl mb-4">📡</div>
-        <h1 className="text-xl font-black text-white mb-2">{error}</h1>
+        <h1 className="text-xl font-black text-[color:var(--text-primary)] mb-2">{error}</h1>
         <p className="text-xs mb-6" style={{ color: "var(--text-muted)" }}>
           The stream may have ended or the link might be invalid.
         </p>
@@ -278,7 +278,7 @@ export default function StreamRoomPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-4 text-center">
         <div className="text-5xl mb-4">🔒</div>
-        <h1 className="text-xl font-black text-white mb-2">
+        <h1 className="text-xl font-black text-[color:var(--text-primary)] mb-2">
           Sign in to watch
         </h1>
         <p className="text-xs mb-6" style={{ color: "var(--text-muted)" }}>
@@ -317,7 +317,7 @@ export default function StreamRoomPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-4 text-center">
         <div className="text-5xl mb-4">⚠️</div>
-        <h1 className="text-xl font-black text-white mb-2">
+        <h1 className="text-xl font-black text-[color:var(--text-primary)] mb-2">
           Streaming Not Configured
         </h1>
         <p className="text-xs" style={{ color: "var(--text-muted)" }}>
@@ -370,7 +370,7 @@ export default function StreamRoomPage() {
           </div>
 
           <div className="min-w-0">
-            <h1 className="text-sm font-black text-white truncate leading-tight">
+            <h1 className="text-sm font-black text-[color:var(--text-primary)] truncate leading-tight">
               {stream.title}
             </h1>
             <p className="text-[10px] font-bold" style={{ color: "var(--text-muted)" }}>

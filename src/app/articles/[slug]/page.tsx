@@ -74,7 +74,7 @@ export default function ArticleDetailPage() {
         />
       )}
 
-      <h1 className="text-3xl font-black text-white leading-snug mb-3">{article.title}</h1>
+      <h1 className="text-3xl font-black text-[color:var(--text-primary)] leading-snug mb-3">{article.title}</h1>
 
       <div className="flex items-center gap-3 mb-8 text-xs font-bold text-navy-200">
         {article.author_display && <span>By {article.author_display}</span>}

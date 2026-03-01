@@ -78,8 +78,14 @@ export default function Navbar() {
         borderBottom: "1px solid var(--nav-border)",
       }}
     >
-      {/* Logo — Tinder-style clean typography */}
-      <Link href="/explore" className="flex items-center shrink-0">
+      {/* Logo — gif + clean typography */}
+      <Link href="/explore" className="flex items-center gap-2 shrink-0">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="https://media.tenor.com/ONQPr0qrCXMAAAAM/wow.gif"
+          alt=""
+          style={{ width: "28px", height: "28px", borderRadius: "6px" }}
+        />
         <span
           style={{
             fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",

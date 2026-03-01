@@ -95,7 +95,7 @@ export default function MessagesPage() {
       {convos.length === 0 ? (
         <div className="game-card rounded-2xl p-8 text-center">
           <p className="text-4xl mb-3 opacity-30">💬</p>
-          <p className="font-black text-white mb-1">No conversations yet</p>
+          <p className="font-black text-[color:var(--text-primary)] mb-1">No conversations yet</p>
           <p className="text-sm mb-5 text-navy-200">
             Follow someone and have them follow you back to start chatting.
           </p>
@@ -127,7 +127,7 @@ export default function MessagesPage() {
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
-                  <p className={`font-black text-sm truncate ${c.unread_count > 0 ? "text-white" : "text-white/80"}`}>
+                  <p className={`font-black text-sm truncate ${c.unread_count > 0 ? "text-[color:var(--text-primary)]" : "text-[color:var(--text-secondary)]"}`}>
                     {c.other_user_name}
                   </p>
                   {c.last_message_at && (
@@ -137,7 +137,7 @@ export default function MessagesPage() {
                   )}
                 </div>
                 <p
-                  className={`text-sm truncate mt-0.5 ${c.unread_count > 0 ? "font-semibold text-white/90" : "text-white/40"}`}
+                  className={`text-sm truncate mt-0.5 ${c.unread_count > 0 ? "font-semibold text-[color:var(--text-secondary)]" : "text-[color:var(--text-muted)]"}`}
                 >
                   {c.last_message_preview ?? "No messages yet"}
                 </p>

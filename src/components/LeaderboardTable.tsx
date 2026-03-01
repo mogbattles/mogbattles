@@ -89,7 +89,7 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
   if (entries.length === 0) {
     return (
       <div className="text-center mt-16">
-        <p className="text-lg font-bold text-white mb-1">No battles yet.</p>
+        <p className="text-lg font-bold text-[color:var(--text-primary)] mb-1">No battles yet.</p>
         <p className="text-sm" style={{ color: "var(--text-muted)" }}>Be the first to vote!</p>
       </div>
     );
@@ -219,7 +219,7 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
               {/* Name + tags + record */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <h3 className="text-white font-black truncate text-sm sm:text-base">
+                  <h3 className="text-[color:var(--text-primary)] font-black truncate text-sm sm:text-base">
                     {entry.name}
                   </h3>
                   {flag && <span className="text-base shrink-0">{flag}</span>}

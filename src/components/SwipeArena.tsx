@@ -476,7 +476,7 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
 
         {/* Name + info overlay */}
         <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
-          <h3 className="text-white font-heading tracking-wide text-2xl leading-tight mb-0.5">{profile.name}</h3>
+          <h3 className="text-[color:var(--text-primary)] font-heading tracking-wide text-2xl leading-tight mb-0.5">{profile.name}</h3>
           <div className="flex items-center gap-2 text-xs">
             {profile.country && (
               <span className="opacity-70">{profile.country}</span>
@@ -550,7 +550,7 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
     return (
       <div className="text-center mt-16 px-6">
         <div className="text-6xl mb-4">&#9876;&#65039;</div>
-        <p className="font-bold text-lg mb-2 text-white">{error}</p>
+        <p className="font-bold text-lg mb-2 text-[color:var(--text-primary)]">{error}</p>
         <p className="text-sm" style={{ color: "var(--text-muted)" }}>Add profiles via the Admin panel or assign them to this category.</p>
       </div>
     );
@@ -561,7 +561,7 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
     return (
       <div className="flex flex-col items-center text-center mt-12 px-4 max-w-sm mx-auto">
         <div className="text-7xl mb-5 crown-float" style={{ filter: "drop-shadow(0 0 16px rgba(128,128,128,0.2))" }}>&#127942;</div>
-        <h2 className="text-white font-heading tracking-wide text-4xl mb-2">Arena Conquered!</h2>
+        <h2 className="text-[color:var(--text-primary)] font-heading tracking-wide text-4xl mb-2">Arena Conquered!</h2>
         <p className="text-sm mb-8" style={{ color: "var(--text-muted)" }}>
           You&apos;ve voted on every matchup in <span style={{ color: "var(--accent)", fontWeight: 800 }}>{arena.name}</span>.
         </p>
@@ -599,7 +599,7 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
           )}
         </div>
         <div className="flex items-center justify-center gap-3">
-          <span className="font-heading tracking-wide text-4xl text-white" style={{ lineHeight: 1 }}>WHO</span>
+          <span className="font-heading tracking-wide text-4xl text-[color:var(--text-primary)]" style={{ lineHeight: 1 }}>WHO</span>
           <span className="font-heading tracking-wide text-4xl" style={{ color: "var(--accent)", lineHeight: 1, textShadow: "0 0 20px rgba(128,128,128,0.2)" }}>MOGS?</span>
         </div>
       </div>
@@ -704,7 +704,7 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
             style={{ background: "var(--bg-card)", border: "1px solid var(--border)", boxShadow: "0 0 40px rgba(0,0,0,0.2)" }}
             onClick={(e) => e.stopPropagation()}>
             <div className="text-5xl mb-4" style={{ filter: "drop-shadow(0 0 12px rgba(128,128,128,0.15))" }}>&#9876;&#65039;</div>
-            <h2 className="text-white font-black text-xl mb-2 tracking-tight">Join the Arena</h2>
+            <h2 className="text-[color:var(--text-primary)] font-black text-xl mb-2 tracking-tight">Join the Arena</h2>
             <p className="text-sm mb-6 leading-relaxed" style={{ color: "var(--text-muted)" }}>
               Sign in to vote in battles, track your history, and compete on the leaderboard.
             </p>

@@ -246,7 +246,7 @@ export default function PlayerPage() {
       {/* Name + category */}
       <div className="flex items-start justify-between gap-3 mb-2">
         <div>
-          <h1 className="text-2xl font-black text-white leading-tight">{profile.name}</h1>
+          <h1 className="text-2xl font-black text-[color:var(--text-primary)] leading-tight">{profile.name}</h1>
           <div className="flex items-center gap-2 mt-1.5 flex-wrap">
             {(profile.categories?.length ? profile.categories : profile.category ? [profile.category] : []).map((cat) => (
               <span
@@ -276,10 +276,10 @@ export default function PlayerPage() {
       {targetUserId && (
         <div className="flex items-center gap-4 mb-4">
           <span className="text-sm" style={{ color: "var(--text-muted)" }}>
-            <span className="font-black text-white">{followerCount}</span> followers
+            <span className="font-black text-[color:var(--text-primary)]">{followerCount}</span> followers
           </span>
           <span className="text-sm" style={{ color: "var(--text-muted)" }}>
-            <span className="font-black text-white">{followingCount}</span> following
+            <span className="font-black text-[color:var(--text-primary)]">{followingCount}</span> following
           </span>
           {mutual && (
             <span
@@ -351,7 +351,7 @@ export default function PlayerPage() {
             className="rounded-xl p-3 text-center"
             style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
           >
-            <p className="font-black text-xl text-white">{value}</p>
+            <p className="font-black text-xl text-[color:var(--text-primary)]">{value}</p>
             <p className="text-xs font-bold uppercase tracking-wide mt-0.5" style={{ color }}>{label}</p>
           </div>
         ))}
@@ -367,7 +367,7 @@ export default function PlayerPage() {
             <p className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
               Win Rate
             </p>
-            <span className="font-black text-white text-sm">{winRate}%</span>
+            <span className="font-black text-[color:var(--text-primary)] text-sm">{winRate}%</span>
           </div>
           <div className="h-2 rounded-full overflow-hidden" style={{ background: "var(--bg-elevated)" }}>
             <div
@@ -394,7 +394,7 @@ export default function PlayerPage() {
             {profile.country && (
               <div className="flex justify-between items-center">
                 <span className="text-sm" style={{ color: "var(--text-muted)" }}>Country</span>
-                <span className="text-white text-sm font-semibold">
+                <span className="text-[color:var(--text-primary)] text-sm font-semibold">
                   {flag} {profile.country}
                 </span>
               </div>
@@ -402,7 +402,7 @@ export default function PlayerPage() {
             {profile.height_in != null && (
               <div className="flex justify-between items-center">
                 <span className="text-sm" style={{ color: "var(--text-muted)" }}>Height</span>
-                <span className="text-white text-sm font-semibold">
+                <span className="text-[color:var(--text-primary)] text-sm font-semibold">
                   {inchesToDisplay(profile.height_in)}
                 </span>
               </div>
@@ -410,7 +410,7 @@ export default function PlayerPage() {
             {profile.weight_lbs != null && (
               <div className="flex justify-between items-center">
                 <span className="text-sm" style={{ color: "var(--text-muted)" }}>Weight</span>
-                <span className="text-white text-sm font-semibold">
+                <span className="text-[color:var(--text-primary)] text-sm font-semibold">
                   {profile.weight_lbs} lbs
                 </span>
               </div>

@@ -192,7 +192,7 @@ export default function MessageThreadPage() {
     return (
       <div className="max-w-lg mx-auto px-4 py-8 text-center">
         <p className="text-4xl mb-3">🔒</p>
-        <p className="font-black text-white mb-2">Can&apos;t open conversation</p>
+        <p className="font-black text-[color:var(--text-primary)] mb-2">Can&apos;t open conversation</p>
         <p className="text-sm mb-5 text-navy-200">{error}</p>
         <Link
           href="/messages"
@@ -213,7 +213,7 @@ export default function MessageThreadPage() {
         </Link>
         <Avatar src={otherImage} name={otherName} size={38} />
         <div>
-          <p className="font-black text-white text-sm leading-tight">{otherName}</p>
+          <p className="font-black text-[color:var(--text-primary)] text-sm leading-tight">{otherName}</p>
           <p className="text-[10px] font-bold text-navy-200">Direct message</p>
         </div>
       </div>
@@ -244,7 +244,7 @@ export default function MessageThreadPage() {
               <div className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
                 <div
                   className={`max-w-[75%] px-3.5 py-2.5 rounded-2xl text-sm leading-snug ${
-                    isMe ? "text-white rounded-br-md" : "text-gray-200 rounded-bl-md"
+                    isMe ? "text-[color:var(--text-primary)] rounded-br-md" : "text-gray-200 rounded-bl-md"
                   }`}
                   style={isMe
                     ? { background: "var(--bg-elevated)", border: "1px solid var(--border)" }

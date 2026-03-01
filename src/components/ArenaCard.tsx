@@ -70,7 +70,7 @@ export default function ArenaCard({
           <div>
             <div className="flex items-center gap-3 mb-1">
               <span className="text-3xl">{"\uD83C\uDF10"}</span>
-              <h3 className="text-white font-black text-xl">More Arenas</h3>
+              <h3 className="text-[color:var(--text-primary)] font-black text-xl">More Arenas</h3>
             </div>
             <p className="text-sm" style={{ color: "var(--text-muted)" }}>Search, filter &amp; create custom arenas</p>
           </div>
@@ -134,7 +134,7 @@ export default function ArenaCard({
 
         {/* Content */}
         <div className="px-5 pt-2 pb-4">
-          <h3 className="text-white font-heading tracking-wide text-xl sm:text-2xl leading-tight mb-1">{name}</h3>
+          <h3 className="text-[color:var(--text-primary)] font-heading tracking-wide text-xl sm:text-2xl leading-tight mb-1">{name}</h3>
           {description && (
             <p className="text-xs sm:text-sm leading-snug line-clamp-2 mb-3" style={{ color: "var(--text-muted)" }}>{description}</p>
           )}
@@ -232,7 +232,7 @@ export default function ArenaCard({
 
         {/* Content */}
         <div className="px-4 pt-1 pb-3">
-          <h3 className="text-white font-heading tracking-wide text-lg leading-tight mb-0.5">{name}</h3>
+          <h3 className="text-[color:var(--text-primary)] font-heading tracking-wide text-lg leading-tight mb-0.5">{name}</h3>
           {description && (
             <p className="text-xs leading-snug line-clamp-1 mb-2.5" style={{ color: "var(--text-muted)" }}>{description}</p>
           )}
@@ -304,7 +304,7 @@ export default function ArenaCard({
               style={{ color: "var(--text-muted)", background: "var(--bg-elevated)", border: "1px solid var(--border)" }}>CUSTOM</span>
           )}
         </div>
-        <h3 className="text-white font-black text-base leading-tight mb-1">{name}</h3>
+        <h3 className="text-[color:var(--text-primary)] font-black text-base leading-tight mb-1">{name}</h3>
         {description && <p className="text-xs leading-snug mb-2 line-clamp-2" style={{ color: "var(--text-muted)" }}>{description}</p>}
         <div className="flex items-center justify-between mt-2">
           <span className="text-xs font-bold" style={{ color: "var(--text-faint)" }}>{player_count} {player_count === 1 ? "player" : "players"}</span>
