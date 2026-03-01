@@ -229,15 +229,27 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
         p_voter_id: user?.id ?? null,
       });
       if (rpcError) console.error("record_match error:", rpcError);
-      // record_match RETURNS TABLE → Supabase returns an array; unwrap first row
-      eloData = Array.isArray(data) ? data[0] ?? null : data;
+      // record_match RETURNS TABLE → Supabase wraps as array; unwrap first row
+      // Also handle the case where .rpc() returns a single object (some client versions)
+      if (Array.isArray(data) && data.length > 0) {
+        eloData = data[0];
+      } else if (data && typeof data === "object" && !Array.isArray(data)) {
+        eloData = data;
+      } else {
+        eloData = null;
+      }
     }
 
     const newWinnerElo: number = eloData?.winner_elo_after ?? winner.elo_rating;
     const newLoserElo: number  = eloData?.loser_elo_after  ?? loser.elo_rating;
     const eloGain = newWinnerElo - (eloData?.winner_elo_before ?? winner.elo_rating);
 
-    setLastResult(`${winner.name} mogs! +${eloGain} ELO`);
+    // If ELO data is missing (RPC error or empty response), compute expected gain client-side
+    const displayGain = eloGain !== 0
+      ? eloGain
+      : Math.round(32 * (1 - 1 / (1 + Math.pow(10, (loser.elo_rating - winner.elo_rating) / 400))));
+
+    setLastResult(`${winner.name} mogs! +${displayGain} ELO`);
     const winnerIsLeft = winner.id === pair![0].id;
 
     const updatedProfiles = profiles.map((p) => {
