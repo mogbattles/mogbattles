@@ -156,6 +156,8 @@ AS $$
 DECLARE
   v_root_arena_id uuid;
   v_arena_slug text;
+  v_is_official boolean;
+  v_arena_tier text;
   v_w_elo int;
   v_l_elo int;
   v_w_new int;
@@ -170,17 +172,21 @@ DECLARE
   v_a_expected_w float;
 BEGIN
   -- ── Resolve root arena for ELO ──────────────────────────────────────────
-  SELECT slug INTO v_arena_slug FROM arenas WHERE id = p_arena_id;
+  SELECT slug, is_official, arena_tier INTO v_arena_slug, v_is_official, v_arena_tier
+  FROM arenas WHERE id = p_arena_id;
 
-  IF v_arena_slug = 'all' THEN
+  IF COALESCE(v_arena_tier, 'custom') = 'custom' AND NOT COALESCE(v_is_official, false) THEN
+    -- Custom/non-official arenas: isolated ELO only — does NOT affect global economy
+    v_root_arena_id := p_arena_id;
+  ELSIF v_arena_slug = 'all' THEN
     -- "all" arena: determine root from winner's profile
     v_root_arena_id := get_root_arena_id_for_profile(p_winner_id);
   ELSE
     v_root_arena_id := get_root_arena_id(p_arena_id);
   END IF;
 
-  -- Fallback for custom arenas with no category
-  IF v_root_arena_id IS NULL THEN
+  -- Fallback for official arenas with no category
+  IF v_root_arena_id IS NULL AND COALESCE(v_is_official, false) THEN
     v_root_arena_id := get_root_arena_id_for_profile(p_winner_id);
   END IF;
 
@@ -436,7 +442,15 @@ BEGIN
   END IF;
 
   -- Step 1: Recalculate "all" arena from root arenas only
-  WITH correct_stats AS (
+  -- Dynamically finds all root arenas (official arenas linked to root categories)
+  WITH root_arenas AS (
+    SELECT a.id
+    FROM arenas a
+    JOIN categories c ON c.id = a.category_id
+    WHERE c.parent_id IS NULL AND c.depth = 0
+      AND a.is_official = true
+  ),
+  correct_stats AS (
     SELECT
       aps.profile_id,
       GREATEST(100, 1200 + SUM(aps.elo_rating - 1200)) AS correct_elo,
@@ -444,8 +458,7 @@ BEGIN
       SUM(aps.losses)  AS total_losses,
       SUM(aps.matches) AS total_matches
     FROM arena_profile_stats aps
-    JOIN arenas a ON a.id = aps.arena_id
-    WHERE a.slug IN ('men', 'women')
+    WHERE aps.arena_id IN (SELECT id FROM root_arenas)
     GROUP BY aps.profile_id
   )
   UPDATE arena_profile_stats target
@@ -477,3 +490,43 @@ BEGIN
   RETURN 'Fixed ' || arena_rows || ' arena rows + ' || profile_rows || ' profile rows. Aggregated from root arenas (men/women) only.';
 END;
 $$;
+
+
+-- ── PART 9: Auto-create root arena when a new root category is added ─────────
+-- When a new root category (depth=0, parent_id IS NULL) is inserted,
+-- automatically create a matching official arena so the unified ELO system works.
+
+CREATE OR REPLACE FUNCTION auto_create_root_arena()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NEW.parent_id IS NULL AND COALESCE(NEW.depth, 0) = 0 THEN
+    INSERT INTO arenas (
+      name, slug, description, is_official, category_id,
+      arena_tier, affects_elo, visibility, arena_type
+    )
+    VALUES (
+      'All ' || INITCAP(NEW.name),
+      NEW.slug,
+      'All ' || NEW.name || ' profiles — unified ELO',
+      true,
+      NEW.id,
+      'official',
+      true,
+      'public',
+      'fixed'
+    )
+    ON CONFLICT (slug) DO NOTHING;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_auto_create_root_arena ON categories;
+CREATE TRIGGER trg_auto_create_root_arena
+  AFTER INSERT ON categories
+  FOR EACH ROW
+  EXECUTE FUNCTION auto_create_root_arena();
