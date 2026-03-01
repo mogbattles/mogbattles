@@ -36,23 +36,23 @@ export default function ImageVotePopup({
       className="absolute z-50 w-44"
       style={{
         ...posStyle,
-        background: "rgba(10,10,18,0.97)",
-        border: "1px solid rgba(139,92,246,0.2)",
+        background: "var(--nav-bg)",
+        border: "1px solid var(--border)",
         borderRadius: "14px",
         backdropFilter: "blur(20px)",
-        boxShadow: "0 12px 40px rgba(0,0,0,0.8), 0 0 20px rgba(139,92,246,0.06)",
+        boxShadow: "0 12px 40px rgba(0,0,0,0.8)",
         animation: "fadeSlideUp 0.16s ease-out both",
       }}
     >
       {/* Header */}
       <div
         className="px-3 pt-2.5 pb-2 border-b"
-        style={{ borderColor: "rgba(34,34,51,0.9)" }}
+        style={{ borderColor: "var(--border)" }}
       >
-        <p className="text-[9px] font-black uppercase tracking-widest leading-tight" style={{ color: "#4A4A66" }}>
+        <p className="text-[9px] font-black uppercase tracking-widest leading-tight" style={{ color: "var(--text-muted)" }}>
           Photos
         </p>
-        <p className="text-xs font-black truncate mt-0.5" style={{ color: "#A78BFA" }}>
+        <p className="text-xs font-black truncate mt-0.5" style={{ color: "var(--accent)" }}>
           {profileName}
         </p>
       </div>
@@ -74,8 +74,8 @@ export default function ImageVotePopup({
               className="relative rounded-lg overflow-hidden transition-all"
               style={{
                 aspectRatio: "3/4",
-                border: `2px solid ${voted ? "rgba(139,92,246,0.7)" : "rgba(34,34,51,0.9)"}`,
-                boxShadow: voted ? "0 0 8px rgba(139,92,246,0.3)" : "none",
+                border: `2px solid ${voted ? "rgba(253,41,123,0.7)" : "var(--border)"}`,
+                boxShadow: voted ? "0 0 8px var(--accent-glow)" : "none",
                 cursor: userId ? "pointer" : "not-allowed",
               }}
             >
@@ -89,8 +89,8 @@ export default function ImageVotePopup({
               <div
                 className="absolute bottom-0.5 right-0.5 text-[9px] font-black px-1 rounded"
                 style={{
-                  background: voted ? "rgba(139,92,246,0.92)" : "rgba(5,5,8,0.82)",
-                  color: voted ? "#fff" : "#9B9B9B",
+                  background: voted ? "rgba(253,41,123,0.92)" : "rgba(0,0,0,0.82)",
+                  color: voted ? "#fff" : "var(--text-secondary)",
                 }}
               >
                 {voted ? "✓" : votes > 0 ? votes : ""}
@@ -101,7 +101,7 @@ export default function ImageVotePopup({
       </div>
 
       {!userId && (
-        <p className="text-[10px] text-center pb-2" style={{ color: "#2A2A3D" }}>
+        <p className="text-[10px] text-center pb-2" style={{ color: "var(--text-faint)" }}>
           Sign in to vote
         </p>
       )}

@@ -160,7 +160,7 @@ export default function LivePage() {
           {user && !authLoading && (
             <button
               onClick={() => setShowModal(true)}
-              className="btn-purple flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-black uppercase tracking-wider"
+              className="btn-accent flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-black uppercase tracking-wider"
             >
               <span className="text-base">📡</span>
               Go Live
@@ -171,7 +171,7 @@ export default function LivePage() {
         {/* Stream grid */}
         {loading || authLoading ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <div className="w-8 h-8 rounded-full border-2 border-purple border-t-transparent animate-spin" />
+            <div className="w-8 h-8 rounded-full border-2 animate-spin" style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }} />
             <p className="mt-3 text-sm font-bold text-navy-200">
               Loading streams...
             </p>
@@ -194,7 +194,7 @@ export default function LivePage() {
               <button
                 key={stream.id}
                 onClick={() => router.push(`/live/${stream.id}`)}
-                className="text-left rounded-2xl overflow-hidden game-card transition-all duration-150 group hover:border-purple/40 hover:shadow-[0_8px_24px_rgba(0,0,0,0.4),0_0_20px_rgba(139,92,246,0.1)] hover:-translate-y-0.5"
+                className="text-left rounded-2xl overflow-hidden game-card transition-all duration-150 group hover:border-navy-300 hover:shadow-[0_8px_24px_rgba(0,0,0,0.4),0_0_20px_rgba(0,0,0,0.2)] hover:-translate-y-0.5"
               >
                 {/* Thumbnail area */}
                 <div className="relative aspect-video flex items-center justify-center bg-navy-900">
@@ -224,7 +224,7 @@ export default function LivePage() {
 
                   {/* Big play icon overlay */}
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="w-14 h-14 rounded-full flex items-center justify-center bg-purple/90 shadow-[0_0_20px_rgba(139,92,246,0.5)]">
+                    <div className="w-14 h-14 rounded-full flex items-center justify-center bg-accent/90 shadow-[0_0_20px_rgba(253,41,123,0.5)]">
                       <span className="text-xl ml-0.5 text-white">▶</span>
                     </div>
                   </div>
@@ -314,7 +314,7 @@ export default function LivePage() {
               <button
                 onClick={handleGoLive}
                 disabled={!title.trim() || creating}
-                className="btn-purple flex-1 px-4 py-3 rounded-xl text-sm font-black uppercase tracking-wider disabled:opacity-40"
+                className="btn-accent flex-1 px-4 py-3 rounded-xl text-sm font-black uppercase tracking-wider disabled:opacity-40"
               >
                 {creating ? "Starting..." : "Go Live 🔴"}
               </button>

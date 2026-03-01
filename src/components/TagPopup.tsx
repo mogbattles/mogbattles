@@ -92,24 +92,24 @@ export default function TagPopup({
       className="absolute z-50 w-44"
       style={{
         ...posStyle,
-        background: "rgba(10,10,18,0.97)",
-        border: "1px solid rgba(139,92,246,0.2)",
+        background: "var(--nav-bg)",
+        border: "1px solid var(--border)",
         borderRadius: "14px",
         backdropFilter: "blur(20px)",
-        boxShadow: "0 12px 40px rgba(0,0,0,0.8), 0 0 20px rgba(139,92,246,0.06)",
+        boxShadow: "0 12px 40px rgba(0,0,0,0.8)",
         animation: "fadeSlideUp 0.16s ease-out both",
       }}
     >
       {/* Header */}
       <div
         className="px-3 pt-2.5 pb-2 border-b flex items-start justify-between gap-1"
-        style={{ borderColor: "rgba(34,34,51,0.9)" }}
+        style={{ borderColor: "var(--border)" }}
       >
         <div className="min-w-0">
-          <p className="text-[9px] font-black uppercase tracking-widest leading-tight" style={{ color: "#4A4A66" }}>
+          <p className="text-[9px] font-black uppercase tracking-widest leading-tight" style={{ color: "var(--text-muted)" }}>
             {view === "tags" ? "Tag" : "Photos"}
           </p>
-          <p className="text-xs font-black truncate mt-0.5" style={{ color: "#A78BFA" }}>
+          <p className="text-xs font-black truncate mt-0.5" style={{ color: "var(--accent)" }}>
             {profileName}
           </p>
         </div>
@@ -123,9 +123,9 @@ export default function TagPopup({
             }}
             className="shrink-0 w-6 h-6 flex items-center justify-center rounded-lg transition-all mt-0.5"
             style={{
-              background: view === "photos" ? "rgba(139,92,246,0.15)" : "rgba(34,34,51,0.7)",
-              border: `1px solid ${view === "photos" ? "rgba(139,92,246,0.4)" : "rgba(34,34,51,0.9)"}`,
-              color: view === "photos" ? "#A78BFA" : "#4A4A66",
+              background: view === "photos" ? "rgba(253,41,123,0.12)" : "var(--bg-elevated)",
+              border: `1px solid ${view === "photos" ? "rgba(253,41,123,0.4)" : "var(--border)"}`,
+              color: view === "photos" ? "var(--accent)" : "var(--text-muted)",
               fontSize: "11px",
             }}
             title={view === "tags" ? "Vote on photos" : "Back to tags"}
@@ -135,7 +135,7 @@ export default function TagPopup({
         )}
       </div>
 
-      {/* ── Tags view ── */}
+      {/* Tags view */}
       {view === "tags" && (
         <>
           {existingTags.length > 0 && (
@@ -153,9 +153,9 @@ export default function TagPopup({
                     disabled={!userId}
                     className="flex items-center justify-between w-full text-left px-2 py-1 rounded-lg text-xs font-bold transition-all"
                     style={{
-                      background: voted ? "rgba(139,92,246,0.1)" : "rgba(34,34,51,0.5)",
-                      border: `1px solid ${voted ? "rgba(139,92,246,0.35)" : "rgba(34,34,51,0.9)"}`,
-                      color: voted ? "#A78BFA" : "#4A4A66",
+                      background: voted ? "rgba(253,41,123,0.08)" : "var(--bg-elevated)",
+                      border: `1px solid ${voted ? "rgba(253,41,123,0.35)" : "var(--border)"}`,
+                      color: voted ? "var(--accent)" : "var(--text-muted)",
                       cursor: userId ? "pointer" : "not-allowed",
                     }}
                   >
@@ -167,7 +167,7 @@ export default function TagPopup({
                     </span>
                     <span
                       className="ml-1.5 shrink-0 text-[10px] font-black"
-                      style={{ color: voted ? "#8B5CF6" : "#2A2A3D" }}
+                      style={{ color: voted ? "var(--accent)" : "var(--text-faint)" }}
                     >
                       {voted ? "✓" : votes}
                     </span>
@@ -178,7 +178,7 @@ export default function TagPopup({
           )}
 
           {existingTags.length > 0 && (
-            <div style={{ height: "1px", background: "rgba(34,34,51,0.9)", margin: "0 10px" }} />
+            <div style={{ height: "1px", background: "var(--border)", margin: "0 10px" }} />
           )}
 
           <div className="px-2.5 py-2.5">
@@ -199,9 +199,9 @@ export default function TagPopup({
                     onClick={(e) => e.stopPropagation()}
                     className="flex-1 min-w-0 text-xs px-2 py-1.5 rounded-lg focus:outline-none transition-colors"
                     style={{
-                      background: "#0A0A12",
-                      border: `1px solid ${tagErr ? "#EF4444" : tagInput ? "#8B5CF6" : "#222233"}`,
-                      color: "#fff",
+                      background: "var(--bg-primary)",
+                      border: `1px solid ${tagErr ? "var(--danger)" : tagInput ? "var(--accent)" : "var(--border)"}`,
+                      color: "var(--text-primary)",
                     }}
                   />
                   <button
@@ -209,9 +209,9 @@ export default function TagPopup({
                     onClick={(e) => { e.stopPropagation(); handleTagSubmit(); }}
                     className="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg font-black text-sm transition-all"
                     style={{
-                      background: tagErr ? "rgba(239,68,68,0.15)" : "rgba(139,92,246,0.12)",
-                      border: `1px solid ${tagErr ? "rgba(239,68,68,0.4)" : "rgba(139,92,246,0.25)"}`,
-                      color: tagErr ? "#EF4444" : "#A78BFA",
+                      background: tagErr ? "rgba(231,76,60,0.15)" : "rgba(253,41,123,0.12)",
+                      border: `1px solid ${tagErr ? "rgba(231,76,60,0.4)" : "rgba(253,41,123,0.25)"}`,
+                      color: tagErr ? "var(--danger)" : "var(--accent)",
                     }}
                   >
                     +
@@ -221,7 +221,7 @@ export default function TagPopup({
                   <p
                     className="text-right text-[9px] font-bold pr-9"
                     style={{
-                      color: tagInput.length >= TAG_MAX ? "#EF4444" : "#2A2A3D",
+                      color: tagInput.length >= TAG_MAX ? "var(--danger)" : "var(--text-faint)",
                     }}
                   >
                     {tagInput.length}/{TAG_MAX}
@@ -229,7 +229,7 @@ export default function TagPopup({
                 )}
               </div>
             ) : (
-              <p className="text-[10px] text-center py-0.5" style={{ color: "#2A2A3D" }}>
+              <p className="text-[10px] text-center py-0.5" style={{ color: "var(--text-faint)" }}>
                 Sign in to add tags
               </p>
             )}
@@ -237,7 +237,7 @@ export default function TagPopup({
         </>
       )}
 
-      {/* ── Photos view ── */}
+      {/* Photos view */}
       {view === "photos" && hasImages && (
         <div className="p-2.5 space-y-2">
           {allImages.length > 0 && (
@@ -257,8 +257,8 @@ export default function TagPopup({
                     className="relative rounded-lg overflow-hidden transition-all"
                     style={{
                       aspectRatio: "3/4",
-                      border: `2px solid ${voted ? "rgba(139,92,246,0.7)" : "rgba(34,34,51,0.9)"}`,
-                      boxShadow: voted ? "0 0 8px rgba(139,92,246,0.3)" : "none",
+                      border: `2px solid ${voted ? "rgba(253,41,123,0.7)" : "var(--border)"}`,
+                      boxShadow: voted ? "0 0 8px var(--accent-glow)" : "none",
                       cursor: userId ? "pointer" : "not-allowed",
                     }}
                   >
@@ -267,8 +267,8 @@ export default function TagPopup({
                     <div
                       className="absolute bottom-0.5 right-0.5 text-[9px] font-black px-1 rounded"
                       style={{
-                        background: voted ? "rgba(139,92,246,0.92)" : "rgba(5,5,8,0.82)",
-                        color: voted ? "#fff" : "#9B9B9B",
+                        background: voted ? "rgba(253,41,123,0.92)" : "rgba(0,0,0,0.82)",
+                        color: voted ? "#fff" : "var(--text-secondary)",
                       }}
                     >
                       {voted ? "✓" : votes > 0 ? votes : ""}
@@ -280,7 +280,7 @@ export default function TagPopup({
           )}
 
           {allImages.length > 0 && (
-            <div style={{ height: "1px", background: "rgba(34,34,51,0.9)" }} />
+            <div style={{ height: "1px", background: "var(--border)" }} />
           )}
 
           {userId ? (
@@ -299,9 +299,9 @@ export default function TagPopup({
                   onClick={(e) => e.stopPropagation()}
                   className="flex-1 min-w-0 text-[10px] px-2 py-1.5 rounded-lg focus:outline-none transition-colors"
                   style={{
-                    background: "#0A0A12",
-                    border: `1px solid ${imgErr ? "#EF4444" : imgInput ? "#8B5CF6" : "#222233"}`,
-                    color: "#fff",
+                    background: "var(--bg-primary)",
+                    border: `1px solid ${imgErr ? "var(--danger)" : imgInput ? "var(--accent)" : "var(--border)"}`,
+                    color: "var(--text-primary)",
                   }}
                 />
                 <button
@@ -309,20 +309,20 @@ export default function TagPopup({
                   onClick={(e) => { e.stopPropagation(); handleImgSubmit(); }}
                   className="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg font-black text-sm transition-all"
                   style={{
-                    background: imgErr ? "rgba(239,68,68,0.15)" : "rgba(139,92,246,0.12)",
-                    border: `1px solid ${imgErr ? "rgba(239,68,68,0.4)" : "rgba(139,92,246,0.25)"}`,
-                    color: imgErr ? "#EF4444" : "#A78BFA",
+                    background: imgErr ? "rgba(231,76,60,0.15)" : "rgba(253,41,123,0.12)",
+                    border: `1px solid ${imgErr ? "rgba(231,76,60,0.4)" : "rgba(253,41,123,0.25)"}`,
+                    color: imgErr ? "var(--danger)" : "var(--accent)",
                   }}
                 >
                   +
                 </button>
               </div>
-              <p className="text-[9px]" style={{ color: "#2A2A3D" }}>
+              <p className="text-[9px]" style={{ color: "var(--text-faint)" }}>
                 Paste a URL to vote for that photo
               </p>
             </div>
           ) : (
-            <p className="text-[10px] text-center" style={{ color: "#2A2A3D" }}>
+            <p className="text-[10px] text-center" style={{ color: "var(--text-faint)" }}>
               Sign in to vote on photos
             </p>
           )}

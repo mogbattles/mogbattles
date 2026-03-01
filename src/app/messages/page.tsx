@@ -20,7 +20,7 @@ function timeAgo(iso: string): string {
 }
 
 function Avatar({ src, name, size = 44 }: { src: string | null; name: string; size?: number }) {
-  const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0F0F1A&color=888&size=${size * 2}&bold=true`;
+  const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1a1a1a&color=888&size=${size * 2}&bold=true`;
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
@@ -72,7 +72,7 @@ export default function MessagesPage() {
   if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
-        <div className="w-8 h-8 rounded-full border-2 border-purple border-t-transparent animate-spin" />
+        <div className="w-8 h-8 rounded-full border-2 animate-spin" style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }} />
       </div>
     );
   }
@@ -83,7 +83,7 @@ export default function MessagesPage() {
       <div className="flex items-center gap-3 mb-6">
         <span className="text-2xl">💬</span>
         <div>
-          <h1 className="font-heading tracking-wide text-3xl text-gradient-purple">
+          <h1 className="font-heading tracking-wide text-3xl text-gradient-accent">
             Messages
           </h1>
           <p className="text-[11px] font-bold text-navy-200">
@@ -101,7 +101,7 @@ export default function MessagesPage() {
           </p>
           <Link
             href="/leaderboard/members"
-            className="btn-purple inline-block py-2.5 px-5 rounded-xl text-sm uppercase tracking-wide"
+            className="btn-accent inline-block py-2.5 px-5 rounded-xl text-sm uppercase tracking-wide"
           >
             Browse Players
           </Link>
@@ -112,12 +112,12 @@ export default function MessagesPage() {
             <Link
               key={c.id}
               href={`/messages/${c.other_user_id}`}
-              className="flex items-center gap-3 p-3.5 rounded-2xl game-card transition-all duration-150 hover:border-purple/40 hover:shadow-[0_0_20px_rgba(139,92,246,0.06)] active:scale-[0.98]"
+              className="flex items-center gap-3 p-3.5 rounded-2xl game-card transition-all duration-150 hover:border-white/20 hover:shadow-[0_0_20px_rgba(0,0,0,0.2)] active:scale-[0.98]"
             >
               <div className="relative">
                 <Avatar src={c.other_user_image} name={c.other_user_name} size={46} />
                 {c.unread_count > 0 && (
-                  <span className="absolute -top-1 -right-1 badge-purple flex items-center justify-center"
+                  <span className="absolute -top-1 -right-1 badge-accent flex items-center justify-center"
                     style={{ minWidth: 18, height: 18, padding: "0 4px", fontSize: 10 }}
                   >
                     {c.unread_count > 99 ? "99+" : c.unread_count}

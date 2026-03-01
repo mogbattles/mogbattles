@@ -104,8 +104,8 @@ function NewThreadForm({
   }
 
   return (
-    <div className="game-card rounded-2xl p-5 space-y-3 mb-6 !border-purple/25">
-      <p className="text-xs font-black uppercase tracking-widest text-purple-bright">New Thread</p>
+    <div className="game-card rounded-2xl p-5 space-y-3 mb-6" style={{ borderColor: "rgba(253,41,123,0.25)" }}>
+      <p className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--accent)" }}>New Thread</p>
 
       {msg && <p className="text-xs font-bold text-game-red">{msg}</p>}
 
@@ -132,7 +132,7 @@ function NewThreadForm({
       />
       <div className="flex justify-end">
         <button onClick={submit} disabled={saving || !title.trim()}
-          className="btn-purple px-6 py-2 rounded-xl text-sm font-black disabled:opacity-50 transition-colors"
+          className="btn-accent px-6 py-2 rounded-xl text-sm font-black disabled:opacity-50 transition-colors"
         >
           {saving ? "Posting…" : "Post Thread"}
         </button>
@@ -188,7 +188,7 @@ export default function ForumPage() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-2xl">💬</span>
-            <h1 className="font-heading tracking-wide text-3xl text-gradient-purple">
+            <h1 className="font-heading tracking-wide text-3xl text-gradient-gold">
               Forum
             </h1>
           </div>
@@ -215,9 +215,10 @@ export default function ForumPage() {
             onClick={() => switchBoard(null)}
             className={`shrink-0 text-xs font-black px-3.5 py-1.5 rounded-full border transition-all duration-150 ${
               activeBoard === null
-                ? "bg-purple text-white border-purple shadow-[0_0_12px_rgba(139,92,246,0.3)]"
+                ? "text-white border-transparent shadow-[0_0_12px_rgba(253,41,123,0.3)]"
                 : "bg-navy-800 text-navy-200 border-navy-500 hover:border-navy-300"
             }`}
+            style={activeBoard === null ? { background: "var(--accent)" } : undefined}
           >
             All
           </button>
@@ -227,9 +228,10 @@ export default function ForumPage() {
               onClick={() => switchBoard(board.id)}
               className={`shrink-0 text-xs font-black px-3.5 py-1.5 rounded-full border transition-all duration-150 ${
                 activeBoard === board.id
-                  ? "bg-purple text-white border-purple shadow-[0_0_12px_rgba(139,92,246,0.3)]"
+                  ? "text-white border-transparent shadow-[0_0_12px_rgba(253,41,123,0.3)]"
                   : "bg-navy-800 text-navy-200 border-navy-500 hover:border-navy-300"
               }`}
+              style={activeBoard === board.id ? { background: "var(--accent)" } : undefined}
             >
               /{board.slug}/ — {board.name}
             </button>
@@ -273,7 +275,7 @@ export default function ForumPage() {
             <Link
               key={thread.id}
               href={`/forum/${thread.id}`}
-              className="block rounded-2xl overflow-hidden game-card transition-all duration-150 active:scale-[0.98] hover:border-purple/40 hover:shadow-[0_0_20px_rgba(139,92,246,0.06)]"
+              className="block rounded-2xl overflow-hidden game-card transition-all duration-150 active:scale-[0.98] hover:border-navy-300 hover:shadow-[0_0_20px_rgba(0,0,0,0.2)]"
             >
               {thread.image_url && (
                 // eslint-disable-next-line @next/next/no-img-element

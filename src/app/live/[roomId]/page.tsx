@@ -263,8 +263,8 @@ export default function StreamRoomPage() {
           onClick={() => router.push("/live")}
           className="px-5 py-2.5 rounded-xl text-sm font-bold transition-colors"
           style={{
-            background: "#0F0F1A",
-            color: "#F0C040",
+            background: "var(--bg-card)",
+            color: "var(--gold)",
             border: "1px solid rgba(240,192,64,0.2)",
           }}
         >
@@ -329,15 +329,15 @@ export default function StreamRoomPage() {
 
   // ── Stream room ────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "#080A14" }}>
+    <div className="min-h-screen flex flex-col" style={{ background: "var(--bg-primary)" }}>
       {/* Header bar */}
       <div
         className="flex items-center justify-between px-4 shrink-0"
         style={{
           height: "56px",
           background:
-            "linear-gradient(180deg, rgba(7,9,15,0.97) 0%, rgba(12,16,32,0.85) 100%)",
-          borderBottom: "1px solid #222233",
+            "linear-gradient(180deg, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.85) 100%)",
+          borderBottom: "1px solid var(--border)",
           backdropFilter: "blur(16px)",
         }}
       >
@@ -345,7 +345,7 @@ export default function StreamRoomPage() {
           <button
             onClick={() => router.push("/live")}
             className="text-xs font-bold px-2 py-1 rounded-lg transition-colors"
-            style={{ color: "#4A4A66", background: "rgba(255,255,255,0.03)" }}
+            style={{ color: "var(--text-muted)", background: "rgba(255,255,255,0.03)" }}
           >
             ← Back
           </button>

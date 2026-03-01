@@ -185,7 +185,8 @@ export default function ThreadPage() {
         <p className="font-black text-navy-200">Thread not found</p>
         <Link
           href="/forum"
-          className="text-xs font-bold mt-4 inline-block text-purple-bright hover:text-white transition-colors"
+          className="text-xs font-bold mt-4 inline-block hover:text-white transition-colors"
+          style={{ color: "var(--accent)" }}
         >
           ← Back to Forum
         </Link>
@@ -206,7 +207,7 @@ export default function ThreadPage() {
       </Link>
 
       {/* OP post */}
-      <div className="rounded-2xl overflow-hidden mb-4 game-card !border-purple/20">
+      <div className="rounded-2xl overflow-hidden mb-4 game-card" style={{ borderColor: "rgba(253,41,123,0.2)" }}>
         {thread.image_url && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -231,7 +232,7 @@ export default function ThreadPage() {
           {/* Content */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-3">
-              <span className="badge-purple !text-[9px]">OP</span>
+              <span className="badge-accent !text-[9px]">OP</span>
               <span className="text-[10px] font-bold text-navy-400">
                 {thread.author_name ?? "Anon"} · {timeAgo(thread.created_at)}
               </span>
@@ -345,7 +346,7 @@ export default function ThreadPage() {
             <button
               onClick={postReply}
               disabled={posting || !replyText.trim()}
-              className="btn-purple px-6 py-2 rounded-xl text-sm font-black disabled:opacity-50"
+              className="btn-accent px-6 py-2 rounded-xl text-sm font-black disabled:opacity-50"
             >
               {posting ? "Posting…" : "Post Reply"}
             </button>
@@ -357,7 +358,8 @@ export default function ThreadPage() {
         <div className="rounded-xl px-4 py-3 text-xs font-bold text-center bg-navy-800 border border-navy-500 text-navy-200">
           <Link
             href="/profile"
-            className="text-purple-bright hover:text-white transition-colors"
+            className="hover:text-white transition-colors"
+            style={{ color: "var(--accent)" }}
           >
             Sign in
           </Link>{" "}

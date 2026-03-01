@@ -54,7 +54,7 @@ export default function ArticleDetailPage() {
       <div className="max-w-2xl mx-auto px-4 pt-20 pb-28 text-center">
         <div className="text-5xl mb-4 opacity-30">📝</div>
         <p className="font-black text-navy-200">Article not found</p>
-        <Link href="/articles" className="text-xs font-bold mt-4 inline-block text-purple-bright hover:text-white transition-colors">
+        <Link href="/articles" className="text-xs font-bold mt-4 inline-block hover:text-white transition-colors" style={{ color: "var(--accent)" }}>
           ← Back to Articles
         </Link>
       </div>
@@ -90,7 +90,7 @@ export default function ArticleDetailPage() {
       )}
 
       <div className="mt-12 pt-6 border-t border-navy-500">
-        <Link href="/articles" className="text-xs font-bold transition-colors text-purple-bright hover:text-white">
+        <Link href="/articles" className="text-xs font-bold transition-colors hover:text-white" style={{ color: "var(--accent)" }}>
           ← More Articles
         </Link>
       </div>

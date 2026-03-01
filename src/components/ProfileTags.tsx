@@ -48,16 +48,16 @@ export default function ProfileTags({ tags, myVotedTags, onVote }: ProfileTagsPr
                 disabled={!onVote}
                 className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold transition-all"
                 style={{
-                  background: voted ? "rgba(139,92,246,0.12)" : "rgba(15,15,26,0.9)",
-                  border: `1px solid ${voted ? "rgba(139,92,246,0.4)" : "#222233"}`,
-                  color: voted ? "#A78BFA" : "#4A4A66",
+                  background: voted ? "rgba(253,41,123,0.12)" : "rgba(0,0,0,0.7)",
+                  border: `1px solid ${voted ? "rgba(253,41,123,0.4)" : "var(--border)"}`,
+                  color: voted ? "var(--accent)" : "var(--text-muted)",
                   cursor: onVote ? "pointer" : "default",
                 }}
               >
                 {tag}
                 <span
                   className="text-[8px] font-black"
-                  style={{ color: voted ? "#8B5CF6" : "#2A2A3D" }}
+                  style={{ color: voted ? "var(--accent)" : "var(--text-faint)" }}
                 >
                   {votes}
                 </span>
@@ -79,7 +79,7 @@ export default function ProfileTags({ tags, myVotedTags, onVote }: ProfileTagsPr
                 setTimeout(() => inputRef.current?.focus(), 60);
               }}
               className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full transition-all hover:opacity-80"
-              style={{ color: "#4A4A66", background: "#0F0F1A", border: "1px solid #222233" }}
+              style={{ color: "var(--text-muted)", background: "var(--bg-card)", border: "1px solid var(--border)" }}
             >
               + tag
             </button>
@@ -99,9 +99,9 @@ export default function ProfileTags({ tags, myVotedTags, onVote }: ProfileTagsPr
                 }}
                 className="w-20 text-[10px] px-2 py-0.5 rounded-full focus:outline-none transition-colors"
                 style={{
-                  background: "#0A0A12",
-                  border: `1px solid ${tagErr ? "#EF4444" : tagInput ? "#8B5CF6" : "#222233"}`,
-                  color: "#fff",
+                  background: "var(--bg-primary)",
+                  border: `1px solid ${tagErr ? "var(--danger)" : tagInput ? "var(--accent)" : "var(--border)"}`,
+                  color: "var(--text-primary)",
                 }}
               />
               <button
@@ -109,9 +109,9 @@ export default function ProfileTags({ tags, myVotedTags, onVote }: ProfileTagsPr
                 onClick={(e) => { e.stopPropagation(); handleSubmit(); }}
                 className="w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-black transition-all"
                 style={{
-                  background: tagErr ? "rgba(239,68,68,0.15)" : "rgba(139,92,246,0.12)",
-                  border: `1px solid ${tagErr ? "rgba(239,68,68,0.4)" : "rgba(139,92,246,0.25)"}`,
-                  color: tagErr ? "#EF4444" : "#A78BFA",
+                  background: tagErr ? "rgba(231,76,60,0.15)" : "rgba(253,41,123,0.12)",
+                  border: `1px solid ${tagErr ? "rgba(231,76,60,0.4)" : "rgba(253,41,123,0.25)"}`,
+                  color: tagErr ? "var(--danger)" : "var(--accent)",
                 }}
               >
                 +
@@ -121,9 +121,9 @@ export default function ProfileTags({ tags, myVotedTags, onVote }: ProfileTagsPr
                 onClick={(e) => { e.stopPropagation(); setInputOpen(false); setTagInput(""); }}
                 className="w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-black transition-all"
                 style={{
-                  background: "rgba(34,34,51,0.5)",
-                  border: "1px solid rgba(34,34,51,0.9)",
-                  color: "#4A4A66",
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid var(--border)",
+                  color: "var(--text-muted)",
                 }}
               >
                 x
@@ -137,7 +137,7 @@ export default function ProfileTags({ tags, myVotedTags, onVote }: ProfileTagsPr
       {tags.length === 0 && !onVote && (
         <span
           className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full opacity-30"
-          style={{ color: "#4A4A66", background: "#0F0F1A", border: "1px solid #222233" }}
+          style={{ color: "var(--text-muted)", background: "var(--bg-card)", border: "1px solid var(--border)" }}
         >
           no tags yet
         </span>

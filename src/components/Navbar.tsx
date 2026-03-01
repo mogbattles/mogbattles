@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
 import { getTotalUnreadCount } from "@/lib/messaging";
 import { createClient } from "@/lib/supabase";
 
@@ -27,6 +28,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [unreadCount, setUnreadCount] = useState(0);
 
   // Load + poll unread count
@@ -70,27 +72,32 @@ export default function Navbar() {
       className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4"
       style={{
         height: "56px",
-        background: "linear-gradient(180deg, rgba(10,10,18,0.98) 0%, rgba(10,10,18,0.92) 100%)",
+        background: "var(--nav-bg)",
         backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
-        borderBottom: "1px solid rgba(139,92,246,0.12)",
+        borderBottom: "1px solid var(--nav-border)",
       }}
     >
-      {/* Logo */}
+      {/* Logo — wow.gif + MARVEL-style MOGBATTLES */}
       <Link href="/explore" className="flex items-center gap-2 shrink-0">
-        <span className="text-xl leading-none" style={{ filter: "drop-shadow(0 0 8px rgba(139,92,246,0.5))" }}>
-          ⚔️
-        </span>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="https://media.tenor.com/ONQPr0qrCXMAAAAM/wow.gif"
+          alt="wow"
+          style={{ height: "28px", width: "auto", borderRadius: "4px" }}
+        />
         <span
-          className="text-base font-black tracking-widest uppercase"
           style={{
             fontFamily: "'Bebas Neue', sans-serif",
-            fontSize: "20px",
-            letterSpacing: "0.15em",
-            background: "linear-gradient(90deg, #FFD700 0%, #F0C040 40%, #A78BFA 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
+            fontSize: "22px",
+            letterSpacing: "0.12em",
+            fontWeight: 400,
+            color: "#FFFFFF",
+            background: "linear-gradient(135deg, #FD297B, #FF5864, #FF655B)",
+            padding: "2px 10px",
+            borderRadius: "4px",
+            lineHeight: "1.2",
+            display: "inline-block",
           }}
         >
           MOGBATTLES
@@ -111,9 +118,9 @@ export default function Navbar() {
               href={link.href}
               className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-bold transition-all duration-150"
               style={{
-                color: isActive ? "#F0C040" : "#4A4A66",
-                background: isActive ? "rgba(139,92,246,0.1)" : "transparent",
-                border: isActive ? "1px solid rgba(139,92,246,0.25)" : "1px solid transparent",
+                color: isActive ? "var(--accent)" : "var(--text-muted)",
+                background: isActive ? "var(--bg-elevated)" : "transparent",
+                border: isActive ? "1px solid var(--border)" : "1px solid transparent",
               }}
             >
               <span className="text-sm leading-none">{link.icon}</span>
@@ -122,12 +129,12 @@ export default function Navbar() {
                 <span
                   className="absolute -top-1 -right-1 text-[9px] font-black rounded-full flex items-center justify-center"
                   style={{
-                    background: "#FF4545",
+                    background: "var(--danger)",
                     color: "#fff",
                     minWidth: "16px",
                     height: "16px",
                     padding: "0 3px",
-                    boxShadow: "0 0 8px rgba(255,69,69,0.5)",
+                    boxShadow: "0 0 8px rgba(231,76,60,0.5)",
                   }}
                 >
                   {unreadCount > 9 ? "9+" : unreadCount}
@@ -138,77 +145,105 @@ export default function Navbar() {
         })}
       </nav>
 
-      {/* Right side: community menu */}
-      <div ref={menuRef} className="relative flex items-center shrink-0">
+      {/* Right side: theme toggle + community menu */}
+      <div className="flex items-center gap-2 shrink-0">
+        {/* Theme toggle */}
         <button
-          onClick={() => setMenuOpen((v) => !v)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-bold transition-all duration-150"
+          onClick={toggleTheme}
+          className="flex items-center justify-center rounded-xl transition-all duration-200"
           style={{
-            color: menuOpen ? "#A78BFA" : "#4A4A66",
-            background: menuOpen ? "rgba(139,92,246,0.1)" : "rgba(255,255,255,0.03)",
-            border: menuOpen ? "1px solid rgba(139,92,246,0.25)" : "1px solid #1A1A28",
+            width: "36px",
+            height: "36px",
+            background: "var(--bg-elevated)",
+            border: "1px solid var(--border)",
+            color: "var(--text-secondary)",
+            fontSize: "16px",
           }}
+          title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
         >
-          <span className="text-sm leading-none">☰</span>
-          <span className="hidden sm:inline text-xs">More</span>
-        </button>
-
-        {/* Dropdown */}
-        {menuOpen && (
-          <div
-            className="absolute right-0 top-full mt-2 w-60 rounded-2xl overflow-hidden z-50"
+          <span
             style={{
-              background: "rgba(10,10,18,0.98)",
-              border: "1px solid rgba(139,92,246,0.15)",
-              boxShadow: "0 20px 50px rgba(0,0,0,0.8), 0 0 30px rgba(139,92,246,0.08)",
-              backdropFilter: "blur(24px)",
-              animation: "scaleIn 0.15s ease-out",
+              display: "inline-block",
+              transition: "transform 0.3s ease",
+              transform: theme === "dark" ? "rotate(0deg)" : "rotate(180deg)",
             }}
           >
-            <div className="p-1.5">
-              {MENU_ITEMS.map((item) => {
-                const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="flex items-start gap-3 px-3 py-2.5 rounded-xl transition-colors"
-                    style={{
-                      background: isActive ? "rgba(139,92,246,0.1)" : "transparent",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isActive) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.03)";
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isActive) (e.currentTarget as HTMLElement).style.background = "transparent";
-                    }}
-                  >
-                    <span className="text-lg leading-none mt-0.5">{item.icon}</span>
-                    <div className="min-w-0">
-                      <p
-                        className="text-sm font-bold leading-tight"
-                        style={{ color: isActive ? "#A78BFA" : "#C8C8E0" }}
-                      >
-                        {item.label}
-                      </p>
-                      <p className="text-[10px] leading-tight mt-0.5" style={{ color: "#4A4A66" }}>
-                        {item.desc}
-                      </p>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
+            {theme === "dark" ? "🌙" : "☀️"}
+          </span>
+        </button>
 
-            {/* Footer hint */}
+        {/* More menu */}
+        <div ref={menuRef} className="relative">
+          <button
+            onClick={() => setMenuOpen((v) => !v)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-bold transition-all duration-150"
+            style={{
+              color: menuOpen ? "var(--text-primary)" : "var(--text-muted)",
+              background: menuOpen ? "var(--bg-elevated)" : "transparent",
+              border: menuOpen ? "1px solid var(--border)" : "1px solid transparent",
+            }}
+          >
+            <span className="text-sm leading-none">☰</span>
+            <span className="hidden sm:inline text-xs">More</span>
+          </button>
+
+          {/* Dropdown */}
+          {menuOpen && (
             <div
-              className="px-4 py-2 border-t text-[9px] font-bold uppercase tracking-widest"
-              style={{ borderColor: "#1A1A28", color: "#2A2A3D" }}
+              className="absolute right-0 top-full mt-2 w-60 rounded-2xl overflow-hidden z-50"
+              style={{
+                background: "var(--nav-bg)",
+                border: "1px solid var(--border)",
+                boxShadow: "0 20px 50px rgba(0,0,0,0.5), 0 0 30px rgba(0,0,0,0.1)",
+                backdropFilter: "blur(24px)",
+                animation: "scaleIn 0.15s ease-out",
+              }}
             >
-              ELO-rated battles
+              <div className="p-1.5">
+                {MENU_ITEMS.map((item) => {
+                  const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className="flex items-start gap-3 px-3 py-2.5 rounded-xl transition-colors"
+                      style={{
+                        background: isActive ? "var(--bg-elevated)" : "transparent",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isActive) (e.currentTarget as HTMLElement).style.background = "var(--bg-elevated)";
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isActive) (e.currentTarget as HTMLElement).style.background = "transparent";
+                      }}
+                    >
+                      <span className="text-lg leading-none mt-0.5">{item.icon}</span>
+                      <div className="min-w-0">
+                        <p
+                          className="text-sm font-bold leading-tight"
+                          style={{ color: isActive ? "var(--accent)" : "var(--text-primary)" }}
+                        >
+                          {item.label}
+                        </p>
+                        <p className="text-[10px] leading-tight mt-0.5" style={{ color: "var(--text-muted)" }}>
+                          {item.desc}
+                        </p>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+
+              {/* Footer hint */}
+              <div
+                className="px-4 py-2 text-[9px] font-bold uppercase tracking-widest"
+                style={{ borderTop: "1px solid var(--border)", color: "var(--text-faint)" }}
+              >
+                ELO-rated battles
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </header>
   );

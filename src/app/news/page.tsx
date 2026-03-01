@@ -164,8 +164,8 @@ export default function NewsPage() {
 
       {/* Post / Edit form */}
       {showForm && perms.canManageNews && (
-        <div className="mb-6 game-card rounded-2xl p-5 space-y-3 !border-purple/25">
-          <p className="text-xs font-black uppercase tracking-widest text-purple-bright">
+        <div className="mb-6 game-card rounded-2xl p-5 space-y-3" style={{ borderColor: "rgba(253,41,123,0.25)" }}>
+          <p className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--accent)" }}>
             {editingId ? "Edit Post" : "New Post"}
           </p>
           <input
@@ -193,7 +193,7 @@ export default function NewsPage() {
             <button
               onClick={publishNews}
               disabled={saving || !form.title.trim()}
-              className="btn-purple px-6 py-2 rounded-xl text-sm font-black disabled:opacity-50 transition-colors"
+              className="btn-accent px-6 py-2 rounded-xl text-sm font-black disabled:opacity-50 transition-colors"
             >
               {saving ? "Saving\u2026" : editingId ? "Save Changes" : "Publish"}
             </button>
@@ -231,7 +231,7 @@ export default function NewsPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     {i === 0 && (
-                      <span className="badge-purple !text-[9px] mb-3 inline-block">
+                      <span className="badge-accent !text-[9px] mb-3 inline-block">
                         Latest
                       </span>
                     )}
@@ -249,7 +249,8 @@ export default function NewsPage() {
                     <div className="flex gap-1.5 shrink-0">
                       <button
                         onClick={() => startEdit(post)}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg text-sm transition-colors bg-purple/10 text-purple-bright border border-purple/20 hover:bg-purple/20"
+                        className="w-8 h-8 flex items-center justify-center rounded-lg text-sm transition-colors"
+                        style={{ background: "rgba(253,41,123,0.1)", color: "var(--accent)", border: "1px solid rgba(253,41,123,0.2)" }}
                         title="Edit post"
                       >
                         ✎

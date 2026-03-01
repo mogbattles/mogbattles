@@ -20,7 +20,7 @@ export default async function LeaderboardArenaPage({
         <Link
           href="/leaderboard"
           className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest transition-colors hover:underline"
-          style={{ color: "#4A4A66" }}
+          style={{ color: "var(--text-muted)" }}
         >
           ← All Leaderboards
         </Link>
@@ -30,19 +30,19 @@ export default async function LeaderboardArenaPage({
       <div className="text-center mb-6">
         <div
           className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-3"
-          style={{ background: "#0F0F1A", border: "1px solid #222233" }}
+          style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
         >
-          <span className="text-xs font-black uppercase tracking-widest" style={{ color: "#4A4A66" }}>
+          <span className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
             Rankings
           </span>
           {arena.is_verified && (
-            <span className="text-xs font-black" style={{ color: "#F0C040" }}>✓ Official</span>
+            <span className="text-xs font-black" style={{ color: "var(--gold)" }}>✓ Official</span>
           )}
         </div>
         <h1
           className="text-3xl sm:text-4xl font-black tracking-tight"
           style={{
-            background: "linear-gradient(165deg, #A78BFA, #8B5CF6, #F0C040)",
+            background: "linear-gradient(90deg, #FD297B 0%, #FF5864 40%, #FF655B 100%)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             backgroundClip: "text",
@@ -51,7 +51,7 @@ export default async function LeaderboardArenaPage({
           {arena.name.toUpperCase()}
         </h1>
         {arena.description && (
-          <p className="text-sm mt-1" style={{ color: "#4A4A66" }}>
+          <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
             {arena.description}
           </p>
         )}

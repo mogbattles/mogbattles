@@ -66,20 +66,20 @@ export default function ProfileCard({
     if (hovered && !pressed) {
       gsap.to(el, {
         y: -4, scale: 1.03, duration: 0.25, ease: "power2.out",
-        boxShadow: "0 12px 0 #050508, 0 0 32px rgba(139,92,246,0.35), 0 0 60px rgba(139,92,246,0.12)",
-        borderColor: "rgba(139,92,246,0.6)",
+        boxShadow: "0 12px 0 var(--bg-primary), 0 0 32px rgba(0,0,0,0.4), 0 0 60px rgba(0,0,0,0.15)",
+        borderColor: "var(--border-hover)",
       });
     } else if (pressed) {
       gsap.to(el, {
         y: 3, scale: 0.97, duration: 0.1, ease: "power2.in",
-        boxShadow: "0 2px 0 #050508, 0 2px 8px rgba(0,0,0,0.6)",
-        borderColor: "rgba(139,92,246,0.8)",
+        boxShadow: "0 2px 0 var(--bg-primary), 0 2px 8px rgba(0,0,0,0.6)",
+        borderColor: "var(--border-hover)",
       });
     } else {
       gsap.to(el, {
         y: 0, scale: 1, duration: 0.3, ease: "power2.out",
-        boxShadow: "0 6px 0 #050508, 0 4px 20px rgba(0,0,0,0.5)",
-        borderColor: "#222233",
+        boxShadow: "0 6px 0 var(--bg-primary), 0 4px 20px rgba(0,0,0,0.5)",
+        borderColor: "var(--border)",
       });
     }
   }, [hovered, pressed]);
@@ -131,9 +131,9 @@ export default function ProfileCard({
     maxWidth: "240px",
     borderRadius: "20px",
     overflow: "hidden" as const,
-    border: "2px solid #222233",
-    boxShadow: "0 6px 0 #050508, 0 4px 20px rgba(0,0,0,0.5)",
-    background: "#0F0F1A",
+    border: "2px solid var(--border)",
+    boxShadow: "0 6px 0 var(--bg-primary), 0 4px 20px rgba(0,0,0,0.5)",
+    background: "var(--bg-card)",
     cursor: "pointer",
     userSelect: "none" as const,
   };
@@ -154,10 +154,10 @@ export default function ProfileCard({
       className="group relative flex-1"
       style={cardStyle}
     >
-      {/* ── Photo area ───────────────────────────────────── */}
+      {/* Photo area */}
       <div
         className="aspect-[3/4] relative select-none"
-        style={{ background: "#050508" }}
+        style={{ background: "var(--bg-primary)" }}
       >
         {/* Hidden preload */}
         {images.map((url, i) =>
@@ -195,22 +195,22 @@ export default function ProfileCard({
           style={{
             height: "50%",
             background:
-              "linear-gradient(to top, rgba(5,5,8,0.97) 0%, rgba(5,5,8,0.6) 55%, transparent 100%)",
+              "linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.6) 55%, transparent 100%)",
           }}
         />
 
-        {/* ELO badge – top right */}
+        {/* ELO badge */}
         <div
           className="absolute top-2 right-2 z-20 flex items-center gap-1 px-2 py-0.5 rounded-lg"
           style={{
-            background: "rgba(5,5,8,0.85)",
-            border: `1px solid ${hovered ? "rgba(139,92,246,0.5)" : "rgba(139,92,246,0.15)"}`,
+            background: "rgba(0,0,0,0.85)",
+            border: `1px solid ${hovered ? "rgba(240,192,64,0.5)" : "rgba(240,192,64,0.15)"}`,
             backdropFilter: "blur(4px)",
           }}
         >
           <span
             className="text-xs font-black leading-none"
-            style={{ color: "#F0C040" }}
+            style={{ color: "var(--gold)" }}
           >
             {eloRating}
           </span>
@@ -227,8 +227,8 @@ export default function ProfileCard({
               }}
               className="absolute left-1.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 flex items-center justify-center rounded-full"
               style={{
-                background: "rgba(5,5,8,0.72)",
-                border: "1px solid rgba(139,92,246,0.25)",
+                background: "rgba(0,0,0,0.72)",
+                border: "1px solid rgba(255,255,255,0.15)",
                 color: "rgba(255,255,255,0.9)",
                 fontSize: "17px",
                 lineHeight: 1,
@@ -245,8 +245,8 @@ export default function ProfileCard({
               }}
               className="absolute right-1.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 flex items-center justify-center rounded-full"
               style={{
-                background: "rgba(5,5,8,0.72)",
-                border: "1px solid rgba(139,92,246,0.25)",
+                background: "rgba(0,0,0,0.72)",
+                border: "1px solid rgba(255,255,255,0.15)",
                 color: "rgba(255,255,255,0.9)",
                 fontSize: "17px",
                 lineHeight: 1,
@@ -258,7 +258,7 @@ export default function ProfileCard({
           </>
         )}
 
-        {/* Photo indicators — purple pills */}
+        {/* Photo indicators */}
         {hasMultiple && (
           <div className="absolute bottom-[46px] left-0 right-0 flex justify-center gap-1.5 z-20">
             {images.map((_, i) => (
@@ -272,11 +272,11 @@ export default function ProfileCard({
                   borderRadius: "2px",
                   background:
                     i === currentIdx
-                      ? "#8B5CF6"
-                      : "rgba(139,92,246,0.25)",
+                      ? "#fff"
+                      : "rgba(255,255,255,0.3)",
                   boxShadow:
                     i === currentIdx
-                      ? "0 0 6px rgba(139,92,246,0.7)"
+                      ? "0 0 6px rgba(255,255,255,0.5)"
                       : "none",
                   transition: "width 0.25s ease, background 0.25s ease",
                 }}
@@ -307,18 +307,18 @@ export default function ProfileCard({
         </div>
       </div>
 
-      {/* ── Info footer ───────────────────────────────────── */}
+      {/* Info footer */}
       <div
         className="px-3 pb-3 pt-1.5 text-left"
         style={{
-          background: "linear-gradient(160deg, #141420 0%, #0A0A12 100%)",
+          background: "var(--bg-card)",
         }}
       >
         {/* Name + flag */}
         <div className="flex items-center gap-1.5 min-w-0">
           <h3
-            className="text-white font-black truncate leading-tight flex-1"
-            style={{ fontSize: "13px" }}
+            className="font-black truncate leading-tight flex-1"
+            style={{ fontSize: "13px", color: "var(--text-primary)" }}
           >
             {name}
           </h3>
@@ -331,15 +331,15 @@ export default function ProfileCard({
         {(heightIn || weightLbs) && (
           <div className="flex items-center gap-1.5 mt-0.5">
             {heightIn && (
-              <span style={{ color: "#4A4A66", fontSize: "10px", fontWeight: 700 }}>
+              <span style={{ color: "var(--text-muted)", fontSize: "10px", fontWeight: 700 }}>
                 {fmtHeight(heightIn)}
               </span>
             )}
             {heightIn && weightLbs && (
-              <span style={{ color: "#353548", fontSize: "10px" }}>·</span>
+              <span style={{ color: "var(--text-faint)", fontSize: "10px" }}>·</span>
             )}
             {weightLbs && (
-              <span style={{ color: "#4A4A66", fontSize: "10px", fontWeight: 700 }}>
+              <span style={{ color: "var(--text-muted)", fontSize: "10px", fontWeight: 700 }}>
                 {weightLbs} lbs
               </span>
             )}
@@ -348,15 +348,15 @@ export default function ProfileCard({
 
         {/* Stats row */}
         <div className="flex items-center justify-between mt-0.5">
-          <p style={{ color: "#4A4A66", fontSize: "11px", fontWeight: 700 }}>
+          <p style={{ color: "var(--text-muted)", fontSize: "11px", fontWeight: 700 }}>
             {wins}W–{losses}L
             {winRate !== null && (
-              <span style={{ color: "#353548" }}> · {winRate}%</span>
+              <span style={{ color: "var(--text-faint)" }}> · {winRate}%</span>
             )}
           </p>
           <span
             style={{
-              color: "#222233",
+              color: "var(--text-faint)",
               fontSize: "10px",
               fontWeight: 900,
               letterSpacing: "0.08em",

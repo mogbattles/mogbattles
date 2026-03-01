@@ -165,7 +165,7 @@ export default function ArticlesPage() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-2xl">📝</span>
-            <h1 className="font-heading tracking-wide text-3xl text-gradient-purple">
+            <h1 className="font-heading tracking-wide text-3xl text-gradient-gold">
               Articles
             </h1>
           </div>
@@ -189,8 +189,8 @@ export default function ArticlesPage() {
 
       {/* Write / Edit form */}
       {showForm && perms.canWriteArticles && (
-        <div className="mb-6 game-card rounded-2xl p-5 space-y-3 !border-purple/25">
-          <p className="text-xs font-black uppercase tracking-widest text-purple-bright">
+        <div className="mb-6 game-card rounded-2xl p-5 space-y-3" style={{ borderColor: "rgba(253,41,123,0.25)" }}>
+          <p className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--accent)" }}>
             {editingId ? "Edit Article" : "New Article"}
           </p>
           <input type="text" placeholder="Title *" value={form.title}
@@ -208,7 +208,7 @@ export default function ArticlesPage() {
           />
           <div className="flex justify-end">
             <button onClick={publishArticle} disabled={saving || !form.title.trim() || !form.content.trim()}
-              className="btn-purple px-6 py-2 rounded-xl text-sm font-black disabled:opacity-50"
+              className="btn-accent px-6 py-2 rounded-xl text-sm font-black disabled:opacity-50"
             >
               {saving ? "Saving\u2026" : editingId ? "Save Changes" : "Publish Article"}
             </button>
@@ -234,7 +234,7 @@ export default function ArticlesPage() {
       ) : (
         <div className="space-y-4">
           {articles.map((article) => (
-            <div key={article.id} className="relative rounded-2xl overflow-hidden game-card transition-all duration-200 hover:border-purple/40 hover:shadow-[0_0_20px_rgba(139,92,246,0.06)]">
+            <div key={article.id} className="relative rounded-2xl overflow-hidden game-card transition-all duration-200 hover:border-navy-300 hover:shadow-[0_0_20px_rgba(0,0,0,0.2)]">
               <Link href={`/articles/${article.slug}`} className="block">
                 <div className="flex gap-4 p-4">
                   {article.image_url && (
@@ -263,7 +263,8 @@ export default function ArticlesPage() {
                 <div className="absolute top-3 right-3 flex gap-1.5 z-10">
                   <button
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); startEdit(article); }}
-                    className="w-7 h-7 flex items-center justify-center rounded-lg text-[11px] transition-colors bg-purple/10 text-purple-bright border border-purple/20 hover:bg-purple/20"
+                    className="w-7 h-7 flex items-center justify-center rounded-lg text-[11px] transition-colors"
+                    style={{ background: "rgba(253,41,123,0.1)", color: "var(--accent)", border: "1px solid rgba(253,41,123,0.2)" }}
                     title="Edit"
                   >
                     ✎

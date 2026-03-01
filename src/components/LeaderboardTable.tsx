@@ -11,17 +11,29 @@ interface LeaderboardEntry extends ArenaProfile {
 }
 
 function avatarUrl(name: string) {
-  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0F0F1A&color=555&size=96&bold=true`;
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1a1a1a&color=555&size=96&bold=true`;
 }
 
 function RankLabel({ rank }: { rank: number }) {
-  if (rank === 1) return <span className="text-lg">👑</span>;
-  if (rank === 2) return <span className="text-lg">🥈</span>;
-  if (rank === 3) return <span className="text-lg">🥉</span>;
+  if (rank === 1) return (
+    <div className="rank-badge rank-badge-1">
+      <span className="text-sm font-black" style={{ color: "var(--gold)" }}>1</span>
+    </div>
+  );
+  if (rank === 2) return (
+    <div className="rank-badge rank-badge-2">
+      <span className="text-sm font-black" style={{ color: "var(--silver)" }}>2</span>
+    </div>
+  );
+  if (rank === 3) return (
+    <div className="rank-badge rank-badge-3">
+      <span className="text-sm font-black" style={{ color: "var(--bronze)" }}>3</span>
+    </div>
+  );
   return (
-    <span className="font-black text-xs" style={{ color: "#2A2A3D" }}>
-      #{rank}
-    </span>
+    <div className="rank-badge rank-badge-default">
+      <span className="text-xs font-black" style={{ color: "var(--text-faint)" }}>#{rank}</span>
+    </div>
   );
 }
 
@@ -68,7 +80,7 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
       <div className="flex items-center justify-center h-[50vh]">
         <div
           className="w-8 h-8 rounded-full border-2 animate-spin"
-          style={{ borderColor: "#8B5CF6", borderTopColor: "transparent" }}
+          style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }}
         />
       </div>
     );
@@ -78,7 +90,7 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
     return (
       <div className="text-center mt-16">
         <p className="text-lg font-bold text-white mb-1">No battles yet.</p>
-        <p className="text-sm" style={{ color: "#4A4A66" }}>Be the first to vote!</p>
+        <p className="text-sm" style={{ color: "var(--text-muted)" }}>Be the first to vote!</p>
       </div>
     );
   }
@@ -87,27 +99,27 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
     <div className="space-y-3">
       {/* ELO mode toggle — only for sub-category arenas */}
       {isSubCategory && (
-        <div className="flex rounded-xl overflow-hidden" style={{ border: "1px solid #222233" }}>
+        <div className="flex rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
           <button
             onClick={() => setArenaSpecific(false)}
             className="flex-1 py-2 text-xs font-black uppercase tracking-widest transition-colors"
             style={{
-              background: !arenaSpecific ? "#1A1A28" : "transparent",
-              color: !arenaSpecific ? "#A78BFA" : "#4A4A66",
-              borderRight: "1px solid #222233",
+              background: !arenaSpecific ? "var(--bg-elevated)" : "transparent",
+              color: !arenaSpecific ? "var(--accent)" : "var(--text-muted)",
+              borderRight: "1px solid var(--border)",
             }}
           >
-            🌐 Global ELO
+            Global ELO
           </button>
           <button
             onClick={() => setArenaSpecific(true)}
             className="flex-1 py-2 text-xs font-black uppercase tracking-widest transition-colors"
             style={{
-              background: arenaSpecific ? "#1A1A28" : "transparent",
-              color: arenaSpecific ? "#F0C040" : "#4A4A66",
+              background: arenaSpecific ? "var(--bg-elevated)" : "transparent",
+              color: arenaSpecific ? "var(--gold)" : "var(--text-muted)",
             }}
           >
-            🏟️ Arena ELO
+            Arena ELO
           </button>
         </div>
       )}
@@ -117,15 +129,15 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
         type="search"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        placeholder="Search by name or country…"
+        placeholder="Search by name or country..."
         className="w-full rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none transition-colors"
-        style={{ background: "#0F0F1A", border: "1px solid #222233" }}
-        onFocus={(e) => { e.target.style.borderColor = "#8B5CF6"; }}
-        onBlur={(e) => { e.target.style.borderColor = "#222233"; }}
+        style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
+        onFocus={(e) => { e.target.style.borderColor = "var(--accent)"; }}
+        onBlur={(e) => { e.target.style.borderColor = "var(--border)"; }}
       />
 
       {filtered.length === 0 && (
-        <p className="text-center text-sm py-8" style={{ color: "#2A2A3D" }}>
+        <p className="text-center text-sm py-8" style={{ color: "var(--text-faint)" }}>
           No results for &ldquo;{search}&rdquo;
         </p>
       )}
@@ -140,29 +152,43 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
             : entry.rank === 2 ? "rgba(192,192,192,0.18)"
             : "rgba(180,100,40,0.18)";
 
+          const rowBg =
+            entry.rank === 1 ? "rgba(240,192,64,0.04)"
+            : entry.rank === 2 ? "rgba(192,192,192,0.03)"
+            : entry.rank === 3 ? "rgba(180,100,40,0.03)"
+            : "var(--bg-card)";
+
+          const hoverGlow =
+            entry.rank === 1 ? "0 0 20px rgba(240,192,64,0.15)"
+            : entry.rank === 2 ? "0 0 20px rgba(192,192,192,0.12)"
+            : entry.rank === 3 ? "0 0 20px rgba(180,100,40,0.12)"
+            : "0 0 14px rgba(0,0,0,0.2)";
+
           return (
             <Link
               key={entry.id}
               href={`/players/${entry.id}`}
-              className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl transition-all"
+              className={`flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl rank-row${isTop ? " rank-row-top" : ""}`}
               style={{
-                background: entry.rank === 1 ? "rgba(240,192,64,0.04)"
-                  : entry.rank === 2 ? "rgba(192,192,192,0.03)"
-                  : entry.rank === 3 ? "rgba(180,100,40,0.03)"
-                  : "#0F0F1A",
-                border: `1px solid ${isTop ? topBorder : "#222233"}`,
+                background: rowBg,
+                border: `1px solid ${isTop ? topBorder : "var(--border)"}`,
+                transition: "all 0.3s ease",
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.borderColor = "rgba(139,92,246,0.5)";
-                (e.currentTarget as HTMLElement).style.boxShadow = "0 0 14px rgba(139,92,246,0.07)";
+                const el = e.currentTarget as HTMLElement;
+                el.style.transform = "scale(1.01)";
+                el.style.borderColor = isTop ? topBorder : "var(--border-hover)";
+                el.style.boxShadow = hoverGlow;
               }}
               onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.borderColor = isTop ? topBorder : "#222233";
-                (e.currentTarget as HTMLElement).style.boxShadow = "none";
+                const el = e.currentTarget as HTMLElement;
+                el.style.transform = "scale(1)";
+                el.style.borderColor = isTop ? topBorder : "var(--border)";
+                el.style.boxShadow = "none";
               }}
             >
               {/* Rank */}
-              <div className="w-8 text-center shrink-0">
+              <div className="w-9 flex items-center justify-center shrink-0">
                 <RankLabel rank={entry.rank} />
               </div>
 
@@ -177,7 +203,11 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
                   height: "44px",
                   border: entry.rank === 1
                     ? "2px solid rgba(240,192,64,0.5)"
-                    : "2px solid #222233",
+                    : entry.rank === 2
+                    ? "2px solid rgba(192,192,192,0.35)"
+                    : entry.rank === 3
+                    ? "2px solid rgba(180,100,40,0.35)"
+                    : "2px solid var(--border)",
                 }}
                 onError={(e) => {
                   const img = e.target as HTMLImageElement;
@@ -202,9 +232,9 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
                         key={tag}
                         className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
                         style={{
-                          color: "#4A4A66",
-                          background: "#1A1A28",
-                          border: "1px solid #2A2A3D",
+                          color: "var(--text-muted)",
+                          background: "var(--bg-elevated)",
+                          border: "1px solid var(--border)",
                         }}
                       >
                         {tag}
@@ -213,7 +243,7 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
                   </div>
                 )}
 
-                <p className="text-xs mt-0.5" style={{ color: "#2A2A3D" }}>
+                <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
                   {entry.wins}W – {entry.losses}L · {entry.matches} battles
                 </p>
               </div>
@@ -222,13 +252,13 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
               <div className="text-right shrink-0">
                 <span
                   className="font-black text-lg sm:text-xl"
-                  style={{ color: entry.rank === 1 ? "#F0C040" : arenaSpecific ? "#D97706" : "#6D28D9" }}
+                  style={{ color: entry.rank === 1 ? "var(--gold)" : arenaSpecific ? "#D97706" : "var(--text-primary)" }}
                 >
                   {entry.elo_rating}
                 </span>
                 <p
                   className="text-[10px] font-black uppercase tracking-widest"
-                  style={{ color: "#2A2A3D" }}
+                  style={{ color: "var(--text-faint)" }}
                 >
                   {arenaSpecific ? "ARENA" : "ELO"}
                 </p>

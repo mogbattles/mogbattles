@@ -45,10 +45,10 @@ export default function BottomNav() {
     <nav
       className="lg:hidden fixed bottom-0 left-0 right-0 z-50"
       style={{
-        background: "linear-gradient(0deg, rgba(10,10,18,0.99) 0%, rgba(10,10,18,0.95) 85%, transparent 100%)",
+        background: "var(--nav-bg)",
         backdropFilter: "blur(24px)",
         WebkitBackdropFilter: "blur(24px)",
-        borderTop: "1px solid rgba(139,92,246,0.1)",
+        borderTop: "1px solid var(--nav-border)",
         paddingBottom: "env(safe-area-inset-bottom, 0px)",
       }}
     >
@@ -71,14 +71,14 @@ export default function BottomNav() {
               className="flex-1 flex flex-col items-center justify-center gap-0.5 relative select-none"
               style={{ WebkitTapHighlightColor: "transparent" }}
             >
-              {/* Purple indicator bar at top */}
+              {/* Accent indicator bar at top */}
               <span
                 className="absolute top-0 left-1/2 rounded-b-full transition-all duration-300"
                 style={{
                   width:      isActive ? "36px" : "0px",
                   height:     "3px",
-                  background: "linear-gradient(90deg, #8B5CF6, #A78BFA)",
-                  boxShadow:  isActive ? "0 0 12px rgba(139,92,246,0.8), 0 0 24px rgba(139,92,246,0.3)" : "none",
+                  background: "linear-gradient(90deg, #FD297B, #FF5864)",
+                  boxShadow:  isActive ? "0 0 12px var(--accent-glow), 0 0 24px var(--accent-glow)" : "none",
                   transform:  "translateX(-50%)",
                   opacity:    isActive ? 1 : 0,
                   transition: "width 0.25s ease, opacity 0.2s ease, box-shadow 0.25s ease",
@@ -94,7 +94,7 @@ export default function BottomNav() {
                     display:    "block",
                     transform:  isActive ? "scale(1.18)" : "scale(1)",
                     filter:     isActive
-                      ? "drop-shadow(0 0 6px rgba(139,92,246,0.7))"
+                      ? "drop-shadow(0 0 6px var(--accent-glow))"
                       : "grayscale(0.4) brightness(0.5)",
                     transition: "all 0.2s ease",
                   }}
@@ -105,12 +105,12 @@ export default function BottomNav() {
                   <span
                     className="absolute -top-1.5 -right-2 text-[8px] font-black rounded-full flex items-center justify-center"
                     style={{
-                      background: "#FF4545",
+                      background: "var(--danger)",
                       color: "#fff",
                       minWidth: "14px",
                       height: "14px",
                       padding: "0 2px",
-                      boxShadow: "0 0 6px rgba(255,69,69,0.5)",
+                      boxShadow: "0 0 6px rgba(231,76,60,0.5)",
                     }}
                   >
                     {unreadCount > 9 ? "9+" : unreadCount}
@@ -121,7 +121,7 @@ export default function BottomNav() {
               {/* Label */}
               <span
                 className="text-[9px] font-black tracking-widest uppercase transition-colors duration-200"
-                style={{ color: isActive ? "#A78BFA" : "#353548" }}
+                style={{ color: isActive ? "var(--accent)" : "var(--text-faint)" }}
               >
                 {tab.label}
               </span>

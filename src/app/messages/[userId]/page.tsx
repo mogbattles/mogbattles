@@ -14,7 +14,7 @@ import {
 import { createClient } from "@/lib/supabase";
 
 function Avatar({ src, name, size = 36 }: { src: string | null; name: string; size?: number }) {
-  const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0F0F1A&color=888&size=${size * 2}&bold=true`;
+  const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1a1a1a&color=888&size=${size * 2}&bold=true`;
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
@@ -22,8 +22,8 @@ function Avatar({ src, name, size = 36 }: { src: string | null; name: string; si
       alt={name}
       width={size}
       height={size}
-      className="rounded-full object-cover shrink-0 ring-2 ring-navy-500"
-      style={{ width: size, height: size }}
+      className="rounded-full object-cover shrink-0"
+      style={{ width: size, height: size, boxShadow: "0 0 0 2px var(--border)" }}
       onError={(e) => { (e.target as HTMLImageElement).src = fallback; }}
     />
   );
@@ -183,7 +183,7 @@ export default function MessageThreadPage() {
   if (authLoading || initLoading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
-        <div className="w-8 h-8 rounded-full border-2 border-purple border-t-transparent animate-spin" />
+        <div className="w-8 h-8 rounded-full border-2 animate-spin" style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }} />
       </div>
     );
   }
@@ -244,10 +244,12 @@ export default function MessageThreadPage() {
               <div className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
                 <div
                   className={`max-w-[75%] px-3.5 py-2.5 rounded-2xl text-sm leading-snug ${
-                    isMe
-                      ? "bg-purple/15 border border-purple/25 text-white rounded-br-md"
-                      : "bg-navy-800 border border-navy-500 text-gray-200 rounded-bl-md"
+                    isMe ? "text-white rounded-br-md" : "text-gray-200 rounded-bl-md"
                   }`}
+                  style={isMe
+                    ? { background: "rgba(253,41,123,0.12)", border: "1px solid rgba(253,41,123,0.25)" }
+                    : { background: "var(--bg-elevated)", border: "1px solid var(--border)" }
+                  }
                 >
                   {msg.content}
                 </div>
@@ -279,7 +281,8 @@ export default function MessageThreadPage() {
         <button
           onClick={handleSend}
           disabled={!input.trim() || sending}
-          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-150 disabled:opacity-40 bg-purple/20 border border-purple/40 text-purple-bright hover:bg-purple/30 active:scale-95"
+          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-150 disabled:opacity-40 active:scale-95"
+          style={{ background: "rgba(253,41,123,0.15)", border: "1px solid rgba(253,41,123,0.35)", color: "var(--accent)" }}
           style={{ fontSize: 18 }}
         >
           ↑

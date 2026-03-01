@@ -7,7 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { getMutualFollows, type FollowProfile } from "@/lib/follows";
 
 function Avatar({ src, name, size = 36 }: { src: string | null; name: string; size?: number }) {
-  const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0F0F1A&color=888&size=${size * 2}&bold=true`;
+  const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1a1a1a&color=888&size=${size * 2}&bold=true`;
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
@@ -27,7 +27,7 @@ function RankLabel({ rank }: { rank: number }) {
   if (rank === 2) return <span className="text-sm">🥈</span>;
   if (rank === 3) return <span className="text-sm">🥉</span>;
   return (
-    <span className="text-xs font-black w-5 text-center" style={{ color: "#2A2A3D" }}>
+    <span className="text-xs font-black w-5 text-center" style={{ color: "var(--text-faint)" }}>
       {rank}
     </span>
   );
@@ -55,7 +55,7 @@ export default function FriendsLeaderboardPage() {
       <Link
         href="/leaderboard"
         className="inline-flex items-center gap-1.5 text-xs font-bold mb-8 transition-opacity hover:opacity-70"
-        style={{ color: "#4A4A66" }}
+        style={{ color: "var(--text-muted)" }}
       >
         ← Leaderboards
       </Link>
@@ -65,63 +65,63 @@ export default function FriendsLeaderboardPage() {
         <div className="flex items-center gap-3 mb-1">
           <h1 className="text-3xl font-black text-white">🤝 Friends</h1>
         </div>
-        <p className="text-sm" style={{ color: "#4A4A66" }}>
+        <p className="text-sm" style={{ color: "var(--text-muted)" }}>
           People you mutually follow, ranked by ELO
         </p>
       </div>
 
       {loading ? (
-        <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid #222233" }}>
+        <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
           {[1, 2, 3, 4, 5].map((i) => (
             <div
               key={i}
               className="flex items-center gap-3 px-4 py-3"
               style={{
-                borderBottom: i < 5 ? "1px solid #222233" : "none",
-                background: "#0F0F1A",
+                borderBottom: i < 5 ? "1px solid var(--border)" : "none",
+                background: "var(--bg-card)",
               }}
             >
-              <div className="w-5 h-3 rounded animate-pulse" style={{ background: "#222233" }} />
-              <div className="w-9 h-9 rounded-full shrink-0 animate-pulse" style={{ background: "#222233" }} />
+              <div className="w-5 h-3 rounded animate-pulse" style={{ background: "var(--border)" }} />
+              <div className="w-9 h-9 rounded-full shrink-0 animate-pulse" style={{ background: "var(--border)" }} />
               <div className="flex-1">
-                <div className="h-3 rounded-full mb-1.5 animate-pulse" style={{ background: "#222233", width: "60%" }} />
+                <div className="h-3 rounded-full mb-1.5 animate-pulse" style={{ background: "var(--border)", width: "60%" }} />
               </div>
-              <div className="h-4 w-12 rounded-lg animate-pulse" style={{ background: "#222233" }} />
+              <div className="h-4 w-12 rounded-lg animate-pulse" style={{ background: "var(--border)" }} />
             </div>
           ))}
         </div>
       ) : friends.length === 0 ? (
         <div
           className="rounded-2xl p-8 text-center"
-          style={{ background: "#0F0F1A", border: "1px solid #222233" }}
+          style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
         >
           <p className="text-4xl mb-3">🤝</p>
           <p className="font-bold text-white mb-1">No friends yet</p>
-          <p className="text-sm mb-5" style={{ color: "#4A4A66" }}>
+          <p className="text-sm mb-5" style={{ color: "var(--text-muted)" }}>
             Follow someone and have them follow you back to become friends.
           </p>
           <Link
             href="/leaderboard/members"
             className="inline-block py-2.5 px-5 rounded-xl font-black text-sm uppercase tracking-wide"
             style={{
-              background: "rgba(139,92,246,0.15)",
-              border: "1px solid rgba(139,92,246,0.4)",
-              color: "#A78BFA",
+              background: "rgba(253,41,123,0.15)",
+              border: "1px solid rgba(253,41,123,0.4)",
+              color: "var(--accent)",
             }}
           >
             Browse Players
           </Link>
         </div>
       ) : (
-        <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid #222233" }}>
+        <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
           {friends.map((friend, i) => (
             <Link
               key={friend.user_id}
               href={`/players/${friend.user_id}`}
               className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-white/5"
               style={{
-                borderBottom: i < friends.length - 1 ? "1px solid #222233" : "none",
-                background: "#0F0F1A",
+                borderBottom: i < friends.length - 1 ? "1px solid var(--border)" : "none",
+                background: "var(--bg-card)",
               }}
             >
               <div className="w-5 flex justify-center shrink-0">
@@ -131,7 +131,7 @@ export default function FriendsLeaderboardPage() {
               <div className="flex-1 min-w-0">
                 <p className="font-black text-white text-sm truncate">{friend.name}</p>
               </div>
-              <p className="font-black text-sm shrink-0" style={{ color: "#F0C040" }}>
+              <p className="font-black text-sm shrink-0" style={{ color: "var(--gold)" }}>
                 {friend.elo_rating}
               </p>
               <Link
@@ -148,7 +148,7 @@ export default function FriendsLeaderboardPage() {
       )}
 
       {friends.length > 0 && (
-        <p className="text-center text-xs mt-4" style={{ color: "#2A2A3D" }}>
+        <p className="text-center text-xs mt-4" style={{ color: "var(--text-faint)" }}>
           {friends.length} friend{friends.length !== 1 ? "s" : ""}
         </p>
       )}

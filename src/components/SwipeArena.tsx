@@ -412,7 +412,7 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
         style={{
           borderRadius: "20px",
           aspectRatio: "3/4.5",
-          background: "#050508",
+          background: "var(--bg-primary)",
         }}
       >
         {/* Photo */}
@@ -449,14 +449,14 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
               className="absolute left-1 top-1/2 -translate-y-1/2 z-20 w-7 h-7 flex items-center justify-center rounded-full cursor-pointer transition-opacity opacity-40 hover:opacity-90"
               style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}
             >
-              <span className="text-white text-xs font-black">‹</span>
+              <span className="text-white text-xs font-black">&#8249;</span>
             </div>
             <div
               onClick={nextImg}
               className="absolute right-1 top-1/2 -translate-y-1/2 z-20 w-7 h-7 flex items-center justify-center rounded-full cursor-pointer transition-opacity opacity-40 hover:opacity-90"
               style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}
             >
-              <span className="text-white text-xs font-black">›</span>
+              <span className="text-white text-xs font-black">&#8250;</span>
             </div>
           </>
         )}
@@ -466,7 +466,7 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
           className="absolute top-3 right-3 z-20 flex items-center gap-1 px-2.5 py-1 rounded-full"
           style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", border: "1px solid rgba(240,192,64,0.3)" }}
         >
-          <span className="text-xs font-black" style={{ color: "#F0C040" }}>{profile.elo_rating}</span>
+          <span className="text-xs font-black" style={{ color: "var(--gold)" }}>{profile.elo_rating}</span>
         </div>
 
         {/* Bottom gradient */}
@@ -481,10 +481,10 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
             {profile.country && (
               <span className="opacity-70">{profile.country}</span>
             )}
-            <span style={{ color: "#888" }}>{profile.wins}W-{profile.losses}L</span>
+            <span style={{ color: "var(--text-muted)" }}>{profile.wins}W-{profile.losses}L</span>
             {winRate !== null && (
               <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold"
-                style={{ background: "rgba(139,92,246,0.2)", color: "#A78BFA" }}>
+                style={{ background: "rgba(253,41,123,0.15)", color: "var(--accent)" }}>
                 {winRate}%
               </span>
             )}
@@ -529,7 +529,7 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
 
         {/* Tap hint glow */}
         <div className="absolute inset-0 rounded-[20px] pointer-events-none opacity-0 hover:opacity-100 transition-opacity"
-          style={{ boxShadow: "inset 0 0 40px rgba(139,92,246,0.15)" }} />
+          style={{ boxShadow: "inset 0 0 40px rgba(255,255,255,0.05)" }} />
       </button>
     );
   }
@@ -539,8 +539,8 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
     return (
       <div className="flex flex-col items-center justify-center gap-4" style={{ height: "70vh" }}>
         <div className="w-14 h-14 rounded-full border-4 border-transparent animate-spin"
-          style={{ borderTopColor: "#8B5CF6", borderRightColor: "rgba(139,92,246,0.25)", boxShadow: "0 0 20px rgba(139,92,246,0.3)" }} />
-        <p className="font-heading tracking-widest text-sm" style={{ color: "#4A4A66" }}>LOADING BATTLES</p>
+          style={{ borderTopColor: "var(--accent)", borderRightColor: "rgba(253,41,123,0.25)", boxShadow: "0 0 20px rgba(253,41,123,0.3)" }} />
+        <p className="font-heading tracking-widest text-sm" style={{ color: "var(--text-muted)" }}>LOADING BATTLES</p>
       </div>
     );
   }
@@ -549,9 +549,9 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
   if (error) {
     return (
       <div className="text-center mt-16 px-6">
-        <div className="text-6xl mb-4">⚔️</div>
+        <div className="text-6xl mb-4">&#9876;&#65039;</div>
         <p className="font-bold text-lg mb-2 text-white">{error}</p>
-        <p className="text-sm" style={{ color: "#4A4A66" }}>Add profiles via the Admin panel or assign them to this category.</p>
+        <p className="text-sm" style={{ color: "var(--text-muted)" }}>Add profiles via the Admin panel or assign them to this category.</p>
       </div>
     );
   }
@@ -560,13 +560,13 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
   if (exhausted) {
     return (
       <div className="flex flex-col items-center text-center mt-12 px-4 max-w-sm mx-auto">
-        <div className="text-7xl mb-5 crown-float" style={{ filter: "drop-shadow(0 0 16px rgba(139,92,246,0.5))" }}>🏆</div>
+        <div className="text-7xl mb-5 crown-float" style={{ filter: "drop-shadow(0 0 16px rgba(253,41,123,0.5))" }}>&#127942;</div>
         <h2 className="text-white font-heading tracking-wide text-4xl mb-2">Arena Conquered!</h2>
-        <p className="text-sm mb-8" style={{ color: "#4A4A66" }}>
-          You&apos;ve voted on every matchup in <span style={{ color: "#A78BFA", fontWeight: 800 }}>{arena.name}</span>.
+        <p className="text-sm mb-8" style={{ color: "var(--text-muted)" }}>
+          You&apos;ve voted on every matchup in <span style={{ color: "var(--accent)", fontWeight: 800 }}>{arena.name}</span>.
         </p>
-        <Link href="/swipe" className="btn-purple rounded-xl px-8 py-4 text-base font-black uppercase tracking-wider inline-block">
-          Try Another Arena →
+        <Link href="/swipe" className="btn-accent rounded-xl px-8 py-4 text-base font-black uppercase tracking-wider inline-block">
+          Try Another Arena &rarr;
         </Link>
       </div>
     );
@@ -589,18 +589,18 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
       {/* Arena header */}
       <div className="text-center mb-3">
         <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full mb-2"
-          style={{ background: "rgba(15,15,26,0.8)", border: "1px solid #222233", backdropFilter: "blur(8px)" }}>
-          <span className="text-xs font-black uppercase tracking-widest" style={{ color: "#4A4A66" }}>{arena.name}</span>
+          style={{ background: "rgba(0,0,0,0.8)", border: "1px solid var(--border)", backdropFilter: "blur(8px)" }}>
+          <span className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>{arena.name}</span>
           {swipeCount > 0 && (
             <>
-              <span style={{ color: "#222233" }}>·</span>
-              <span className="text-xs font-black" style={{ color: "#2A2A3D" }}>{swipeCount}</span>
+              <span style={{ color: "var(--border)" }}>&middot;</span>
+              <span className="text-xs font-black" style={{ color: "var(--text-faint)" }}>{swipeCount}</span>
             </>
           )}
         </div>
         <div className="flex items-center justify-center gap-3">
           <span className="font-heading tracking-wide text-4xl text-white" style={{ lineHeight: 1 }}>WHO</span>
-          <span className="font-heading tracking-wide text-4xl" style={{ color: "#A78BFA", lineHeight: 1, textShadow: "0 0 20px rgba(139,92,246,0.4)" }}>MOGS?</span>
+          <span className="font-heading tracking-wide text-4xl" style={{ color: "var(--accent)", lineHeight: 1, textShadow: "0 0 20px rgba(253,41,123,0.4)" }}>MOGS?</span>
         </div>
       </div>
 
@@ -608,7 +608,7 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
       {lastResult && (
         <div className="text-center mb-3" style={{ animation: "resultSlide 0.35s ease-out both" }}>
           <span className="inline-block font-black px-5 py-2 rounded-full text-sm uppercase tracking-widest"
-            style={{ background: "linear-gradient(160deg, #A78BFA, #8B5CF6)", color: "#fff", boxShadow: "0 0 30px rgba(139,92,246,0.6)" }}>
+            style={{ background: "linear-gradient(135deg, #FD297B, #FF5864)", color: "#fff", boxShadow: "0 0 30px rgba(253,41,123,0.6)" }}>
             {lastResult}
           </span>
         </div>
@@ -648,8 +648,8 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
           <div className="relative">
             <span className="font-heading tracking-wide text-4xl"
               style={{
-                color: "#8B5CF6",
-                textShadow: "0 0 24px rgba(139,92,246,0.6), 0 0 48px rgba(139,92,246,0.2)",
+                color: "var(--accent)",
+                textShadow: "0 0 24px rgba(253,41,123,0.6), 0 0 48px rgba(253,41,123,0.2)",
                 lineHeight: 1,
               }}>
               VS
@@ -687,9 +687,9 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
           disabled={animating}
           className="text-[11px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full transition-all active:scale-95 hover:opacity-80"
           style={{
-            background: "rgba(34,34,51,0.5)",
-            border: "1px solid rgba(34,34,51,0.9)",
-            color: "#4A4A66",
+            background: "rgba(255,255,255,0.04)",
+            border: "1px solid var(--border)",
+            color: "var(--text-muted)",
           }}>
           skip
         </button>
@@ -698,19 +698,19 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
       {/* Sign-in gate modal */}
       {showSignInGate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
-          style={{ background: "rgba(5,5,8,0.92)", backdropFilter: "blur(8px)" }}
+          style={{ background: "rgba(0,0,0,0.92)", backdropFilter: "blur(8px)" }}
           onClick={() => setShowSignInGate(false)}>
           <div className="max-w-xs w-full rounded-2xl p-8 text-center"
-            style={{ background: "#0F0F1A", border: "1px solid rgba(139,92,246,0.25)", boxShadow: "0 0 40px rgba(139,92,246,0.1)" }}
+            style={{ background: "var(--bg-card)", border: "1px solid rgba(253,41,123,0.25)", boxShadow: "0 0 40px rgba(253,41,123,0.1)" }}
             onClick={(e) => e.stopPropagation()}>
-            <div className="text-5xl mb-4" style={{ filter: "drop-shadow(0 0 12px rgba(139,92,246,0.4))" }}>⚔️</div>
+            <div className="text-5xl mb-4" style={{ filter: "drop-shadow(0 0 12px rgba(253,41,123,0.4))" }}>&#9876;&#65039;</div>
             <h2 className="text-white font-black text-xl mb-2 tracking-tight">Join the Arena</h2>
-            <p className="text-sm mb-6 leading-relaxed" style={{ color: "#4A4A66" }}>
+            <p className="text-sm mb-6 leading-relaxed" style={{ color: "var(--text-muted)" }}>
               Sign in to vote in battles, track your history, and compete on the leaderboard.
             </p>
-            <Link href="/profile" className="block btn-purple rounded-xl px-6 py-3 text-sm font-black uppercase tracking-wider"
-              onClick={() => setShowSignInGate(false)}>Sign In with Google →</Link>
-            <button onClick={() => setShowSignInGate(false)} className="mt-4 text-xs font-bold hover:underline" style={{ color: "#4A4A66" }}>Maybe later</button>
+            <Link href="/profile" className="block btn-accent rounded-xl px-6 py-3 text-sm font-black uppercase tracking-wider"
+              onClick={() => setShowSignInGate(false)}>Sign In with Google &rarr;</Link>
+            <button onClick={() => setShowSignInGate(false)} className="mt-4 text-xs font-bold hover:underline" style={{ color: "var(--text-muted)" }}>Maybe later</button>
           </div>
         </div>
       )}

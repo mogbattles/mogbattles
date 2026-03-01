@@ -16,9 +16,9 @@ function FeaturedCard({ arena }: { arena: ArenaWithCount }) {
       href={`/leaderboard/${arena.slug}`}
       className="group block rounded-2xl overflow-hidden relative"
       style={{
-        background: "linear-gradient(135deg, #141420 0%, #0A0A12 100%)",
-        border: `1px solid ${hov ? "rgba(139,92,246,0.5)" : "#222233"}`,
-        boxShadow: hov ? "0 0 28px rgba(139,92,246,0.12)" : "none",
+        background: "linear-gradient(135deg, var(--bg-card) 0%, var(--bg-primary) 100%)",
+        border: `1px solid ${hov ? "var(--border-hover)" : "var(--border)"}`,
+        boxShadow: hov ? "0 0 28px rgba(0,0,0,0.2)" : "none",
         transition: "border-color 0.18s ease, box-shadow 0.18s ease",
       }}
       onMouseEnter={() => setHov(true)}
@@ -28,7 +28,7 @@ function FeaturedCard({ arena }: { arena: ArenaWithCount }) {
       <div
         className="absolute -top-12 -right-12 w-52 h-52 rounded-full pointer-events-none transition-opacity duration-300"
         style={{
-          background: "radial-gradient(circle, rgba(139,92,246,0.07) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%)",
           opacity: hov ? 1 : 0.5,
         }}
       />
@@ -40,7 +40,7 @@ function FeaturedCard({ arena }: { arena: ArenaWithCount }) {
             <span
               className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full"
               style={{
-                color: "#F0C040",
+                color: "var(--gold)",
                 background: "rgba(240,192,64,0.1)",
                 border: "1px solid rgba(240,192,64,0.25)",
               }}
@@ -52,17 +52,17 @@ function FeaturedCard({ arena }: { arena: ArenaWithCount }) {
 
         <h3 className="text-white font-heading tracking-wide text-3xl leading-tight mb-1">{arena.name}</h3>
         {arena.description && (
-          <p className="text-sm mb-5" style={{ color: "#4A4A66" }}>
+          <p className="text-sm mb-5" style={{ color: "var(--text-muted)" }}>
             {arena.description}
           </p>
         )}
 
         <div className="flex items-center justify-between mt-auto">
-          <span className="text-xs font-bold" style={{ color: "#2A2A3D" }}>
+          <span className="text-xs font-bold" style={{ color: "var(--text-faint)" }}>
             {arena.player_count} {arena.player_count === 1 ? "player" : "players"}
           </span>
           <span
-            className="btn-purple rounded-xl px-4 py-2 font-black uppercase tracking-wider"
+            className="btn-accent rounded-xl px-4 py-2 font-black uppercase tracking-wider"
             style={{ fontSize: "11px" }}
           >
             Rankings →
@@ -80,12 +80,12 @@ function FriendsCard() {
     <Link
       href="/leaderboard/friends"
       className="group block rounded-2xl p-5 relative overflow-hidden mb-4"
-      style={{ background: "#0F0F1A", border: "1px solid #222233" }}
+      style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
       onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.borderColor = "rgba(139,92,246,0.5)";
+        (e.currentTarget as HTMLElement).style.borderColor = "var(--border-hover)";
       }}
       onMouseLeave={(e) => {
-        (e.currentTarget as HTMLElement).style.borderColor = "#222233";
+        (e.currentTarget as HTMLElement).style.borderColor = "var(--border)";
       }}
     >
       <div className="flex items-center justify-between">
@@ -96,19 +96,19 @@ function FriendsCard() {
               <h3 className="text-white font-black text-lg">Friends</h3>
               <span
                 className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
-                style={{ color: "#6D28D9", background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.15)" }}
+                style={{ color: "var(--accent)", background: "rgba(253,41,123,0.08)", border: "1px solid rgba(253,41,123,0.15)" }}
               >
                 NEW
               </span>
             </div>
-            <p className="text-sm" style={{ color: "#4A4A66" }}>
+            <p className="text-sm" style={{ color: "var(--text-muted)" }}>
               Rankings among your friends on the platform
             </p>
           </div>
         </div>
         <span
           className="font-black text-xl group-hover:translate-x-1 transition-transform"
-          style={{ color: "#A78BFA" }}
+          style={{ color: "var(--text-secondary)" }}
         >
           →
         </span>
@@ -123,18 +123,18 @@ function Skeleton() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
       <div className="mb-8">
-        <div className="h-9 w-56 rounded-xl animate-pulse mb-2" style={{ background: "#222233" }} />
-        <div className="h-4 w-36 rounded-lg animate-pulse" style={{ background: "#1A1A28" }} />
+        <div className="h-9 w-56 rounded-xl animate-pulse mb-2" style={{ background: "var(--border)" }} />
+        <div className="h-4 w-36 rounded-lg animate-pulse" style={{ background: "var(--bg-elevated)" }} />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         {[0, 1].map((i) => (
-          <div key={i} className="rounded-2xl h-44 animate-pulse" style={{ background: "#0F0F1A", border: "1px solid #222233" }} />
+          <div key={i} className="rounded-2xl h-44 animate-pulse" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }} />
         ))}
       </div>
-      <div className="rounded-2xl h-20 animate-pulse mb-4" style={{ background: "#0F0F1A", border: "1px solid #222233" }} />
+      <div className="rounded-2xl h-20 animate-pulse mb-4" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }} />
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {[...Array(6)].map((_, i) => (
-          <div key={i} className="rounded-2xl h-32 animate-pulse" style={{ background: "#0F0F1A", border: "1px solid #222233" }} />
+          <div key={i} className="rounded-2xl h-32 animate-pulse" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }} />
         ))}
       </div>
     </div>
@@ -178,14 +178,14 @@ export default function LeaderboardHome() {
         <h1
           className="text-3xl sm:text-4xl font-black mb-1"
           style={{
-            background: "linear-gradient(90deg, #A78BFA 0%, #8B5CF6 40%, #F0C040 100%)",
+            background: "linear-gradient(90deg, #FD297B 0%, #FF5864 40%, #FF655B 100%)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
           }}
         >
           LEADERBOARDS
         </h1>
-        <p className="text-sm" style={{ color: "#4A4A66" }}>
+        <p className="text-sm" style={{ color: "var(--text-muted)" }}>
           Rankings across all arenas
         </p>
       </div>
@@ -206,7 +206,7 @@ export default function LeaderboardHome() {
         <>
           <p
             className="text-xs font-black uppercase tracking-widest mb-3 mt-2"
-            style={{ color: "#2A2A3D" }}
+            style={{ color: "var(--text-faint)" }}
           >
             Categories
           </p>
@@ -232,7 +232,7 @@ export default function LeaderboardHome() {
         <>
           <p
             className="text-xs font-black uppercase tracking-widest mb-3 mt-2"
-            style={{ color: "#2A2A3D" }}
+            style={{ color: "var(--text-faint)" }}
           >
             Community
           </p>

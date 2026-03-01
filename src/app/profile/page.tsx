@@ -23,12 +23,12 @@ function Avatar({ url, name }: { url: string | null; name: string }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0F0F1A&color=888&size=48`}
+      src={url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1a1a1a&color=888&size=48`}
       alt={name}
       className="w-9 h-9 rounded-full object-cover shrink-0"
-      style={{ border: "1px solid #222233" }}
+      style={{ border: "1px solid var(--border)" }}
       onError={(e) => {
-        (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0F0F1A&color=888&size=48`;
+        (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1a1a1a&color=888&size=48`;
       }}
     />
   );
@@ -47,7 +47,7 @@ function CategoryBadges({ profile }: { profile: { category: string | null; categ
         <span
           key={c}
           className="text-xs px-2 py-0.5 rounded-full capitalize"
-          style={{ background: "#1A1A28", border: "1px solid #222233", color: "#4A4A66" }}
+          style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)", color: "var(--text-muted)" }}
         >
           {c.replace(/_/g, " ").replace(/\b\w/g, (ch) => ch.toUpperCase())}
         </span>
@@ -154,7 +154,7 @@ export default function ProfilePage() {
   if (authLoading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
-        <div className="animate-pulse" style={{ color: "#4A4A66" }}>Loading...</div>
+        <div className="animate-pulse" style={{ color: "var(--text-muted)" }}>Loading...</div>
       </div>
     );
   }
@@ -166,23 +166,23 @@ export default function ProfilePage() {
         <div className="text-center mb-10">
           <div className="text-5xl mb-4">👤</div>
           <h1 className="text-3xl font-black text-white mb-2">Sign In</h1>
-          <p className="text-sm" style={{ color: "#4A4A66" }}>
+          <p className="text-sm" style={{ color: "var(--text-muted)" }}>
             Sign in to create arenas, track your voting history, and enter the rankings.
           </p>
         </div>
 
         {sent ? (
-          <div className="text-center rounded-2xl p-8" style={{ background: "#0F0F1A", border: "1px solid #222233" }}>
+          <div className="text-center rounded-2xl p-8" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
             <div className="text-4xl mb-3">📧</div>
             <h2 className="text-white font-bold text-lg mb-2">Check your inbox</h2>
-            <p className="text-sm" style={{ color: "#4A4A66" }}>
+            <p className="text-sm" style={{ color: "var(--text-muted)" }}>
               We sent a magic link to{" "}
-              <span className="font-semibold" style={{ color: "#A78BFA" }}>{email}</span>.
+              <span className="font-semibold" style={{ color: "var(--text-secondary)" }}>{email}</span>.
             </p>
             <button
               onClick={() => { setSent(false); setEmail(""); }}
               className="mt-6 text-sm underline transition-colors"
-              style={{ color: "#4A4A66" }}
+              style={{ color: "var(--text-muted)" }}
             >
               Use a different email
             </button>
@@ -214,9 +214,9 @@ export default function ProfilePage() {
 
             {/* Divider */}
             <div className="flex items-center gap-3">
-              <div className="flex-1 h-px" style={{ background: "#222233" }} />
+              <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
               <span className="text-xs" style={{ color: "#353548" }}>or use email</span>
-              <div className="flex-1 h-px" style={{ background: "#222233" }} />
+              <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
             </div>
 
             {/* Magic link */}
@@ -234,7 +234,7 @@ export default function ProfilePage() {
                 type="submit"
                 disabled={sending}
                 className="w-full py-3 rounded-xl font-bold text-sm transition-colors"
-                style={{ background: "#1A1A28", border: "1px solid #222233", color: "#8888AA" }}
+                style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)", color: "var(--text-secondary)" }}
               >
                 {sending ? "Sending..." : "Send Magic Link ✉️"}
               </button>
@@ -254,12 +254,12 @@ export default function ProfilePage() {
     <div className="max-w-md mx-auto px-4 py-8">
       {/* Welcome banner */}
       {isWelcome && (
-        <div className="mb-6 rounded-2xl p-4 text-center" style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.25)" }}>
+        <div className="mb-6 rounded-2xl p-4 text-center" style={{ background: "rgba(253,41,123,0.08)", border: "1px solid rgba(253,41,123,0.25)" }}>
           <div className="text-2xl mb-1">🎉</div>
-          <p className="font-bold text-sm" style={{ color: "#A78BFA" }}>
+          <p className="font-bold text-sm" style={{ color: "var(--accent)" }}>
             You&apos;re in the arena! Your profile is live — go see how you rank.
           </p>
-          <Link href="/leaderboard" className="underline text-xs mt-1 inline-block" style={{ color: "#8B5CF6" }}>
+          <Link href="/leaderboard" className="underline text-xs mt-1 inline-block" style={{ color: "var(--accent)" }}>
             View Leaderboard →
           </Link>
         </div>
@@ -267,22 +267,22 @@ export default function ProfilePage() {
 
       {/* Avatar + email */}
       <div className="text-center mb-6">
-        <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3" style={{ background: "rgba(139,92,246,0.15)", border: "2px solid rgba(139,92,246,0.3)" }}>
+        <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3" style={{ background: "rgba(255,255,255,0.06)", border: "2px solid rgba(255,255,255,0.12)" }}>
           <span className="text-2xl">👤</span>
         </div>
-        <p className="text-sm" style={{ color: "#4A4A66" }}>{user.email}</p>
+        <p className="text-sm" style={{ color: "var(--text-muted)" }}>{user.email}</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex rounded-xl overflow-hidden mb-6" style={{ border: "1px solid #222233" }}>
+      <div className="flex rounded-xl overflow-hidden mb-6" style={{ border: "1px solid var(--border)" }}>
         {(["profile", "history"] as Tab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className="flex-1 py-2.5 text-sm font-bold transition-colors"
             style={{
-              background: activeTab === tab ? "#1A1A28" : "transparent",
-              color: activeTab === tab ? "#fff" : "#4A4A66",
+              background: activeTab === tab ? "var(--bg-elevated)" : "transparent",
+              color: activeTab === tab ? "#fff" : "var(--text-muted)",
             }}
           >
             {tab === "profile" ? "👤 Profile" : "📜 History"}
@@ -294,59 +294,59 @@ export default function ProfilePage() {
       {activeTab === "profile" && (
         <div className="space-y-3">
           {arenaProfile === "loading" ? (
-            <div className="h-24 rounded-2xl animate-pulse" style={{ background: "#0F0F1A" }} />
+            <div className="h-24 rounded-2xl animate-pulse" style={{ background: "var(--bg-card)" }} />
           ) : arenaProfile ? (
-            <div className="rounded-2xl p-4" style={{ background: "#0F0F1A", border: "1px solid #222233" }}>
+            <div className="rounded-2xl p-4" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
               <div className="flex items-center gap-3">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={
                     arenaProfile.image_url ||
-                    `https://ui-avatars.com/api/?name=${encodeURIComponent(arenaProfile.name)}&background=0F0F1A&color=888&size=80`
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(arenaProfile.name)}&background=1a1a1a&color=888&size=80`
                   }
                   alt={arenaProfile.name}
                   className="w-14 h-14 rounded-xl object-cover shrink-0"
-                  style={{ border: "1px solid #222233" }}
+                  style={{ border: "1px solid var(--border)" }}
                 />
                 <div className="flex-1 min-w-0">
                   <p className="text-white font-black text-base truncate">{arenaProfile.name}</p>
                   <CategoryBadges profile={arenaProfile} />
                   <div className="flex gap-3 mt-1.5">
-                    <span className="font-black text-sm" style={{ color: "#A78BFA" }}>{arenaProfile.elo_rating} ELO</span>
-                    <span className="text-xs self-center" style={{ color: "#4A4A66" }}>
+                    <span className="font-black text-sm" style={{ color: "var(--text-primary)" }}>{arenaProfile.elo_rating} ELO</span>
+                    <span className="text-xs self-center" style={{ color: "var(--text-muted)" }}>
                       {arenaProfile.wins}W – {arenaProfile.losses}L
                     </span>
                   </div>
                   {(arenaProfile.height_in || arenaProfile.weight_lbs || arenaProfile.country) && (
                     <div className="flex gap-2 mt-1 flex-wrap">
                       {arenaProfile.height_in != null && (
-                        <span className="text-xs" style={{ color: "#4A4A66" }}>
+                        <span className="text-xs" style={{ color: "var(--text-muted)" }}>
                           {Math.floor(arenaProfile.height_in / 12)}&apos;{arenaProfile.height_in % 12}&quot;
                         </span>
                       )}
                       {arenaProfile.weight_lbs != null && (
-                        <span className="text-xs" style={{ color: "#4A4A66" }}>{arenaProfile.weight_lbs} lbs</span>
+                        <span className="text-xs" style={{ color: "var(--text-muted)" }}>{arenaProfile.weight_lbs} lbs</span>
                       )}
                       {arenaProfile.country && (
-                        <span className="text-xs" style={{ color: "#4A4A66" }}>{arenaProfile.country}</span>
+                        <span className="text-xs" style={{ color: "var(--text-muted)" }}>{arenaProfile.country}</span>
                       )}
                     </div>
                   )}
                 </div>
                 <div className="text-right shrink-0">
                   {globalRank !== null && (
-                    <p className="font-black text-sm" style={{ color: "#A78BFA" }}>
+                    <p className="font-black text-sm" style={{ color: "var(--text-secondary)" }}>
                       {globalRank === 1 ? "👑 #1" : globalRank === 2 ? "🥈 #2" : globalRank === 3 ? "🥉 #3" : `#${globalRank}`}
                     </p>
                   )}
                   <p className="text-xs" style={{ color: "#353548" }}>Global rank</p>
-                  <p className="text-xs" style={{ color: "#4A4A66" }}>{arenaProfile.matches} battles</p>
+                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>{arenaProfile.matches} battles</p>
                 </div>
               </div>
               <Link
                 href={`/leaderboard`}
                 className="mt-3 flex items-center justify-center gap-1 text-xs transition-colors"
-                style={{ color: "#4A4A66" }}
+                style={{ color: "var(--text-muted)" }}
               >
                 View on Leaderboard →
               </Link>
@@ -356,19 +356,19 @@ export default function ProfilePage() {
               href="/onboarding"
               className="block rounded-2xl p-5 transition-colors group"
               style={{
-                background: "linear-gradient(90deg, rgba(139,92,246,0.12), #0F0F1A)",
-                border: "1px solid rgba(139,92,246,0.3)",
+                background: "linear-gradient(90deg, rgba(253,41,123,0.12), var(--bg-card))",
+                border: "1px solid rgba(253,41,123,0.3)",
               }}
             >
               <div className="flex items-center gap-4">
                 <div className="text-4xl shrink-0">⚔️</div>
                 <div className="flex-1 min-w-0">
                   <p className="text-white font-black text-base">Enter the Arena</p>
-                  <p className="text-sm mt-0.5" style={{ color: "#4A4A66" }}>
+                  <p className="text-sm mt-0.5" style={{ color: "var(--text-muted)" }}>
                     Upload your photos and join the ELO rankings
                   </p>
                 </div>
-                <span className="text-xl group-hover:translate-x-1 transition-transform shrink-0" style={{ color: "#8B5CF6" }}>
+                <span className="text-xl group-hover:translate-x-1 transition-transform shrink-0" style={{ color: "var(--accent)" }}>
                   →
                 </span>
               </div>
@@ -379,32 +379,32 @@ export default function ProfilePage() {
           <Link
             href="/arenas/new"
             className="flex items-center justify-between w-full rounded-xl px-4 py-3 transition-colors group"
-            style={{ background: "#0F0F1A", border: "1px solid #222233" }}
+            style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
           >
             <span className="text-white font-semibold">➕ Create Arena</span>
-            <span className="group-hover:text-purple-400 transition-colors" style={{ color: "#4A4A66" }}>→</span>
+            <span className="group-hover:text-white/60 transition-colors" style={{ color: "var(--text-muted)" }}>→</span>
           </Link>
           <Link
             href="/swipe"
             className="flex items-center justify-between w-full rounded-xl px-4 py-3 transition-colors group"
-            style={{ background: "#0F0F1A", border: "1px solid #222233" }}
+            style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
           >
             <span className="text-white font-semibold">⚔️ Battle Arenas</span>
-            <span className="group-hover:text-purple-400 transition-colors" style={{ color: "#4A4A66" }}>→</span>
+            <span className="group-hover:text-white/60 transition-colors" style={{ color: "var(--text-muted)" }}>→</span>
           </Link>
           <Link
             href="/admin"
             className="flex items-center justify-between w-full rounded-xl px-4 py-3 transition-colors group"
-            style={{ background: "#0F0F1A", border: "1px solid #222233" }}
+            style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
           >
-            <span className="font-semibold" style={{ color: "#4A4A66" }}>🔧 Admin Panel</span>
-            <span className="group-hover:text-purple-400 transition-colors" style={{ color: "#353548" }}>→</span>
+            <span className="font-semibold" style={{ color: "var(--text-muted)" }}>🔧 Admin Panel</span>
+            <span className="group-hover:text-white/60 transition-colors" style={{ color: "#353548" }}>→</span>
           </Link>
 
           <button
             onClick={signOut}
             className="w-full mt-2 rounded-xl py-3 text-sm font-semibold transition-colors"
-            style={{ border: "1px solid #222233", color: "#4A4A66" }}
+            style={{ border: "1px solid var(--border)", color: "var(--text-muted)" }}
           >
             Sign Out
           </button>
@@ -425,13 +425,13 @@ export default function ProfilePage() {
           {historyLoading ? (
             <div className="space-y-2">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-14 rounded-xl animate-pulse" style={{ background: "#0F0F1A" }} />
+                <div key={i} className="h-14 rounded-xl animate-pulse" style={{ background: "var(--bg-card)" }} />
               ))}
             </div>
           ) : filteredHistory.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-3xl mb-3">📭</div>
-              <p style={{ color: "#4A4A66" }}>
+              <p style={{ color: "var(--text-muted)" }}>
                 {historySearch
                   ? "No matches found for that search"
                   : "You haven't voted yet. Go battle!"}
@@ -440,7 +440,7 @@ export default function ProfilePage() {
                 <Link
                   href="/swipe"
                   className="inline-block mt-4 text-sm underline"
-                  style={{ color: "#A78BFA" }}
+                  style={{ color: "var(--accent)" }}
                 >
                   Start battling →
                 </Link>
@@ -458,22 +458,22 @@ export default function ProfilePage() {
                   <div
                     key={row.id}
                     className="flex items-center gap-2 rounded-xl px-3 py-2.5"
-                    style={{ background: "#0F0F1A", border: "1px solid #222233" }}
+                    style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
                   >
                     <Avatar url={row.profile_a.image_url} name={row.profile_a.name} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className={`text-sm font-bold truncate ${aWon ? "text-white" : ""}`} style={aWon ? {} : { color: "#4A4A66" }}>
+                        <span className={`text-sm font-bold truncate ${aWon ? "text-white" : ""}`} style={aWon ? {} : { color: "var(--text-muted)" }}>
                           {row.profile_a.name}
                         </span>
-                        <span className="text-xs font-black" style={{ color: aWon ? "#A78BFA" : "#353548" }}>
+                        <span className="text-xs font-black" style={{ color: aWon ? "var(--accent)" : "#353548" }}>
                           {aWon ? "👑 WON" : "lost"}
                         </span>
                         <span className="text-xs" style={{ color: "#353548" }}>vs</span>
-                        <span className={`text-sm font-bold truncate ${!aWon ? "text-white" : ""}`} style={!aWon ? {} : { color: "#4A4A66" }}>
+                        <span className={`text-sm font-bold truncate ${!aWon ? "text-white" : ""}`} style={!aWon ? {} : { color: "var(--text-muted)" }}>
                           {row.profile_b.name}
                         </span>
-                        {!aWon && <span className="text-xs font-black" style={{ color: "#A78BFA" }}>👑 WON</span>}
+                        {!aWon && <span className="text-xs font-black" style={{ color: "var(--accent)" }}>👑 WON</span>}
                       </div>
                       <p className="text-xs mt-0.5" style={{ color: "#353548" }}>
                         {row.arena.name} · {timeAgo(row.voted_at)}

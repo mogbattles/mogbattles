@@ -1,64 +1,133 @@
 @import "tailwindcss";
 
 /* ═══════════════════════════════════════════════════════════════════════════════
-   MogBattles — Design System v2
-   Black / Purple / Gold · Tinder × Clash Royale
+   MogBattles — Design System v3
+   Clean Neutral + Tinder Accent · Dark/Light Mode
    ═══════════════════════════════════════════════════════════════════════════════ */
 
 /* ─── Custom Tailwind theme tokens ───────────────────────────────────────────── */
 @theme {
-  /* Fonts */
   --font-heading: 'Bebas Neue', sans-serif;
 
-  /* Deep blacks */
+  /* Neutrals (dark mode defaults — referenced via CSS vars below) */
   --color-navy-950:  #050508;
-  --color-navy-900:  #0A0A12;
-  --color-navy-800:  #0F0F1A;
-  --color-navy-700:  #141420;
-  --color-navy-600:  #1A1A28;
-  --color-navy-500:  #222233;
-  --color-navy-400:  #2A2A3D;
-  --color-navy-300:  #353548;
-  --color-navy-200:  #4A4A66;
-  --color-navy-100:  #8888AA;
+  --color-navy-900:  #0A0A0A;
+  --color-navy-800:  #111111;
+  --color-navy-700:  #1A1A1A;
+  --color-navy-600:  #222222;
+  --color-navy-500:  #2A2A2A;
+  --color-navy-400:  #333333;
+  --color-navy-300:  #444444;
+  --color-navy-200:  #666666;
+  --color-navy-100:  #999999;
 
-  /* Gold */
+  /* Accent — Tinder pink (used sparingly) */
+  --color-accent:     #FD297B;
+  --color-accent-hover: #FF5864;
+
+  /* Rank metals */
   --color-gold:       #F0C040;
   --color-gold-bright:#FFD700;
   --color-gold-dark:  #B8902A;
   --color-gold-dim:   #7A5F18;
+  --color-silver:     #C0C0C0;
+  --color-bronze:     #CD7F32;
 
-  /* Purple */
-  --color-purple:     #8B5CF6;
-  --color-purple-bright: #A78BFA;
-  --color-purple-dark: #6D28D9;
-  --color-purple-dim:  #4C1D95;
-
-  /* Game actions */
-  --color-game-orange: #FF6B2B;
-  --color-game-green:  #3DD68C;
-  --color-game-red:    #FF4545;
+  /* Status */
+  --color-game-green:  #2ECC71;
+  --color-game-red:    #E74C3C;
   --color-game-blue:   #4D9FFF;
 }
 
-/* ─── CSS custom props (glow effects) ────────────────────────────────────────── */
-:root {
-  --gold-glow:    rgba(240, 192, 64, 0.45);
-  --purple-glow:  rgba(139, 92, 246, 0.40);
-  --orange-glow:  rgba(255, 107, 43, 0.40);
-  --green-glow:   rgba(61, 214, 140, 0.35);
-  --red-glow:     rgba(255, 69, 69, 0.35);
+/* ─── Theme CSS custom properties ────────────────────────────────────────────── */
+:root,
+[data-theme="dark"] {
+  /* Surfaces */
+  --bg-primary:    #0A0A0A;
+  --bg-secondary:  #111111;
+  --bg-card:       #1A1A1A;
+  --bg-elevated:   #222222;
 
-  /* Surface colors for inline use */
-  --surface-0: #050508;
-  --surface-1: #0A0A12;
-  --surface-2: #0F0F1A;
-  --surface-3: #141420;
-  --surface-4: #1A1A28;
-  --border-subtle: #222233;
-  --border-default: #2A2A3D;
-  --text-muted: #4A4A66;
-  --text-secondary: #8888AA;
+  /* Text */
+  --text-primary:   #FFFFFF;
+  --text-secondary: #999999;
+  --text-muted:     #666666;
+  --text-faint:     #444444;
+
+  /* Borders */
+  --border:        #2A2A2A;
+  --border-hover:  #444444;
+
+  /* Accent (Tinder pink — used sparingly: logo, CTAs, active indicators) */
+  --accent:        #FD297B;
+  --accent-hover:  #FF5864;
+  --accent-glow:   rgba(253, 41, 123, 0.3);
+
+  /* Rank colors */
+  --gold:   #F0C040;
+  --silver: #C0C0C0;
+  --bronze: #CD7F32;
+
+  /* Status */
+  --success: #2ECC71;
+  --danger:  #E74C3C;
+
+  /* Legacy glow vars */
+  --gold-glow:   rgba(240, 192, 64, 0.45);
+  --accent-glow-strong: rgba(253, 41, 123, 0.5);
+
+  /* Scrollbar */
+  --scrollbar-track: #0A0A0A;
+  --scrollbar-thumb: #2A2A2A;
+  --scrollbar-hover: #444444;
+
+  /* Nav */
+  --nav-bg: rgba(10, 10, 10, 0.98);
+  --nav-border: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="light"] {
+  /* Surfaces */
+  --bg-primary:    #FAFAFA;
+  --bg-secondary:  #F0F0F0;
+  --bg-card:       #FFFFFF;
+  --bg-elevated:   #F5F5F5;
+
+  /* Text */
+  --text-primary:   #1A1A1A;
+  --text-secondary: #666666;
+  --text-muted:     #999999;
+  --text-faint:     #CCCCCC;
+
+  /* Borders */
+  --border:        #E0E0E0;
+  --border-hover:  #CCCCCC;
+
+  /* Accent stays the same */
+  --accent:        #FD297B;
+  --accent-hover:  #FF5864;
+  --accent-glow:   rgba(253, 41, 123, 0.2);
+
+  /* Rank colors stay */
+  --gold:   #D4A800;
+  --silver: #A0A0A0;
+  --bronze: #B06A20;
+
+  /* Status */
+  --success: #27AE60;
+  --danger:  #C0392B;
+
+  --gold-glow:   rgba(212, 168, 0, 0.3);
+  --accent-glow-strong: rgba(253, 41, 123, 0.3);
+
+  /* Scrollbar */
+  --scrollbar-track: #F0F0F0;
+  --scrollbar-thumb: #CCCCCC;
+  --scrollbar-hover: #AAAAAA;
+
+  /* Nav */
+  --nav-bg: rgba(255, 255, 255, 0.98);
+  --nav-border: rgba(0, 0, 0, 0.08);
 }
 
 /* ─── Fonts ──────────────────────────────────────────────────────────────────── */
@@ -72,12 +141,9 @@
 
 /* ─── Base ─────────────────────────────────────────────────────────────────── */
 body {
-  background-color: #0A0A12;
-  background-image:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(139,92,246,0.08) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 40% at 100% 100%, rgba(240,192,64,0.04) 0%, transparent 50%),
-    radial-gradient(ellipse 40% 30% at 0% 70%,   rgba(139,92,246,0.04) 0%, transparent 50%);
-  color: #fff;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 main {
@@ -100,14 +166,14 @@ main {
   50%       { text-shadow: 0 0 20px rgba(240,192,64,0.8), 0 0 40px rgba(240,192,64,0.3); }
 }
 
-@keyframes purpleTextGlow {
-  0%, 100% { text-shadow: 0 0 8px rgba(139,92,246,0.4); }
-  50%       { text-shadow: 0 0 20px rgba(139,92,246,0.7), 0 0 40px rgba(139,92,246,0.3); }
+@keyframes accentTextGlow {
+  0%, 100% { text-shadow: 0 0 8px var(--accent-glow); }
+  50%       { text-shadow: 0 0 20px var(--accent-glow-strong), 0 0 40px var(--accent-glow); }
 }
 
 @keyframes vsGlow {
-  0%, 100% { text-shadow: 0 0 12px rgba(139,92,246,0.6), 0 0 24px rgba(139,92,246,0.3); }
-  50%       { text-shadow: 0 0 24px rgba(139,92,246,0.9), 0 0 48px rgba(139,92,246,0.4); }
+  0%, 100% { text-shadow: 0 0 12px var(--accent-glow-strong), 0 0 24px var(--accent-glow); }
+  50%       { text-shadow: 0 0 24px var(--accent-glow-strong), 0 0 48px var(--accent-glow); }
 }
 
 @keyframes crownFloat {
@@ -140,7 +206,7 @@ main {
 
 @keyframes cardLift {
   from { transform: translateY(0) scale(1); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
-  to   { transform: translateY(-4px) scale(1.02); box-shadow: 0 16px 40px rgba(0,0,0,0.5), 0 0 20px var(--purple-glow); }
+  to   { transform: translateY(-4px) scale(1.02); box-shadow: 0 16px 40px rgba(0,0,0,0.5), 0 0 20px var(--accent-glow); }
 }
 
 @keyframes pulseRing {
@@ -190,9 +256,55 @@ main {
   100% { transform: scale(1); opacity: 1; }
 }
 
-/* ─── Reusable game utilities ──────────────────────────────────────────────── */
+/* ─── Overwatch Leaderboard Effects ──────────────────────────────────────────── */
+@keyframes ember-float {
+  0%   { transform: translateY(0) scale(1); opacity: 0.7; }
+  50%  { transform: translateY(-12px) scale(0.6); opacity: 0.4; }
+  100% { transform: translateY(-24px) scale(0); opacity: 0; }
+}
 
-/* Gold CTA button — 3D press effect */
+@keyframes ember-glow {
+  0%, 100% { box-shadow: 0 0 4px currentColor, 0 0 8px currentColor; }
+  50%       { box-shadow: 0 0 8px currentColor, 0 0 16px currentColor, 0 0 24px currentColor; }
+}
+
+@keyframes rank-shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes rank-glow-gold {
+  0%, 100% { box-shadow: 0 0 8px rgba(240,192,64,0.3), 0 0 16px rgba(240,192,64,0.1); }
+  50%       { box-shadow: 0 0 16px rgba(240,192,64,0.5), 0 0 32px rgba(240,192,64,0.2); }
+}
+
+@keyframes rank-glow-silver {
+  0%, 100% { box-shadow: 0 0 8px rgba(192,192,192,0.2), 0 0 12px rgba(192,192,192,0.1); }
+  50%       { box-shadow: 0 0 12px rgba(192,192,192,0.4), 0 0 24px rgba(192,192,192,0.15); }
+}
+
+@keyframes rank-glow-bronze {
+  0%, 100% { box-shadow: 0 0 6px rgba(205,127,50,0.2), 0 0 10px rgba(205,127,50,0.1); }
+  50%       { box-shadow: 0 0 10px rgba(205,127,50,0.35), 0 0 20px rgba(205,127,50,0.15); }
+}
+
+/* ─── Reusable utilities ──────────────────────────────────────────────────── */
+
+/* Primary accent button — Tinder gradient */
+.btn-accent {
+  background: linear-gradient(135deg, #FD297B 0%, #FF5864 50%, #FF655B 100%);
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  box-shadow: 0 4px 0 #C41E5F, 0 4px 16px var(--accent-glow);
+  transition: all 0.12s ease;
+  border: none;
+  cursor: pointer;
+}
+.btn-accent:hover  { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 6px 0 #C41E5F, 0 6px 24px var(--accent-glow); }
+.btn-accent:active { transform: translateY(3px); box-shadow: 0 1px 0 #C41E5F, 0 1px 8px var(--accent-glow); }
+
+/* Gold CTA button — 3D press effect (kept for rank/special) */
 .btn-gold {
   background: linear-gradient(175deg, #FFD700 0%, #F0C040 45%, #C09020 100%);
   color: #1A1000;
@@ -207,52 +319,38 @@ main {
 .btn-gold:hover  { filter: brightness(1.08); transform: translateY(-2px); box-shadow: 0 7px 0 #8A6010, 0 8px 28px var(--gold-glow); }
 .btn-gold:active { transform: translateY(3px); box-shadow: 0 2px 0 #8A6010, 0 2px 10px var(--gold-glow); }
 
-/* Purple accent button */
-.btn-purple {
-  background: linear-gradient(175deg, #A78BFA 0%, #8B5CF6 50%, #6D28D9 100%);
-  color: #fff;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  box-shadow: 0 4px 0 #4C1D95, 0 4px 16px var(--purple-glow);
-  transition: all 0.12s ease;
-  border: none;
-  cursor: pointer;
-}
-.btn-purple:hover  { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 6px 0 #4C1D95, 0 6px 24px var(--purple-glow); }
-.btn-purple:active { transform: translateY(3px); box-shadow: 0 1px 0 #4C1D95, 0 1px 8px var(--purple-glow); }
-
 /* Secondary dark button */
 .btn-dark {
-  background: linear-gradient(160deg, #1A1A28, #0F0F1A);
-  color: #8888AA;
+  background: var(--bg-card);
+  color: var(--text-secondary);
   font-weight: 800;
-  border: 1px solid #2A2A3D;
-  box-shadow: 0 3px 0 #050508, 0 3px 12px rgba(0,0,0,0.5);
+  border: 1px solid var(--border);
+  box-shadow: 0 3px 0 var(--bg-primary), 0 3px 12px rgba(0,0,0,0.3);
   transition: all 0.12s ease;
   cursor: pointer;
 }
-.btn-dark:hover  { background: linear-gradient(160deg, #222233, #1A1A28); color: #fff; border-color: #353548; }
-.btn-dark:active { transform: translateY(2px); box-shadow: 0 1px 0 #050508; }
+.btn-dark:hover  { background: var(--bg-elevated); color: var(--text-primary); border-color: var(--border-hover); }
+.btn-dark:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--bg-primary); }
 
 /* Glass surface — blurred translucent */
 .card-glass {
-  background: rgba(15, 15, 26, 0.75);
+  background: color-mix(in srgb, var(--bg-card) 75%, transparent);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(139, 92, 246, 0.12);
+  border: 1px solid var(--border);
   border-radius: 16px;
 }
 
 /* Game surface */
 .game-surface {
-  background: linear-gradient(160deg, #1A1A28 0%, #0F0F1A 100%);
-  border: 1px solid #222233;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
 }
 
 /* Game card panel */
 .game-card {
-  background: linear-gradient(160deg, #141420 0%, #0F0F1A 100%);
-  border: 1px solid #222233;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   border-radius: 16px;
 }
 
@@ -264,8 +362,8 @@ main {
   background-clip: text;
 }
 
-.text-gradient-purple {
-  background: linear-gradient(90deg, #A78BFA 0%, #8B5CF6 50%, #6D28D9 100%);
+.text-gradient-accent {
+  background: linear-gradient(90deg, #FD297B 0%, #FF5864 50%, #FF655B 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -280,34 +378,34 @@ main {
 
 /* Glow animation classes */
 .gold-glow-text    { animation: goldTextGlow 2.5s ease-in-out infinite; }
-.purple-glow-text  { animation: purpleTextGlow 2.5s ease-in-out infinite; }
+.accent-glow-text  { animation: accentTextGlow 2.5s ease-in-out infinite; }
 .gold-pulse-btn    { animation: goldPulse 2.2s ease-in-out infinite; }
 .vs-text           { animation: vsGlow 2s ease-in-out infinite; }
 .crown-float       { animation: crownFloat 3s ease-in-out infinite; display: inline-block; }
 
-/* ─── Hidden-scrollbar utility (arena swipers, etc.) ──────────────────────── */
+/* ─── Hidden-scrollbar utility ──────────────────────────────────────────────── */
 .arena-scroll-hide::-webkit-scrollbar { display: none; }
 .arena-scroll-hide { scrollbar-width: none; -ms-overflow-style: none; }
 
 /* ─── Custom scrollbar ─────────────────────────────────────────────────────── */
 ::-webkit-scrollbar        { width: 4px; }
-::-webkit-scrollbar-track  { background: #0A0A12; }
-::-webkit-scrollbar-thumb  { background: #2A2A3D; border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: #353548; }
+::-webkit-scrollbar-track  { background: var(--scrollbar-track); }
+::-webkit-scrollbar-thumb  { background: var(--scrollbar-thumb); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-hover); }
 
-/* ─── Input override: game dark style ──────────────────────────────────────── */
+/* ─── Input override: clean style ──────────────────────────────────────────── */
 .game-input {
-  background: #0A0A12;
-  border: 1px solid #2A2A3D;
-  color: #fff;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
   border-radius: 12px;
   padding: 12px 16px;
   outline: none;
   transition: border-color 0.15s;
   width: 100%;
 }
-.game-input::placeholder { color: #4A4A66; }
-.game-input:focus { border-color: #8B5CF6; box-shadow: 0 0 0 3px rgba(139,92,246,0.15); }
+.game-input::placeholder { color: var(--text-muted); }
+.game-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
 
 /* ─── Badge & pill utilities ─────────────────────────────────────────────────── */
 .badge-gold {
@@ -321,8 +419,8 @@ main {
   letter-spacing: 0.08em;
 }
 
-.badge-purple {
-  background: linear-gradient(135deg, #8B5CF6, #6D28D9);
+.badge-accent {
+  background: linear-gradient(135deg, #FD297B, #FF5864);
   color: #fff;
   font-weight: 800;
   font-size: 10px;
@@ -333,7 +431,7 @@ main {
 }
 
 .badge-live {
-  background: #FF4545;
+  background: var(--danger);
   color: #fff;
   font-weight: 900;
   font-size: 10px;
@@ -344,11 +442,81 @@ main {
   animation: pulseRing 2s ease-in-out infinite;
 }
 
+/* ─── Overwatch Leaderboard Rank Badges ──────────────────────────────────────── */
+.rank-badge {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  font-weight: 900;
+  font-size: 14px;
+}
+
+.rank-badge-1 {
+  background: linear-gradient(135deg, #FFD700, #F0C040, #B8902A);
+  color: #1A1000;
+  animation: rank-glow-gold 2.5s ease-in-out infinite;
+}
+
+.rank-badge-2 {
+  background: linear-gradient(135deg, #E8E8E8, #C0C0C0, #A0A0A0);
+  color: #333;
+  animation: rank-glow-silver 3s ease-in-out infinite;
+}
+
+.rank-badge-3 {
+  background: linear-gradient(135deg, #E8A040, #CD7F32, #A0602A);
+  color: #fff;
+  animation: rank-glow-bronze 3s ease-in-out infinite;
+}
+
+.rank-badge-default {
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+/* Ember particles on hover (top 3 only) */
+.rank-row-top:hover .rank-badge::before,
+.rank-row-top:hover .rank-badge::after {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0;
+  animation: ember-float 1.2s ease-out infinite;
+}
+.rank-row-top:hover .rank-badge::before {
+  top: -2px; left: 30%;
+  animation-delay: 0s;
+}
+.rank-row-top:hover .rank-badge::after {
+  top: -2px; right: 30%;
+  animation-delay: 0.4s;
+}
+
+/* Leaderboard row hover effect */
+.rank-row {
+  transition: all 0.2s ease;
+}
+.rank-row:hover {
+  transform: scale(1.005);
+  border-color: var(--border-hover) !important;
+}
+.rank-row-top:hover {
+  transform: scale(1.01);
+}
+
 /* ─── Ambient glow orbs (decorative) ──────────────────────────────────────── */
-.glow-orb-purple {
+.glow-orb-accent {
   position: absolute;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
   pointer-events: none;
   animation: glowPulse 4s ease-in-out infinite;
 }

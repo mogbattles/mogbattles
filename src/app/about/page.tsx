@@ -73,7 +73,7 @@ export default function AboutPage() {
       {/* Admin toolbar */}
       {perms.canEditAbout && (
         <div className="flex items-center justify-between mb-6">
-          <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: "#2A2A3D" }}>
+          <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--text-faint)" }}>
             ✏️ Admin: editing about page
           </span>
           <div className="flex items-center gap-2">
@@ -81,13 +81,13 @@ export default function AboutPage() {
             {editing ? (
               <>
                 <button onClick={() => { setEditing(false); setDraft(content); }}
-                  className="text-xs font-bold px-3 py-1.5 rounded-lg" style={{ color: "#4A4A66" }}
+                  className="text-xs font-bold px-3 py-1.5 rounded-lg" style={{ color: "var(--text-muted)" }}
                 >
                   Cancel
                 </button>
                 <button onClick={saveContent} disabled={saving}
                   className="text-xs font-black px-4 py-1.5 rounded-lg disabled:opacity-50"
-                  style={{ background: "#8B5CF6", color: "#fff" }}
+                  style={{ background: "var(--accent)", color: "#fff" }}
                 >
                   {saving ? "Saving…" : "Save"}
                 </button>
@@ -95,7 +95,7 @@ export default function AboutPage() {
             ) : (
               <button onClick={() => setEditing(true)}
                 className="text-xs font-black px-4 py-1.5 rounded-lg"
-                style={{ background: "rgba(139,92,246,0.1)", color: "#A78BFA", border: "1px solid rgba(139,92,246,0.25)" }}
+                style={{ background: "rgba(253,41,123,0.1)", color: "var(--accent)", border: "1px solid rgba(253,41,123,0.25)" }}
               >
                 Edit Page
               </button>
@@ -108,14 +108,14 @@ export default function AboutPage() {
       <div className="text-center mb-12">
         <div
           className="text-6xl mb-6 leading-none"
-          style={{ filter: "drop-shadow(0 0 20px rgba(139,92,246,0.4))" }}
+          style={{ filter: "drop-shadow(0 0 20px rgba(253,41,123,0.4))" }}
         >
           ⚔️
         </div>
         <h1
           className="text-4xl sm:text-5xl font-black tracking-tight mb-4"
           style={{
-            background: "linear-gradient(165deg, #A78BFA 0%, #8B5CF6 45%, #F0C040 100%)",
+            background: "linear-gradient(135deg, #FD297B, #FF5864, #FF655B)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             backgroundClip: "text",
@@ -126,11 +126,11 @@ export default function AboutPage() {
         {editing ? (
           <textarea value={draft.about_hero} onChange={(e) => setDraft((d) => ({ ...d, about_hero: e.target.value }))}
             className="w-full rounded-xl px-4 py-3 text-base text-center text-white focus:outline-none resize-none"
-            style={{ background: "#0F0F1A", border: "1px solid #222233" }}
+            style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
             rows={2}
           />
         ) : (
-          <p className="text-base font-semibold leading-relaxed" style={{ color: "#4A4A66" }}>{c.about_hero}</p>
+          <p className="text-base font-semibold leading-relaxed" style={{ color: "var(--text-muted)" }}>{c.about_hero}</p>
         )}
       </div>
 
@@ -140,13 +140,13 @@ export default function AboutPage() {
         {editing ? (
           <textarea value={draft.about_body} onChange={(e) => setDraft((d) => ({ ...d, about_body: e.target.value }))}
             className="w-full rounded-xl px-4 py-3 text-sm text-white focus:outline-none resize-none"
-            style={{ background: "#0F0F1A", border: "1px solid #222233" }}
+            style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
             rows={8}
           />
         ) : (
           <div className="space-y-4">
             {c.about_body.split("\n\n").map((para, i) => (
-              <p key={i} className="text-sm leading-relaxed" style={{ color: "#4A4A66" }}>{para}</p>
+              <p key={i} className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>{para}</p>
             ))}
           </div>
         )}
@@ -161,10 +161,10 @@ export default function AboutPage() {
             { icon: "🗳️", title: "Vote on matchups", desc: "Two faces. You pick who mogs. Every vote counts toward the ELO rating." },
             { icon: "🏆", title: "Leaderboard rises", desc: "After enough votes, a clear ranking emerges. Science, basically." },
           ].map((step) => (
-            <div key={step.title} className="rounded-2xl p-4 text-center" style={{ background: "#0F0F1A", border: "1px solid #222233" }}>
+            <div key={step.title} className="rounded-2xl p-4 text-center" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
               <div className="text-3xl mb-2">{step.icon}</div>
               <p className="text-white font-black text-sm mb-1">{step.title}</p>
-              <p className="text-xs leading-snug" style={{ color: "#4A4A66" }}>{step.desc}</p>
+              <p className="text-xs leading-snug" style={{ color: "var(--text-muted)" }}>{step.desc}</p>
             </div>
           ))}
         </div>
@@ -182,11 +182,11 @@ export default function AboutPage() {
             { badge: "🛡️", label: "Moderator", desc: "Community-approved. Can approve custom profiles into the ELO economy and publish articles." },
             { badge: "🔧", label: "Admin", desc: "Developer-level access. Full control over content, news, users, and the platform." },
           ].map((tier) => (
-            <div key={tier.label} className="flex items-start gap-3 rounded-xl p-3" style={{ background: "#0F0F1A", border: "1px solid #222233" }}>
+            <div key={tier.label} className="flex items-start gap-3 rounded-xl p-3" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
               <span className="text-xl shrink-0">{tier.badge}</span>
               <div>
                 <p className="text-white font-black text-sm">{tier.label}</p>
-                <p className="text-xs leading-snug" style={{ color: "#4A4A66" }}>{tier.desc}</p>
+                <p className="text-xs leading-snug" style={{ color: "var(--text-muted)" }}>{tier.desc}</p>
               </div>
             </div>
           ))}
@@ -199,23 +199,23 @@ export default function AboutPage() {
         {editing ? (
           <textarea value={draft.about_team} onChange={(e) => setDraft((d) => ({ ...d, about_team: e.target.value }))}
             className="w-full rounded-xl px-4 py-3 text-sm text-white focus:outline-none resize-none"
-            style={{ background: "#0F0F1A", border: "1px solid #222233" }}
+            style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
             rows={3}
           />
         ) : (
-          <p className="text-sm leading-relaxed" style={{ color: "#4A4A66" }}>{c.about_team}</p>
+          <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>{c.about_team}</p>
         )}
       </div>
 
       {/* Footer tagline */}
-      <div className="text-center pt-6 border-t" style={{ borderColor: "#222233" }}>
+      <div className="text-center pt-6 border-t" style={{ borderColor: "var(--border)" }}>
         {editing ? (
           <input type="text" value={draft.about_footer} onChange={(e) => setDraft((d) => ({ ...d, about_footer: e.target.value }))}
             className="w-full text-center rounded-xl px-4 py-3 text-sm text-white focus:outline-none"
-            style={{ background: "#0F0F1A", border: "1px solid #222233" }}
+            style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
           />
         ) : (
-          <p className="text-sm font-bold italic" style={{ color: "#2A2A3D" }}>{c.about_footer}</p>
+          <p className="text-sm font-bold italic" style={{ color: "var(--text-faint)" }}>{c.about_footer}</p>
         )}
       </div>
     </div>

@@ -1420,7 +1420,7 @@ export default function AdminPage() {
           }}
           disabled={refreshing}
           className="mt-2 px-5 py-2 rounded-xl text-sm font-black disabled:opacity-50 transition-colors"
-          style={{ background: "rgba(240,192,64,0.1)", color: "#F0C040", border: "1px solid rgba(240,192,64,0.25)" }}
+          style={{ background: "rgba(240,192,64,0.1)", color: "var(--gold)", border: "1px solid rgba(240,192,64,0.25)" }}
         >
           {refreshing ? "Checking…" : "🔄 Refresh Permissions"}
         </button>
@@ -1694,7 +1694,7 @@ export default function AdminPage() {
       </div>
 
       {/* ── Arena Thumbnails Panel ──────────────────────────────────────────── */}
-      <div className="mb-4 bg-zinc-900 border border-purple-500/20 rounded-2xl overflow-hidden">
+      <div className="mb-4 bg-zinc-900 border border-zinc-700 rounded-2xl overflow-hidden">
         <button onClick={() => togglePanel("thumbnails")} className="w-full flex items-center justify-between p-5 hover:bg-zinc-800/50 transition-colors">
           <div className="text-left">
             <h2 className="text-white font-bold text-base">🖼️ Arena Thumbnails</h2>
@@ -1712,7 +1712,7 @@ export default function AdminPage() {
             <button
               onClick={saveAllArenaThumbnails}
               disabled={savingArenaThumbnail === "all"}
-              className="shrink-0 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white text-xs font-black px-4 py-2 rounded-lg transition-colors"
+              className="shrink-0 btn-accent disabled:opacity-50 text-white text-xs font-black px-4 py-2 rounded-lg transition-colors"
             >
               {savingArenaThumbnail === "all" ? "Saving all…" : "Save All"}
             </button>
@@ -1734,13 +1734,13 @@ export default function AdminPage() {
                     } as Record<string, string>)[arena.slug] ?? "\u2694\uFE0F"
                   }</span>
                   <span className="text-white text-sm font-bold">{arena.name}</span>
-                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ color: "#4A4A66", background: "#1A1A28" }}>{arena.slug}</span>
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ color: "var(--text-muted)", background: "var(--bg-elevated)" }}>{arena.slug}</span>
                 </div>
                 <button
                   onClick={() => saveArenaThumbnail(arena.id)}
                   disabled={savingArenaThumbnail === arena.id}
                   className="text-[10px] font-black px-3 py-1 rounded-lg transition-colors disabled:opacity-50"
-                  style={{ background: "rgba(139,92,246,0.15)", color: "#A78BFA", border: "1px solid rgba(139,92,246,0.3)" }}
+                  style={{ background: "rgba(253,41,123,0.15)", color: "var(--accent)", border: "1px solid rgba(253,41,123,0.3)" }}
                 >
                   {savingArenaThumbnail === arena.id ? "…" : "Save"}
                 </button>
@@ -1750,7 +1750,7 @@ export default function AdminPage() {
                 value={arenaThumbnailInputs[arena.id] ?? ""}
                 onChange={(e) => setArenaThumbnailInputs((prev) => ({ ...prev, [arena.id]: e.target.value }))}
                 placeholder="https://example.com/cover.jpg"
-                className="w-full bg-zinc-800 border border-zinc-700 text-zinc-300 placeholder:text-zinc-600 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-purple-500"
+                className="w-full bg-zinc-800 border border-zinc-700 text-zinc-300 placeholder:text-zinc-600 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-zinc-500"
               />
               {/* Thumbnail preview */}
               {(arenaThumbnailInputs[arena.id] ?? "").trim() && (
@@ -1867,7 +1867,7 @@ export default function AdminPage() {
               <span className="text-sm">{cat.icon || "📁"}</span>
               <span className="text-white text-xs font-bold flex-1">{cat.name}</span>
               <span className="text-[9px] font-mono text-zinc-600 hidden sm:inline">{cat.slug}</span>
-              <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ background: "#1A1A28", color: "#4A4A66" }}>
+              <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ background: "var(--bg-elevated)", color: "var(--text-muted)" }}>
                 d={cat.depth}
               </span>
               <button onClick={() => startEditCategory(cat)}
@@ -1913,7 +1913,7 @@ export default function AdminPage() {
                 className="text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-lg transition-colors"
                 style={arenaFilter === f
                   ? { background: "rgba(59,130,246,0.15)", color: "#60A5FA", border: "1px solid rgba(59,130,246,0.3)" }
-                  : { background: "#1A1A28", color: "#4A4A66", border: "1px solid #2A2A3D" }
+                  : { background: "var(--bg-elevated)", color: "var(--text-muted)", border: "1px solid var(--border)" }
                 }>
                 {f}
               </button>
@@ -1944,7 +1944,7 @@ export default function AdminPage() {
                       <span className="text-white text-sm font-bold truncate">{arena.name}</span>
                       {arena.arena_tier === "official" && (
                         <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full"
-                          style={{ color: "#F0C040", background: "rgba(240,192,64,0.1)", border: "1px solid rgba(240,192,64,0.2)" }}>
+                          style={{ color: "var(--gold)", background: "rgba(240,192,64,0.1)", border: "1px solid rgba(240,192,64,0.2)" }}>
                           OFFICIAL
                         </span>
                       )}
@@ -1956,7 +1956,7 @@ export default function AdminPage() {
                       )}
                       {arena.arena_tier === "custom" && (
                         <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full"
-                          style={{ color: "#4A4A66", background: "#1A1A28", border: "1px solid #2A2A3D" }}>
+                          style={{ color: "var(--text-muted)", background: "var(--bg-elevated)", border: "1px solid var(--border)" }}>
                           CUSTOM
                         </span>
                       )}
@@ -2426,7 +2426,7 @@ Clavicular,Looksmaxxers,5'11",165,United States,https://example.com/clav.jpg,`}
         const sections = [
           { key: "users", label: "👤 Registered Users", profiles: realUsers, color: "#22C55E", border: "rgba(34,197,94,0.2)" },
           { key: "seeded", label: "🤖 Seeded Users", profiles: seededUsers, color: "#818CF8", border: "rgba(99,102,241,0.2)" },
-          { key: "official", label: "⭐ Official Profiles", profiles: officialProfiles, color: "#F0C040", border: "rgba(240,192,64,0.2)" },
+          { key: "official", label: "⭐ Official Profiles", profiles: officialProfiles, color: "var(--gold)", border: "rgba(240,192,64,0.2)" },
         ];
 
         return sections.map((section) => (
@@ -2474,7 +2474,7 @@ Clavicular,Looksmaxxers,5'11",165,United States,https://example.com/clav.jpg,`}
                     )}
                     {roles.includes("premium") && (
                       <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-widest"
-                        style={{ background: "rgba(240,192,64,0.15)", color: "#F0C040", border: "1px solid rgba(240,192,64,0.3)" }}>premium</span>
+                        style={{ background: "rgba(240,192,64,0.15)", color: "var(--gold)", border: "1px solid rgba(240,192,64,0.3)" }}>premium</span>
                     )}
                   </div>
                   <div className="flex gap-2 mt-0.5 flex-wrap">
@@ -2503,8 +2503,8 @@ Clavicular,Looksmaxxers,5'11",165,United States,https://example.com/clav.jpg,`}
                               border: `1px solid ${role === "admin" ? "rgba(239,68,68,0.4)" : "rgba(59,130,246,0.4)"}`,
                             } : {
                               background: "transparent",
-                              color: "#4A4A66",
-                              border: "1px solid #2A2A3D",
+                              color: "var(--text-muted)",
+                              border: "1px solid var(--border)",
                             }}>
                             {has ? `✓ ${role}` : `+ ${role}`}
                           </button>

@@ -34,14 +34,14 @@ export const ARENA_EMOJIS: Record<string, string> = {
 
 // Arena background gradients (used when no thumbnail is provided)
 const ARENA_GRADIENTS: Record<string, string> = {
-  all: "linear-gradient(135deg, #1a0533 0%, #0d1117 50%, #0a0a12 100%)",
-  actors: "linear-gradient(135deg, #1a0a2e 0%, #2d1b4e 50%, #0a0a12 100%)",
-  athletes: "linear-gradient(135deg, #0a1628 0%, #1a2744 50%, #0a0a12 100%)",
-  singers: "linear-gradient(135deg, #2a0a1e 0%, #1a0a2e 50%, #0a0a12 100%)",
-  models: "linear-gradient(135deg, #1a0a2e 0%, #0a1628 50%, #0a0a12 100%)",
-  looksmaxxers: "linear-gradient(135deg, #1a1a00 0%, #2a1a00 50%, #0a0a12 100%)",
-  streamers: "linear-gradient(135deg, #1a0033 0%, #330033 50%, #0a0a12 100%)",
-  default: "linear-gradient(135deg, #141420 0%, #0F0F1A 50%, #0a0a12 100%)",
+  all: "linear-gradient(135deg, #151515 0%, #0d0d0d 50%, #0a0a0a 100%)",
+  actors: "linear-gradient(135deg, #141414 0%, #1a1a1a 50%, #0a0a0a 100%)",
+  athletes: "linear-gradient(135deg, #0f1215 0%, #161a1e 50%, #0a0a0a 100%)",
+  singers: "linear-gradient(135deg, #171214 0%, #141214 50%, #0a0a0a 100%)",
+  models: "linear-gradient(135deg, #141416 0%, #0f1215 50%, #0a0a0a 100%)",
+  looksmaxxers: "linear-gradient(135deg, #151510 0%, #1a1610 50%, #0a0a0a 100%)",
+  streamers: "linear-gradient(135deg, #141418 0%, #1a161a 50%, #0a0a0a 100%)",
+  default: "linear-gradient(135deg, var(--bg-card) 0%, var(--bg-card) 50%, #0a0a0a 100%)",
 };
 
 export default function ArenaCard({
@@ -65,16 +65,16 @@ export default function ArenaCard({
     return (
       <Link href="/explore"
         className="group block rounded-2xl p-5 relative overflow-hidden transition-all duration-200 active:scale-[0.99]"
-        style={{ background: "linear-gradient(90deg, #141420 0%, #0A0A12 100%)", border: "1px solid #222233" }}>
+        style={{ background: "linear-gradient(90deg, var(--bg-card) 0%, var(--bg-primary) 100%)", border: "1px solid var(--border)" }}>
         <div className="relative flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3 mb-1">
               <span className="text-3xl">{"\uD83C\uDF10"}</span>
               <h3 className="text-white font-black text-xl">More Arenas</h3>
             </div>
-            <p className="text-sm" style={{ color: "#4A4A66" }}>Search, filter &amp; create custom arenas</p>
+            <p className="text-sm" style={{ color: "var(--text-muted)" }}>Search, filter &amp; create custom arenas</p>
           </div>
-          <span className="font-black text-2xl group-hover:translate-x-1 transition-transform" style={{ color: "#A78BFA" }}>{"\u2192"}</span>
+          <span className="font-black text-2xl group-hover:translate-x-1 transition-transform" style={{ color: "var(--text-secondary)" }}>{"\u2192"}</span>
         </div>
       </Link>
     );
@@ -85,17 +85,17 @@ export default function ArenaCard({
     return (
       <div className="group flex-1 min-w-0 rounded-2xl overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1"
         style={{
-          background: "#0F0F1A",
-          border: "1px solid rgba(139,92,246,0.25)",
-          boxShadow: "0 4px 24px rgba(139,92,246,0.08), 0 4px 20px rgba(0,0,0,0.4)",
+          background: "var(--bg-card)",
+          border: "1px solid var(--border)",
+          boxShadow: "0 4px 24px rgba(0,0,0,0.15), 0 4px 20px rgba(0,0,0,0.4)",
         }}
         onMouseEnter={(e) => {
-          (e.currentTarget as HTMLElement).style.borderColor = "rgba(139,92,246,0.6)";
-          (e.currentTarget as HTMLElement).style.boxShadow = "0 12px 48px rgba(139,92,246,0.2), 0 4px 20px rgba(0,0,0,0.6)";
+          (e.currentTarget as HTMLElement).style.borderColor = "var(--border-hover)";
+          (e.currentTarget as HTMLElement).style.boxShadow = "0 12px 48px rgba(0,0,0,0.3), 0 4px 20px rgba(0,0,0,0.6)";
         }}
         onMouseLeave={(e) => {
-          (e.currentTarget as HTMLElement).style.borderColor = "rgba(139,92,246,0.25)";
-          (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 24px rgba(139,92,246,0.08), 0 4px 20px rgba(0,0,0,0.4)";
+          (e.currentTarget as HTMLElement).style.borderColor = "var(--border)";
+          (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 24px rgba(0,0,0,0.15), 0 4px 20px rgba(0,0,0,0.4)";
         }}
       >
         {/* Image area — taller aspect for highlighted */}
@@ -112,12 +112,12 @@ export default function ArenaCard({
           )}
           {/* Gradient overlay */}
           <div className="absolute inset-0 pointer-events-none" style={{
-            background: "linear-gradient(to top, rgba(15,15,26,1) 0%, rgba(15,15,26,0.4) 40%, transparent 100%)"
+            background: "linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.4) 40%, transparent 100%)"
           }} />
           {/* Player count badge */}
           <div className="absolute bottom-2 right-3 z-10">
             <span className="text-[11px] font-bold px-2.5 py-1 rounded-full"
-              style={{ background: "rgba(0,0,0,0.6)", color: "#888", backdropFilter: "blur(4px)" }}>
+              style={{ background: "rgba(0,0,0,0.6)", color: "var(--text-muted)", backdropFilter: "blur(4px)" }}>
               {player_count.toLocaleString()} players
             </span>
           </div>
@@ -125,7 +125,7 @@ export default function ArenaCard({
           {is_verified && (
             <div className="absolute top-3 right-3 z-10">
               <span className="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-full"
-                style={{ color: "#F0C040", background: "rgba(0,0,0,0.6)", border: "1px solid rgba(240,192,64,0.3)" }}>
+                style={{ color: "var(--gold)", background: "rgba(0,0,0,0.6)", border: "1px solid rgba(240,192,64,0.3)" }}>
                 {"\u2713"} OFFICIAL
               </span>
             </div>
@@ -136,7 +136,7 @@ export default function ArenaCard({
         <div className="px-5 pt-2 pb-4">
           <h3 className="text-white font-heading tracking-wide text-xl sm:text-2xl leading-tight mb-1">{name}</h3>
           {description && (
-            <p className="text-xs sm:text-sm leading-snug line-clamp-2 mb-3" style={{ color: "#4A4A66" }}>{description}</p>
+            <p className="text-xs sm:text-sm leading-snug line-clamp-2 mb-3" style={{ color: "var(--text-muted)" }}>{description}</p>
           )}
           {!description && <div className="mb-3" />}
 
@@ -145,19 +145,19 @@ export default function ArenaCard({
             <Link href={`/swipe/${slug}`}
               className="flex-1 text-center py-2.5 rounded-xl text-[12px] font-black uppercase tracking-wide transition-all"
               style={{
-                background: "rgba(139,92,246,0.12)",
-                color: "#A78BFA",
-                border: "1px solid rgba(139,92,246,0.3)",
+                background: "rgba(253,41,123,0.1)",
+                color: "var(--accent)",
+                border: "1px solid rgba(253,41,123,0.25)",
               }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(139,92,246,0.25)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(139,92,246,0.12)"; }}>
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(253,41,123,0.18)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(253,41,123,0.1)"; }}>
               {"\u2694\uFE0F"} Battle
             </Link>
             <Link href={`/leaderboard/${slug}`}
               className="flex-1 text-center py-2.5 rounded-xl text-[12px] font-black uppercase tracking-wide transition-all"
               style={{
                 background: "rgba(240,192,64,0.1)",
-                color: "#F0C040",
+                color: "var(--gold)",
                 border: "1px solid rgba(240,192,64,0.3)",
               }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(240,192,64,0.18)"; }}
@@ -175,16 +175,16 @@ export default function ArenaCard({
     return (
       <div className="group shrink-0 w-[260px] sm:w-[280px] rounded-2xl overflow-hidden transition-all duration-300 hover:scale-[1.03] hover:-translate-y-1"
         style={{
-          background: "#0F0F1A",
-          border: "1px solid #222233",
+          background: "var(--bg-card)",
+          border: "1px solid var(--border)",
           boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
         }}
         onMouseEnter={(e) => {
-          (e.currentTarget as HTMLElement).style.borderColor = "rgba(139,92,246,0.5)";
-          (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 40px rgba(139,92,246,0.15), 0 4px 20px rgba(0,0,0,0.6)";
+          (e.currentTarget as HTMLElement).style.borderColor = "var(--border-hover)";
+          (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 40px rgba(0,0,0,0.25), 0 4px 20px rgba(0,0,0,0.6)";
         }}
         onMouseLeave={(e) => {
-          (e.currentTarget as HTMLElement).style.borderColor = "#222233";
+          (e.currentTarget as HTMLElement).style.borderColor = "var(--border)";
           (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 20px rgba(0,0,0,0.4)";
         }}
       >
@@ -202,12 +202,12 @@ export default function ArenaCard({
           )}
           {/* Gradient overlay */}
           <div className="absolute inset-0 pointer-events-none" style={{
-            background: "linear-gradient(to top, rgba(15,15,26,1) 0%, rgba(15,15,26,0.3) 40%, transparent 100%)"
+            background: "linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.3) 40%, transparent 100%)"
           }} />
           {/* Player count badge */}
           <div className="absolute bottom-2 right-3 z-10">
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-              style={{ background: "rgba(0,0,0,0.6)", color: "#888", backdropFilter: "blur(4px)" }}>
+              style={{ background: "rgba(0,0,0,0.6)", color: "var(--text-muted)", backdropFilter: "blur(4px)" }}>
               {player_count} players
             </span>
           </div>
@@ -215,7 +215,7 @@ export default function ArenaCard({
           {is_verified && (
             <div className="absolute top-2 right-2 z-10">
               <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full"
-                style={{ color: "#F0C040", background: "rgba(0,0,0,0.6)", border: "1px solid rgba(240,192,64,0.3)" }}>
+                style={{ color: "var(--gold)", background: "rgba(0,0,0,0.6)", border: "1px solid rgba(240,192,64,0.3)" }}>
                 {"\u2713"} OFFICIAL
               </span>
             </div>
@@ -234,7 +234,7 @@ export default function ArenaCard({
         <div className="px-4 pt-1 pb-3">
           <h3 className="text-white font-heading tracking-wide text-lg leading-tight mb-0.5">{name}</h3>
           {description && (
-            <p className="text-xs leading-snug line-clamp-1 mb-2.5" style={{ color: "#4A4A66" }}>{description}</p>
+            <p className="text-xs leading-snug line-clamp-1 mb-2.5" style={{ color: "var(--text-muted)" }}>{description}</p>
           )}
           {!description && <div className="mb-2.5" />}
 
@@ -243,19 +243,19 @@ export default function ArenaCard({
             <Link href={`/swipe/${slug}`}
               className="flex-1 text-center py-2 rounded-xl text-[11px] font-black uppercase tracking-wide transition-all"
               style={{
-                background: "rgba(139,92,246,0.1)",
-                color: "#A78BFA",
-                border: "1px solid rgba(139,92,246,0.25)",
+                background: "rgba(253,41,123,0.1)",
+                color: "var(--accent)",
+                border: "1px solid rgba(253,41,123,0.25)",
               }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(139,92,246,0.2)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(139,92,246,0.1)"; }}>
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(253,41,123,0.18)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(253,41,123,0.1)"; }}>
               {"\u2694\uFE0F"} Battle
             </Link>
             <Link href={`/leaderboard/${slug}`}
               className="flex-1 text-center py-2 rounded-xl text-[11px] font-black uppercase tracking-wide transition-all"
               style={{
                 background: "rgba(240,192,64,0.08)",
-                color: "#F0C040",
+                color: "var(--gold)",
                 border: "1px solid rgba(240,192,64,0.25)",
               }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(240,192,64,0.15)"; }}
@@ -275,23 +275,23 @@ export default function ArenaCard({
   return (
     <Link href={href}
       className="group block rounded-2xl p-4 relative overflow-hidden transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-      style={{ background: "#0F0F1A", border: "1px solid #222233" }}
+      style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
       onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.borderColor = "rgba(139,92,246,0.5)";
-        (e.currentTarget as HTMLElement).style.boxShadow = "0 0 18px rgba(139,92,246,0.10)";
+        (e.currentTarget as HTMLElement).style.borderColor = "var(--border-hover)";
+        (e.currentTarget as HTMLElement).style.boxShadow = "0 0 18px rgba(0,0,0,0.2)";
       }}
       onMouseLeave={(e) => {
-        (e.currentTarget as HTMLElement).style.borderColor = "#222233";
+        (e.currentTarget as HTMLElement).style.borderColor = "var(--border)";
         (e.currentTarget as HTMLElement).style.boxShadow = "none";
       }}>
       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl pointer-events-none"
-        style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(139,92,246,0.06) 0%, transparent 70%)" }} />
+        style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.03) 0%, transparent 70%)" }} />
       <div className="relative">
         <div className="flex items-start justify-between mb-2">
           <span className="text-2xl">{icon}</span>
           {is_verified && (
             <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full"
-              style={{ color: "#F0C040", background: "rgba(240,192,64,0.1)", border: "1px solid rgba(240,192,64,0.2)" }}>
+              style={{ color: "var(--gold)", background: "rgba(240,192,64,0.1)", border: "1px solid rgba(240,192,64,0.2)" }}>
               {"\u2713"} OFFICIAL
             </span>
           )}
@@ -301,14 +301,14 @@ export default function ArenaCard({
           )}
           {!is_official && arena_tier !== "moderator" && (
             <span className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full"
-              style={{ color: "#4A4A66", background: "#1A1A28", border: "1px solid #2A2A3D" }}>CUSTOM</span>
+              style={{ color: "var(--text-muted)", background: "var(--bg-elevated)", border: "1px solid var(--border)" }}>CUSTOM</span>
           )}
         </div>
         <h3 className="text-white font-black text-base leading-tight mb-1">{name}</h3>
-        {description && <p className="text-xs leading-snug mb-2 line-clamp-2" style={{ color: "#4A4A66" }}>{description}</p>}
+        {description && <p className="text-xs leading-snug mb-2 line-clamp-2" style={{ color: "var(--text-muted)" }}>{description}</p>}
         <div className="flex items-center justify-between mt-2">
-          <span className="text-xs font-bold" style={{ color: "#2A2A3D" }}>{player_count} {player_count === 1 ? "player" : "players"}</span>
-          <span className="font-black text-xs group-hover:translate-x-1 transition-transform" style={{ color: "#A78BFA" }}>{actionLabel}</span>
+          <span className="text-xs font-bold" style={{ color: "var(--text-faint)" }}>{player_count} {player_count === 1 ? "player" : "players"}</span>
+          <span className="font-black text-xs group-hover:translate-x-1 transition-transform" style={{ color: "var(--text-secondary)" }}>{actionLabel}</span>
         </div>
       </div>
     </Link>

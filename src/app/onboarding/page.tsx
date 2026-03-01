@@ -93,15 +93,15 @@ function CountryPicker({
           placeholder="Search country…"
           disabled={disabled}
           className={`w-full rounded-xl py-3 text-white focus:outline-none transition-colors disabled:opacity-50 ${value ? "pl-10 pr-4" : "px-4"}`}
-          style={{ background: "#0F0F1A", border: "1px solid #222233", caretColor: "#8B5CF6" }}
-          onFocusCapture={(e) => { (e.target as HTMLElement).style.borderColor = "rgba(139,92,246,0.5)"; }}
-          onBlurCapture={(e) => { (e.target as HTMLElement).style.borderColor = "#222233"; }}
+          style={{ background: "var(--bg-card)", border: "1px solid var(--border)", caretColor: "var(--accent)" }}
+          onFocusCapture={(e) => { (e.target as HTMLElement).style.borderColor = "var(--border-hover)"; }}
+          onBlurCapture={(e) => { (e.target as HTMLElement).style.borderColor = "var(--border)"; }}
         />
       </div>
 
       {open && filtered.length > 0 && (
         <ul className="absolute z-50 mt-1 w-full rounded-xl overflow-hidden shadow-xl max-h-64 overflow-y-auto"
-          style={{ background: "#0F0F1A", border: "1px solid #222233" }}
+          style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
         >
           {filtered.map((c) => (
             <li key={c.code}>
@@ -110,7 +110,7 @@ function CountryPicker({
                 onMouseDown={() => select(c.name)}
                 className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors"
                 style={{ color: "#fff" }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#141420"; }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--bg-card)"; }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
               >
                 <span className="text-xl shrink-0">{codeToFlag(c.code)}</span>
@@ -294,7 +294,7 @@ export default function OnboardingPage() {
       <div className="flex items-center justify-center h-[60vh]">
         <div
           className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
-          style={{ borderColor: "#8B5CF6", borderTopColor: "transparent" }}
+          style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }}
         />
       </div>
     );
@@ -308,14 +308,14 @@ export default function OnboardingPage() {
         <h1
           className="text-3xl font-black mb-1"
           style={{
-            background: "linear-gradient(90deg, #A78BFA 0%, #8B5CF6 50%, #F0C040 100%)",
+            background: "linear-gradient(90deg, #FD297B 0%, #FF5864 40%, #FF655B 100%)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
           }}
         >
           Enter the Arena
         </h1>
-        <p className="text-sm" style={{ color: "#4A4A66" }}>
+        <p className="text-sm" style={{ color: "var(--text-muted)" }}>
           Set up your profile to join the battles and rankings
         </p>
       </div>
@@ -324,8 +324,8 @@ export default function OnboardingPage() {
 
         {/* ── Display Name ─────────────────────────────────────────────────── */}
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "#4A4A66" }}>
-            Display Name <span style={{ color: "#A78BFA" }}>*</span>
+          <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>
+            Display Name <span style={{ color: "var(--accent)" }}>*</span>
           </label>
           <input
             type="text"
@@ -335,16 +335,16 @@ export default function OnboardingPage() {
             maxLength={60}
             disabled={uploading}
             className="w-full rounded-xl px-4 py-3 text-white focus:outline-none transition-colors disabled:opacity-50"
-            style={{ background: "#0F0F1A", border: "1px solid #222233", caretColor: "#8B5CF6" }}
-            onFocus={(e) => { (e.target as HTMLElement).style.borderColor = "rgba(139,92,246,0.5)"; }}
-            onBlur={(e) => { (e.target as HTMLElement).style.borderColor = "#222233"; }}
+            style={{ background: "var(--bg-card)", border: "1px solid var(--border)", caretColor: "var(--accent)" }}
+            onFocus={(e) => { (e.target as HTMLElement).style.borderColor = "var(--border-hover)"; }}
+            onBlur={(e) => { (e.target as HTMLElement).style.borderColor = "var(--border)"; }}
           />
         </div>
 
         {/* ── Gender ───────────────────────────────────────────────────────── */}
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "#4A4A66" }}>
-            Gender <span style={{ color: "#A78BFA" }}>*</span>
+          <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>
+            Gender <span style={{ color: "var(--accent)" }}>*</span>
           </label>
           <div className="flex gap-3">
             {(["male", "female", "other"] as const).map((g) => (
@@ -356,8 +356,8 @@ export default function OnboardingPage() {
                 className="flex-1 py-3 rounded-xl border font-bold text-sm transition-colors capitalize disabled:opacity-50"
                 style={
                   gender === g
-                    ? { background: "rgba(139,92,246,0.15)", border: "1px solid rgba(139,92,246,0.5)", color: "#A78BFA" }
-                    : { background: "#0F0F1A", border: "1px solid #222233", color: "#4A4A66" }
+                    ? { background: "rgba(253,41,123,0.1)", border: "1px solid rgba(253,41,123,0.4)", color: "var(--accent)" }
+                    : { background: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--text-muted)" }
                 }
               >
                 {g}
@@ -368,10 +368,10 @@ export default function OnboardingPage() {
 
         {/* ── Height ───────────────────────────────────────────────────────── */}
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "#4A4A66" }}>
-            Height <span style={{ color: "#A78BFA" }}>*</span>
+          <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>
+            Height <span style={{ color: "var(--accent)" }}>*</span>
             {" "}
-            <span className="font-normal normal-case" style={{ color: "#2A2A3D" }}>
+            <span className="font-normal normal-case" style={{ color: "var(--text-faint)" }}>
               — {inchesToDisplay(totalHeightIn)}
             </span>
           </label>
@@ -382,7 +382,7 @@ export default function OnboardingPage() {
                 onChange={(e) => setHeightFt(Number(e.target.value))}
                 disabled={uploading}
                 className="w-full rounded-xl px-4 py-3 text-white focus:outline-none transition-colors disabled:opacity-50"
-                style={{ background: "#0F0F1A", border: "1px solid #222233" }}
+                style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
               >
                 {FEET_OPTIONS.map((f) => (
                   <option key={f} value={f}>{f} ft</option>
@@ -395,7 +395,7 @@ export default function OnboardingPage() {
                 onChange={(e) => setHeightIn(Number(e.target.value))}
                 disabled={uploading}
                 className="w-full rounded-xl px-4 py-3 text-white focus:outline-none transition-colors disabled:opacity-50"
-                style={{ background: "#0F0F1A", border: "1px solid #222233" }}
+                style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
               >
                 {INCH_OPTIONS.map((i) => (
                   <option key={i} value={i}>{i} in</option>
@@ -407,8 +407,8 @@ export default function OnboardingPage() {
 
         {/* ── Weight ───────────────────────────────────────────────────────── */}
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "#4A4A66" }}>
-            Weight (lbs) <span style={{ color: "#A78BFA" }}>*</span>
+          <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>
+            Weight (lbs) <span style={{ color: "var(--accent)" }}>*</span>
           </label>
           <input
             type="number"
@@ -419,16 +419,16 @@ export default function OnboardingPage() {
             max={500}
             disabled={uploading}
             className="w-full rounded-xl px-4 py-3 text-white focus:outline-none transition-colors disabled:opacity-50"
-            style={{ background: "#0F0F1A", border: "1px solid #222233", caretColor: "#8B5CF6" }}
-            onFocus={(e) => { (e.target as HTMLElement).style.borderColor = "rgba(139,92,246,0.5)"; }}
-            onBlur={(e) => { (e.target as HTMLElement).style.borderColor = "#222233"; }}
+            style={{ background: "var(--bg-card)", border: "1px solid var(--border)", caretColor: "var(--accent)" }}
+            onFocus={(e) => { (e.target as HTMLElement).style.borderColor = "var(--border-hover)"; }}
+            onBlur={(e) => { (e.target as HTMLElement).style.borderColor = "var(--border)"; }}
           />
         </div>
 
         {/* ── Country ──────────────────────────────────────────────────────── */}
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "#4A4A66" }}>
-            Country <span style={{ color: "#A78BFA" }}>*</span>
+          <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>
+            Country <span style={{ color: "var(--accent)" }}>*</span>
           </label>
           <CountryPicker
             value={country}
@@ -439,9 +439,9 @@ export default function OnboardingPage() {
 
         {/* ── Photos ───────────────────────────────────────────────────────── */}
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "#4A4A66" }}>
-            Photos <span style={{ color: "#A78BFA" }}>*</span>{" "}
-            <span className="font-normal normal-case" style={{ color: "#2A2A3D" }}>
+          <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>
+            Photos <span style={{ color: "var(--accent)" }}>*</span>{" "}
+            <span className="font-normal normal-case" style={{ color: "var(--text-faint)" }}>
               1–4 photos · clear face shots work best
             </span>
           </label>
@@ -464,7 +464,7 @@ export default function OnboardingPage() {
                         src={slot.preview}
                         alt={`Photo ${idx + 1}`}
                         className="w-full h-full object-cover rounded-xl"
-                        style={{ border: "1px solid #222233" }}
+                        style={{ border: "1px solid var(--border)" }}
                       />
                       <div className="absolute bottom-1 left-1 bg-black/70 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full">
                         {idx + 1}
@@ -485,18 +485,18 @@ export default function OnboardingPage() {
                       className="w-full h-full rounded-xl border-2 border-dashed transition-colors flex flex-col items-center justify-center gap-1"
                       style={
                         isLocked || uploading
-                          ? { borderColor: "#141420", opacity: 0.3, cursor: "not-allowed" }
-                          : { borderColor: "#222233", cursor: "pointer" }
+                          ? { borderColor: "var(--bg-card)", opacity: 0.3, cursor: "not-allowed" }
+                          : { borderColor: "var(--border)", cursor: "pointer" }
                       }
                       onMouseEnter={(e) => {
-                        if (!isLocked && !uploading) (e.currentTarget as HTMLElement).style.borderColor = "rgba(139,92,246,0.5)";
+                        if (!isLocked && !uploading) (e.currentTarget as HTMLElement).style.borderColor = "var(--border-hover)";
                       }}
                       onMouseLeave={(e) => {
-                        if (!isLocked && !uploading) (e.currentTarget as HTMLElement).style.borderColor = "#222233";
+                        if (!isLocked && !uploading) (e.currentTarget as HTMLElement).style.borderColor = "var(--border)";
                       }}
                     >
-                      <span className="text-2xl" style={{ color: "#4A4A66" }}>+</span>
-                      <span className="text-[10px] font-semibold" style={{ color: "#2A2A3D" }}>{idx + 1}</span>
+                      <span className="text-2xl" style={{ color: "var(--text-muted)" }}>+</span>
+                      <span className="text-[10px] font-semibold" style={{ color: "var(--text-faint)" }}>{idx + 1}</span>
                     </button>
                   )}
                 </div>
@@ -516,12 +516,12 @@ export default function OnboardingPage() {
         <button
           onClick={handleSubmit}
           disabled={uploading || !name.trim() || !gender || !country.trim() || !hasPhoto}
-          className="btn-purple gold-pulse-btn w-full font-black py-4 rounded-xl transition-colors text-lg disabled:opacity-40"
+          className="btn-accent gold-pulse-btn w-full font-black py-4 rounded-xl transition-colors text-lg disabled:opacity-40"
         >
           {uploading ? uploadStep || "Uploading…" : "Enter the Arena ⚔️"}
         </button>
 
-        <p className="text-xs text-center" style={{ color: "#2A2A3D" }}>
+        <p className="text-xs text-center" style={{ color: "var(--text-faint)" }}>
           Your profile will be visible to all voters. Use photos of yourself that you own.
         </p>
       </div>
