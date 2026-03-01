@@ -234,7 +234,20 @@ function CategoryMultiSelect({
     if (cleanValue.includes(slug)) {
       onChange(cleanValue.filter((c) => c !== slug));
     } else {
-      onChange([...cleanValue, slug]);
+      const newValues = [...cleanValue, slug];
+      // Auto-add ancestor categories (e.g. selecting PSL Icons also selects Men)
+      const cat = activeCategories.find((c) => c.slug === slug);
+      if (cat) {
+        let parentId = cat.parent_id;
+        while (parentId) {
+          const parent = activeCategories.find((c) => c.id === parentId);
+          if (parent && parent.depth > 0 && !newValues.includes(parent.slug)) {
+            newValues.push(parent.slug);
+          }
+          parentId = parent?.parent_id ?? null;
+        }
+      }
+      onChange(newValues);
     }
   }
 
