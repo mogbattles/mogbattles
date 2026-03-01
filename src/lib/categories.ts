@@ -261,6 +261,15 @@ export async function deleteCategory(
   return { error: null };
 }
 
+// ─── Get root category ID (depth=0 ancestor) ────────────────────────────────
+
+export async function getRootCategoryId(categoryId: string): Promise<string> {
+  const ancestors = await getCategoryAncestors(categoryId);
+  // ancestors come sorted by depth; find the root (depth=0)
+  const root = ancestors.find((a) => a.depth === 0);
+  return root?.id ?? categoryId;
+}
+
 // ─── Profile ↔ Category helpers ──────────────────────────────────────────────
 
 export async function getProfileCategories(

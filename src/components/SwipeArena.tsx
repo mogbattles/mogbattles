@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { createClient, type ArenaRow } from "@/lib/supabase";
-import { getProfilesForArena, getPublicArenas, getVotedPairs, getMyProfile, type ArenaProfile } from "@/lib/arenas";
+import { getProfilesForArena, getVotedPairs, getMyProfile, type ArenaProfile } from "@/lib/arenas";
 import {
   getTopTagsForProfiles,
   getTopTagsForProfile,
@@ -53,9 +53,6 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
   const [myVotedTags, setMyVotedTags] = useState<Map<string, Set<string>>>(new Map());
   const [hoveredCard, setHoveredCard] = useState<"left" | "right" | null>(null);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // ── Category arena map ───────────────────────────────────────────────
-  const categoryArenaMap = useRef<Record<string, string>>({});
 
   // ── Emote state (king laughing / king angry) ─────────────────────────────
   const [kingEmote, setKingEmote] = useState<{ type: "laugh" | "angry"; side: "left" | "right" } | null>(null);
@@ -145,13 +142,6 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
         user ? getVotedPairs(user.id, arena.slug === "all" ? null : arena.id) : Promise.resolve(new Set<string>()),
         user ? getMyProfile(user.id) : Promise.resolve(null),
       ]);
-      if (arena.slug === "all") {
-        const allArenas = await getPublicArenas();
-        const map: Record<string, string> = {};
-        allArenas.filter((a) => a.is_official && a.category && a.slug !== "all" && a.slug !== "members")
-          .forEach((a) => { map[a.category!] = a.id; });
-        categoryArenaMap.current = map;
-      }
       // Exclude your own profile AND the impersonated profile from matchups
       let filteredData = myProfile ? data.filter((p) => p.id !== myProfile.id) : data;
       if (impProfile) filteredData = filteredData.filter((p) => p.id !== impProfile.id);
@@ -230,16 +220,8 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
     newVoted.add(key);
     setVotedPairs(newVoted);
 
-    let effectiveArenaId = arena.id;
-    if (arena.slug === "all") {
-      const sharedCat = winner.categories.find((c) => loser.categories.includes(c));
-      if (sharedCat && categoryArenaMap.current[sharedCat]) {
-        effectiveArenaId = categoryArenaMap.current[sharedCat];
-      } else {
-        const fallbackCat = winner.categories.find((c) => categoryArenaMap.current[c]) ?? loser.categories.find((c) => categoryArenaMap.current[c]);
-        if (fallbackCat) effectiveArenaId = categoryArenaMap.current[fallbackCat];
-      }
-    }
+    // Server-side record_match resolves root arena for ELO — just pass arena.id
+    const effectiveArenaId = arena.id;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const supabase = createClient() as any;

@@ -485,6 +485,8 @@ export default function AdminPage() {
   // Arena IDs for seeded user stats (fetched once)
   const [allArenaId, setAllArenaId] = useState<string | null>(null);
   const [membersArenaId, setMembersArenaId] = useState<string | null>(null);
+  const [menArenaId, setMenArenaId] = useState<string | null>(null);
+  const [womenArenaId, setWomenArenaId] = useState<string | null>(null);
 
   // CSV Import state
   const [showImport, setShowImport] = useState(false);
@@ -626,11 +628,13 @@ export default function AdminPage() {
       const { data } = await supabase
         .from("arenas")
         .select("id, slug")
-        .in("slug", ["all", "members"]);
+        .in("slug", ["all", "members", "men", "women"]);
       if (data) {
         const rows = data as { id: string; slug: string }[];
         setAllArenaId(rows.find((a) => a.slug === "all")?.id ?? null);
         setMembersArenaId(rows.find((a) => a.slug === "members")?.id ?? null);
+        setMenArenaId(rows.find((a) => a.slug === "men")?.id ?? null);
+        setWomenArenaId(rows.find((a) => a.slug === "women")?.id ?? null);
       }
     }
     fetchArenaIds();
@@ -1169,6 +1173,9 @@ export default function AdminPage() {
     const statsRows = [];
     if (allArenaId)    statsRows.push({ arena_id: allArenaId,    profile_id: newProfile.id, elo_rating: eloRating, wins: 0, losses: 0, matches: 0 });
     if (membersArenaId) statsRows.push({ arena_id: membersArenaId, profile_id: newProfile.id, elo_rating: eloRating, wins: 0, losses: 0, matches: 0 });
+    // Seed root gender arena (men/women) for unified ELO
+    const rootGenderArenaId = seedGender === "female" ? womenArenaId : menArenaId;
+    if (rootGenderArenaId) statsRows.push({ arena_id: rootGenderArenaId, profile_id: newProfile.id, elo_rating: eloRating, wins: 0, losses: 0, matches: 0 });
     let statsWarning: string | null = null;
     if (statsRows.length > 0) {
       const { error: statsErr } = await supabase

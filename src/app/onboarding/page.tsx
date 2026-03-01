@@ -260,12 +260,17 @@ export default function OnboardingPage() {
       return;
     }
 
-    // ── Insert into "all" and "members" arenas so new users appear on leaderboard immediately
+    // ── Insert into "all", "members", and root gender arena so new users appear on leaderboard immediately
     setUploadStep("Joining the arena…");
     const [{ data: allArena }, { data: membersArena }] = await Promise.all([
       supabase.from("arenas").select("id").eq("slug", "all").maybeSingle(),
       supabase.from("arenas").select("id").eq("slug", "members").maybeSingle(),
     ]);
+
+    // Determine root gender arena (men/women) based on selected gender
+    const rootGenderSlug = gender === "female" ? "women" : "men";
+    const { data: rootGenderArena } = await supabase
+      .from("arenas").select("id").eq("slug", rootGenderSlug).maybeSingle();
 
     const statsRows = [];
     if (allArena && insertedProfile) {
@@ -273,6 +278,9 @@ export default function OnboardingPage() {
     }
     if (membersArena && insertedProfile) {
       statsRows.push({ arena_id: membersArena.id, profile_id: insertedProfile.id, elo_rating: 1200, wins: 0, losses: 0, matches: 0 });
+    }
+    if (rootGenderArena && insertedProfile) {
+      statsRows.push({ arena_id: rootGenderArena.id, profile_id: insertedProfile.id, elo_rating: 1200, wins: 0, losses: 0, matches: 0 });
     }
     if (statsRows.length > 0) {
       await supabase.from("arena_profile_stats").insert(statsRows);

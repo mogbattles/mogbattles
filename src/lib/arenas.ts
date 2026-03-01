@@ -59,6 +59,42 @@ const OFFICIAL_ORDER = [
   "models",
 ];
 
+// ─── Resolve root arena ID (client-side mirror of SQL get_root_arena_id) ─────
+
+export async function getRootArenaId(arenaId: string): Promise<string | null> {
+  const client = db();
+
+  // Fetch the arena
+  const { data: arena } = await client
+    .from("arenas")
+    .select("id, slug, category_id")
+    .eq("id", arenaId)
+    .maybeSingle();
+
+  if (!arena) return null;
+
+  // Aggregate arenas return themselves
+  if (arena.slug === "all" || arena.slug === "members") return arena.id;
+
+  // No category → can't determine root
+  if (!arena.category_id) return null;
+
+  // Walk up to root category
+  const { getRootCategoryId } = await import("@/lib/categories");
+  const rootCategoryId = await getRootCategoryId(arena.category_id);
+
+  // Find the official arena for this root category
+  const { data: rootArena } = await client
+    .from("arenas")
+    .select("id")
+    .eq("category_id", rootCategoryId)
+    .eq("is_official", true)
+    .limit(1)
+    .maybeSingle();
+
+  return rootArena?.id ?? null;
+}
+
 // ─── Fetch all public arenas (with player counts) ────────────────────────────
 
 export async function getPublicArenas(): Promise<ArenaWithCount[]> {
@@ -73,7 +109,7 @@ export async function getPublicArenas(): Promise<ArenaWithCount[]> {
 
   if (error || !arenas) return [];
 
-  // Batch-fetch player counts
+  // Batch-fetch player counts from arena_profile_stats (for root/aggregate arenas)
   const { data: counts } = await client
     .from("arena_profile_stats")
     .select("arena_id")
@@ -86,6 +122,27 @@ export async function getPublicArenas(): Promise<ArenaWithCount[]> {
   (counts ?? []).forEach((row) => {
     countMap[row.arena_id] = (countMap[row.arena_id] ?? 0) + 1;
   });
+
+  // For sub-category arenas with no stats, derive count from profile_categories
+  const needsCategoryCount = arenas.filter(
+    (a) => a.is_official && a.category_id && !countMap[a.id]
+  );
+  if (needsCategoryCount.length > 0) {
+    const catIds = needsCategoryCount.map((a) => a.category_id).filter(Boolean) as string[];
+    const { data: pcRows } = await client
+      .from("profile_categories")
+      .select("category_id")
+      .in("category_id", catIds);
+    const catCountMap: Record<string, number> = {};
+    (pcRows ?? []).forEach((row) => {
+      catCountMap[row.category_id] = (catCountMap[row.category_id] ?? 0) + 1;
+    });
+    needsCategoryCount.forEach((a) => {
+      if (a.category_id && catCountMap[a.category_id]) {
+        countMap[a.id] = catCountMap[a.category_id];
+      }
+    });
+  }
 
   // Sort: official arenas in fixed order, then custom by creation date
   const official = arenas
@@ -166,6 +223,27 @@ export async function getExploreArenas(opts?: {
     playerCount[row.arena_id] = (playerCount[row.arena_id] ?? 0) + 1;
     matchCount[row.arena_id] = (matchCount[row.arena_id] ?? 0) + (row.matches ?? 0);
   });
+
+  // For sub-category arenas with no stats, derive count from profile_categories
+  const needsCategoryCount = arenas.filter(
+    (a) => a.is_official && a.category_id && !playerCount[a.id]
+  );
+  if (needsCategoryCount.length > 0) {
+    const catIds = needsCategoryCount.map((a) => a.category_id).filter(Boolean) as string[];
+    const { data: pcRows } = await client
+      .from("profile_categories")
+      .select("category_id")
+      .in("category_id", catIds);
+    const catCountMap: Record<string, number> = {};
+    (pcRows ?? []).forEach((row) => {
+      catCountMap[row.category_id] = (catCountMap[row.category_id] ?? 0) + 1;
+    });
+    needsCategoryCount.forEach((a) => {
+      if (a.category_id && catCountMap[a.category_id]) {
+        playerCount[a.id] = catCountMap[a.category_id];
+      }
+    });
+  }
 
   const withCounts = arenas.map((a) => ({
     ...a,
@@ -249,10 +327,17 @@ export async function getProfilesForArena(
     .select("id, name, image_url, image_urls, wikipedia_slug, category, categories, height_in, weight_lbs, country, gender")
     .in("id", profileIds);
 
+  // Resolve root arena for ELO lookup (sub-category arenas share root ELO)
+  let statsArenaId = arena.id;
+  if (arena.category_id && arena.is_official) {
+    const rootId = await getRootArenaId(arena.id);
+    if (rootId) statsArenaId = rootId;
+  }
+
   const { data: stats } = await client
     .from("arena_profile_stats")
     .select("profile_id, elo_rating, wins, losses, matches")
-    .eq("arena_id", arena.id)
+    .eq("arena_id", statsArenaId)
     .in("profile_id", profileIds);
 
   type PRow = {
@@ -304,6 +389,31 @@ export async function getLeaderboardForArena(
   const client = db();
   const membersOnly = options?.membersOnly ?? false;
 
+  // Resolve root arena for ELO stats
+  const { data: thisArena } = await client
+    .from("arenas")
+    .select("id, slug, category_id, is_official")
+    .eq("id", arenaId)
+    .maybeSingle();
+
+  let statsArenaId = arenaId;
+  let filterProfileIds: Set<string> | null = null;
+
+  if (thisArena?.category_id && thisArena.is_official) {
+    const rootId = await getRootArenaId(arenaId);
+    if (rootId && rootId !== arenaId) {
+      statsArenaId = rootId;
+      // Sub-category: filter to only profiles in this sub-category
+      const { getCategoryDescendantIds } = await import("@/lib/categories");
+      const descendantIds = await getCategoryDescendantIds(thisArena.category_id);
+      const { data: pcRows } = await client
+        .from("profile_categories")
+        .select("profile_id")
+        .in("category_id", descendantIds);
+      filterProfileIds = new Set(((pcRows ?? []) as { profile_id: string }[]).map((r) => r.profile_id));
+    }
+  }
+
   type LRow = {
     elo_rating: number;
     wins: number;
@@ -332,15 +442,19 @@ export async function getLeaderboardForArena(
     .select(
       "elo_rating, wins, losses, matches, profile_id, profiles(id, name, image_url, image_urls, wikipedia_slug, category, categories, height_in, weight_lbs, country, gender, user_id, is_test_profile)"
     )
-    .eq("arena_id", arenaId)
+    .eq("arena_id", statsArenaId)
     .order("elo_rating", { ascending: false });
 
   if (error || !data) return [];
 
   return ((data as unknown as LRow[]))
-    // membersOnly = exclude official/celebrity profiles (is_test_profile=true)
-    // includes real users + seeded users (is_test_profile=false or null)
-    .filter((row) => row.profiles && (!membersOnly || row.profiles.is_test_profile !== true))
+    .filter((row) => {
+      if (!row.profiles) return false;
+      if (membersOnly && row.profiles.is_test_profile === true) return false;
+      // Filter to sub-category members if viewing a sub-category leaderboard
+      if (filterProfileIds && !filterProfileIds.has(row.profile_id)) return false;
+      return true;
+    })
     .map((row, i) => {
       const profile = row.profiles!;
       return {
@@ -372,10 +486,34 @@ export async function getTopProfilesForArena(
   opts?: { excludeTestProfiles?: boolean; fallbackToProfiles?: boolean }
 ): Promise<{ id: string; name: string; image_url: string | null; elo_rating: number }[]> {
   const client = db();
+
+  // Resolve root arena for ELO stats
+  const rootId = await getRootArenaId(arenaId);
+  const statsArenaId = rootId ?? arenaId;
+
+  // If this is a sub-category, get profile IDs to filter by
+  let filterProfileIds: Set<string> | null = null;
+  if (rootId && rootId !== arenaId) {
+    const { data: thisArena } = await client
+      .from("arenas")
+      .select("category_id")
+      .eq("id", arenaId)
+      .maybeSingle();
+    if (thisArena?.category_id) {
+      const { getCategoryDescendantIds } = await import("@/lib/categories");
+      const descendantIds = await getCategoryDescendantIds(thisArena.category_id);
+      const { data: pcRows } = await client
+        .from("profile_categories")
+        .select("profile_id")
+        .in("category_id", descendantIds);
+      filterProfileIds = new Set(((pcRows ?? []) as { profile_id: string }[]).map((r) => r.profile_id));
+    }
+  }
+
   let query = client
     .from("arena_profile_stats")
     .select("elo_rating, profile_id, profiles(id, name, image_url, is_test_profile)")
-    .eq("arena_id", arenaId)
+    .eq("arena_id", statsArenaId)
     .order("elo_rating", { ascending: false });
 
   // When excluding test profiles, fetch more to compensate for filtering
@@ -394,6 +532,11 @@ export async function getTopProfilesForArena(
 
   if (opts?.excludeTestProfiles) {
     rows = rows.filter((r) => !r.profiles!.is_test_profile);
+  }
+
+  // Filter to sub-category members if viewing a sub-category preview
+  if (filterProfileIds) {
+    rows = rows.filter((r) => filterProfileIds!.has(r.profile_id));
   }
 
   const results = rows.slice(0, limit).map((r) => ({
