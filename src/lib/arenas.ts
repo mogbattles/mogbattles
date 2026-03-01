@@ -384,10 +384,11 @@ export async function getProfilesForArena(
 
 export async function getLeaderboardForArena(
   arenaId: string,
-  options?: { membersOnly?: boolean }
+  options?: { membersOnly?: boolean; arenaSpecific?: boolean }
 ): Promise<(ArenaProfile & { rank: number })[]> {
   const client = db();
   const membersOnly = options?.membersOnly ?? false;
+  const arenaSpecific = options?.arenaSpecific ?? false;
 
   // Resolve root arena for ELO stats
   const { data: thisArena } = await client
@@ -399,7 +400,8 @@ export async function getLeaderboardForArena(
   let statsArenaId = arenaId;
   let filterProfileIds: Set<string> | null = null;
 
-  if (thisArena?.category_id && thisArena.is_official) {
+  if (thisArena?.category_id && thisArena.is_official && !arenaSpecific) {
+    // Global ELO mode: resolve to root arena, filter by sub-category membership
     const rootId = await getRootArenaId(arenaId);
     if (rootId && rootId !== arenaId) {
       statsArenaId = rootId;
@@ -412,6 +414,9 @@ export async function getLeaderboardForArena(
         .in("category_id", descendantIds);
       filterProfileIds = new Set(((pcRows ?? []) as { profile_id: string }[]).map((r) => r.profile_id));
     }
+  } else if (arenaSpecific) {
+    // Arena-specific ELO mode: use this arena's own stats directly
+    statsArenaId = arenaId;
   }
 
   type LRow = {

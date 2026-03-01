@@ -134,6 +134,9 @@ $$;
 -- ELO is stored on the root arena's arena_profile_stats row.
 -- Match history still records the original arena_id.
 
+-- Drop existing function first (return type changed)
+DROP FUNCTION IF EXISTS record_match(uuid, uuid, uuid, uuid);
+
 CREATE OR REPLACE FUNCTION record_match(
   p_arena_id uuid,
   p_winner_id uuid,
@@ -159,6 +162,12 @@ DECLARE
   v_l_new int;
   v_expected_w float;
   v_k int := 32;
+  -- Arena-specific ELO (independent calculation per sub-arena)
+  v_aw_elo int;
+  v_al_elo int;
+  v_aw_new int;
+  v_al_new int;
+  v_a_expected_w float;
 BEGIN
   -- ── Resolve root arena for ELO ──────────────────────────────────────────
   SELECT slug INTO v_arena_slug FROM arenas WHERE id = p_arena_id;
@@ -217,6 +226,41 @@ BEGIN
     SET elo_rating = v_l_new,
         losses     = arena_profile_stats.losses + 1,
         matches    = arena_profile_stats.matches + 1;
+
+  -- ── Arena-specific ELO (independent per sub-arena) ──────────────────────
+  -- When swiping in a sub-arena, also maintain that arena's own ELO ladder.
+  -- This lets users toggle between "Global ELO" and "Arena ELO" on leaderboards.
+  IF v_root_arena_id IS DISTINCT FROM p_arena_id THEN
+    SELECT COALESCE(
+      (SELECT elo_rating FROM arena_profile_stats
+       WHERE arena_id = p_arena_id AND profile_id = p_winner_id),
+      1200
+    ) INTO v_aw_elo;
+
+    SELECT COALESCE(
+      (SELECT elo_rating FROM arena_profile_stats
+       WHERE arena_id = p_arena_id AND profile_id = p_loser_id),
+      1200
+    ) INTO v_al_elo;
+
+    v_a_expected_w := 1.0 / (1.0 + power(10.0, (v_al_elo - v_aw_elo)::float / 400.0));
+    v_aw_new := GREATEST(100, v_aw_elo + round(v_k * (1.0 - v_a_expected_w))::int);
+    v_al_new := GREATEST(100, v_al_elo + round(v_k * (0.0 - (1.0 - v_a_expected_w)))::int);
+
+    INSERT INTO arena_profile_stats (arena_id, profile_id, elo_rating, wins, losses, matches)
+    VALUES (p_arena_id, p_winner_id, v_aw_new, 1, 0, 1)
+    ON CONFLICT (arena_id, profile_id) DO UPDATE
+      SET elo_rating = v_aw_new,
+          wins       = arena_profile_stats.wins + 1,
+          matches    = arena_profile_stats.matches + 1;
+
+    INSERT INTO arena_profile_stats (arena_id, profile_id, elo_rating, wins, losses, matches)
+    VALUES (p_arena_id, p_loser_id, v_al_new, 0, 1, 1)
+    ON CONFLICT (arena_id, profile_id) DO UPDATE
+      SET elo_rating = v_al_new,
+          losses     = arena_profile_stats.losses + 1,
+          matches    = arena_profile_stats.matches + 1;
+  END IF;
 
   -- ── Record match history (original arena for audit) ─────────────────────
   INSERT INTO matches (winner_id, loser_id, winner_elo_before, loser_elo_before,

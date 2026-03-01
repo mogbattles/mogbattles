@@ -57,7 +57,15 @@ export default async function LeaderboardArenaPage({
         )}
       </div>
 
-      <LeaderboardTable arenaId={arena.id} arenaSlug={slug} />
+      <LeaderboardTable
+        arenaId={arena.id}
+        arenaSlug={slug}
+        isSubCategory={
+          !!arena.category_id &&
+          arena.is_official &&
+          !["all", "members", "men", "women"].includes(slug)
+        }
+      />
     </div>
   );
 }

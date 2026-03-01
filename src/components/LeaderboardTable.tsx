@@ -25,14 +25,19 @@ function RankLabel({ rank }: { rank: number }) {
   );
 }
 
-export default function LeaderboardTable({ arenaId, arenaSlug }: { arenaId: string; arenaSlug?: string }) {
+export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: { arenaId: string; arenaSlug?: string; isSubCategory?: boolean }) {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [topTags, setTopTags] = useState<Map<string, TagEntry[]>>(new Map());
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [arenaSpecific, setArenaSpecific] = useState(false);
 
-  const fetchData = async () => {
-    const data = await getLeaderboardForArena(arenaId, { membersOnly: arenaSlug === "members" });
+  const fetchData = async (useArenaSpecific = false) => {
+    setLoading(true);
+    const data = await getLeaderboardForArena(arenaId, {
+      membersOnly: arenaSlug === "members",
+      arenaSpecific: useArenaSpecific,
+    });
     setEntries(data);
     setLoading(false);
 
@@ -43,13 +48,13 @@ export default function LeaderboardTable({ arenaId, arenaSlug }: { arenaId: stri
   };
 
   useEffect(() => {
-    fetchData();
+    fetchData(arenaSpecific);
     const interval = setInterval(() => {
-      if (!document.hidden) fetchData();
+      if (!document.hidden) fetchData(arenaSpecific);
     }, 30000);
     return () => clearInterval(interval);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [arenaId]);
+  }, [arenaId, arenaSpecific]);
 
   const filtered = search.trim()
     ? entries.filter((e) =>
@@ -80,6 +85,33 @@ export default function LeaderboardTable({ arenaId, arenaSlug }: { arenaId: stri
 
   return (
     <div className="space-y-3">
+      {/* ELO mode toggle — only for sub-category arenas */}
+      {isSubCategory && (
+        <div className="flex rounded-xl overflow-hidden" style={{ border: "1px solid #222233" }}>
+          <button
+            onClick={() => setArenaSpecific(false)}
+            className="flex-1 py-2 text-xs font-black uppercase tracking-widest transition-colors"
+            style={{
+              background: !arenaSpecific ? "#1A1A28" : "transparent",
+              color: !arenaSpecific ? "#A78BFA" : "#4A4A66",
+              borderRight: "1px solid #222233",
+            }}
+          >
+            🌐 Global ELO
+          </button>
+          <button
+            onClick={() => setArenaSpecific(true)}
+            className="flex-1 py-2 text-xs font-black uppercase tracking-widest transition-colors"
+            style={{
+              background: arenaSpecific ? "#1A1A28" : "transparent",
+              color: arenaSpecific ? "#F0C040" : "#4A4A66",
+            }}
+          >
+            🏟️ Arena ELO
+          </button>
+        </div>
+      )}
+
       {/* Search */}
       <input
         type="search"
@@ -190,7 +222,7 @@ export default function LeaderboardTable({ arenaId, arenaSlug }: { arenaId: stri
               <div className="text-right shrink-0">
                 <span
                   className="font-black text-lg sm:text-xl"
-                  style={{ color: entry.rank === 1 ? "#F0C040" : "#6D28D9" }}
+                  style={{ color: entry.rank === 1 ? "#F0C040" : arenaSpecific ? "#D97706" : "#6D28D9" }}
                 >
                   {entry.elo_rating}
                 </span>
@@ -198,7 +230,7 @@ export default function LeaderboardTable({ arenaId, arenaSlug }: { arenaId: stri
                   className="text-[10px] font-black uppercase tracking-widest"
                   style={{ color: "#2A2A3D" }}
                 >
-                  ELO
+                  {arenaSpecific ? "ARENA" : "ELO"}
                 </p>
               </div>
             </Link>
