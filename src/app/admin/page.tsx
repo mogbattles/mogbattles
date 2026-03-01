@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback, useId } from "react";
+import { useEffect, useState, useRef, useCallback, useId, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { createBrowserClient } from "@supabase/ssr";
 import { getFeaturedBattles, upsertFeaturedBattle, searchProfiles, type FeaturedBattle } from "@/lib/arenas";
@@ -204,7 +204,26 @@ function CategoryMultiSelect({
   const selectableCategories = activeCategories.filter((c) => c.depth > 0);
   // Filter out root category slugs from value (legacy data cleanup)
   const rootSlugs = new Set(activeCategories.filter((c) => c.depth === 0).map((c) => c.slug));
-  const cleanValue = value.filter((v) => !rootSlugs.has(v));
+  const rawClean = value.filter((v) => !rootSlugs.has(v));
+  // Auto-include parent categories for any selected children
+  // e.g. if PSL Icons is selected, Men should also be selected
+  const cleanValue = useMemo(() => {
+    const result = [...rawClean];
+    for (const slug of rawClean) {
+      const cat = activeCategories.find((c) => c.slug === slug);
+      if (cat) {
+        let parentId = cat.parent_id;
+        while (parentId) {
+          const parent = activeCategories.find((c) => c.id === parentId);
+          if (parent && parent.depth > 0 && !result.includes(parent.slug)) {
+            result.push(parent.slug);
+          }
+          parentId = parent?.parent_id ?? null;
+        }
+      }
+    }
+    return result;
+  }, [rawClean, activeCategories]);
 
   // Close when clicking outside either the button or the portal dropdown
   useEffect(() => {
