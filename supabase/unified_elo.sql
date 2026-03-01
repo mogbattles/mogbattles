@@ -42,7 +42,6 @@ SET search_path = public
 AS $$
 DECLARE
   v_category_id uuid;
-  v_root_category_id uuid;
   v_root_arena_id uuid;
   v_arena_slug text;
 BEGIN
@@ -59,28 +58,21 @@ BEGIN
     RETURN NULL;
   END IF;
 
-  -- Walk up the category tree to find root (parent_id IS NULL)
+  -- Walk up the category tree and find the FIRST ancestor that has an
+  -- official arena. This correctly handles hierarchies where the true
+  -- root (e.g. "Humans") has no arena, but intermediate categories
+  -- like "Men"/"Women" do.
   WITH RECURSIVE ancestors AS (
-    SELECT id, parent_id FROM categories WHERE id = v_category_id
+    SELECT id, parent_id, 0 AS lvl FROM categories WHERE id = v_category_id
     UNION ALL
-    SELECT c.id, c.parent_id
+    SELECT c.id, c.parent_id, a.lvl + 1
     FROM categories c
     JOIN ancestors a ON c.id = a.parent_id
   )
-  SELECT id INTO v_root_category_id
-  FROM ancestors
-  WHERE parent_id IS NULL;
-
-  -- If already at root
-  IF v_root_category_id IS NULL THEN
-    v_root_category_id := v_category_id;
-  END IF;
-
-  -- Find the official arena for this root category
-  SELECT id INTO v_root_arena_id
-  FROM arenas
-  WHERE category_id = v_root_category_id
-    AND is_official = true
+  SELECT ar.id INTO v_root_arena_id
+  FROM ancestors anc
+  JOIN arenas ar ON ar.category_id = anc.id AND ar.is_official = true
+  ORDER BY anc.lvl ASC
   LIMIT 1;
 
   RETURN v_root_arena_id;
@@ -100,28 +92,26 @@ AS $$
 DECLARE
   v_root_arena_id uuid;
 BEGIN
-  -- Find root category for this profile, then its arena
+  -- Walk up the profile's category ancestors and find the first
+  -- ancestor that has an official arena (e.g. "Men" or "Women").
   WITH profile_cat AS (
     SELECT category_id FROM profile_categories
     WHERE profile_id = p_profile_id
     LIMIT 1
   ),
-  root_cat AS (
-    SELECT a.id AS root_id
+  ancestors AS (
+    SELECT cat.id, cat.parent_id, 0 AS lvl
     FROM profile_cat pc
-    CROSS JOIN LATERAL (
-      WITH RECURSIVE chain AS (
-        SELECT id, parent_id FROM categories WHERE id = pc.category_id
-        UNION ALL
-        SELECT c.id, c.parent_id FROM categories c JOIN chain ch ON c.id = ch.parent_id
-      )
-      SELECT id FROM chain WHERE parent_id IS NULL
-    ) a
-    LIMIT 1
+    JOIN categories cat ON cat.id = pc.category_id
+    UNION ALL
+    SELECT c.id, c.parent_id, a.lvl + 1
+    FROM categories c
+    JOIN ancestors a ON c.id = a.parent_id
   )
   SELECT ar.id INTO v_root_arena_id
-  FROM root_cat rc
-  JOIN arenas ar ON ar.category_id = rc.root_id AND ar.is_official = true
+  FROM ancestors anc
+  JOIN arenas ar ON ar.category_id = anc.id AND ar.is_official = true
+  ORDER BY anc.lvl ASC
   LIMIT 1;
 
   RETURN v_root_arena_id;

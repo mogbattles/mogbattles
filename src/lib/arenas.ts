@@ -79,20 +79,25 @@ export async function getRootArenaId(arenaId: string): Promise<string | null> {
   // No category → can't determine root
   if (!arena.category_id) return null;
 
-  // Walk up to root category
-  const { getRootCategoryId } = await import("@/lib/categories");
-  const rootCategoryId = await getRootCategoryId(arena.category_id);
+  // Walk up ancestors and find the FIRST one that has an official arena.
+  // This handles hierarchies like Humans(depth=0) → Men(depth=1) → PSL Icons(depth=2)
+  // where the root arena lives on "Men", not the top-level "Humans".
+  const { getCategoryAncestors } = await import("@/lib/categories");
+  const ancestors = await getCategoryAncestors(arena.category_id);
 
-  // Find the official arena for this root category
-  const { data: rootArena } = await client
-    .from("arenas")
-    .select("id")
-    .eq("category_id", rootCategoryId)
-    .eq("is_official", true)
-    .limit(1)
-    .maybeSingle();
+  // ancestors are sorted by depth ascending (self first, then parent, grandparent…)
+  for (const ancestor of ancestors) {
+    const { data: rootArena } = await client
+      .from("arenas")
+      .select("id")
+      .eq("category_id", ancestor.id)
+      .eq("is_official", true)
+      .limit(1)
+      .maybeSingle();
+    if (rootArena) return rootArena.id;
+  }
 
-  return rootArena?.id ?? null;
+  return null;
 }
 
 // ─── Fetch all public arenas (with player counts) ────────────────────────────
