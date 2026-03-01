@@ -282,8 +282,7 @@ export default function MessageThreadPage() {
           onClick={handleSend}
           disabled={!input.trim() || sending}
           className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-150 disabled:opacity-40 active:scale-95"
-          style={{ background: "rgba(253,41,123,0.15)", border: "1px solid rgba(253,41,123,0.35)", color: "var(--accent)" }}
-          style={{ fontSize: 18 }}
+          style={{ background: "rgba(253,41,123,0.15)", border: "1px solid rgba(253,41,123,0.35)", color: "var(--accent)", fontSize: 18 }}
         >
           ↑
         </button>
