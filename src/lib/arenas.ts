@@ -85,7 +85,8 @@ export async function getRootArenaId(arenaId: string): Promise<string | null> {
   const { getCategoryAncestors } = await import("@/lib/categories");
   const ancestors = await getCategoryAncestors(arena.category_id);
 
-  // ancestors are sorted by depth ascending (self first, then parent, grandparent…)
+  // ancestors sorted by depth ascending: root first (depth=0), then children (depth=1), etc.
+  // First match = highest ancestor with an arena (e.g. Men, not PSL Icons)
   for (const ancestor of ancestors) {
     const { data: rootArena } = await client
       .from("arenas")

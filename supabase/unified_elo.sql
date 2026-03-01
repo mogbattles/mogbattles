@@ -145,6 +145,7 @@ SET search_path = public
 AS $$
 DECLARE
   v_root_arena_id uuid;
+  v_loser_root_id uuid;   -- loser may have a different root (cross-category "all" matches)
   v_arena_slug text;
   v_is_official boolean;
   v_arena_tier text;
@@ -168,24 +169,34 @@ BEGIN
   IF COALESCE(v_arena_tier, 'custom') = 'custom' AND NOT COALESCE(v_is_official, false) THEN
     -- Custom/non-official arenas: isolated ELO only — does NOT affect global economy
     v_root_arena_id := p_arena_id;
+    v_loser_root_id := p_arena_id;
   ELSIF v_arena_slug = 'all' THEN
-    -- "all" arena: determine root from winner's profile
+    -- "all" arena: resolve root from each player's profile independently
+    -- (handles cross-category matches, e.g. Man vs Woman)
     v_root_arena_id := get_root_arena_id_for_profile(p_winner_id);
+    v_loser_root_id := get_root_arena_id_for_profile(p_loser_id);
   ELSE
     v_root_arena_id := get_root_arena_id(p_arena_id);
+    v_loser_root_id := v_root_arena_id;  -- same arena for both in sub-arenas
   END IF;
 
-  -- Fallback for official arenas with no category
+  -- Fallbacks for winner root
   IF v_root_arena_id IS NULL AND COALESCE(v_is_official, false) THEN
     v_root_arena_id := get_root_arena_id_for_profile(p_winner_id);
   END IF;
-
-  -- Final fallback: use original arena (isolated ELO)
   IF v_root_arena_id IS NULL THEN
     v_root_arena_id := p_arena_id;
   END IF;
 
-  -- ── Get current ELOs from ROOT arena ────────────────────────────────────
+  -- Fallbacks for loser root
+  IF v_loser_root_id IS NULL AND COALESCE(v_is_official, false) THEN
+    v_loser_root_id := get_root_arena_id_for_profile(p_loser_id);
+  END IF;
+  IF v_loser_root_id IS NULL THEN
+    v_loser_root_id := p_arena_id;
+  END IF;
+
+  -- ── Get current ELOs from each player's ROOT arena ────────────────────
   SELECT COALESCE(
     (SELECT elo_rating FROM arena_profile_stats
      WHERE arena_id = v_root_arena_id AND profile_id = p_winner_id),
@@ -194,7 +205,7 @@ BEGIN
 
   SELECT COALESCE(
     (SELECT elo_rating FROM arena_profile_stats
-     WHERE arena_id = v_root_arena_id AND profile_id = p_loser_id),
+     WHERE arena_id = v_loser_root_id AND profile_id = p_loser_id),
     1200
   ) INTO v_l_elo;
 
@@ -215,9 +226,9 @@ BEGIN
         wins       = arena_profile_stats.wins + 1,
         matches    = arena_profile_stats.matches + 1;
 
-  -- ── Upsert ROOT arena stats for loser ───────────────────────────────────
+  -- ── Upsert ROOT arena stats for loser (may differ from winner's root) ───
   INSERT INTO arena_profile_stats (arena_id, profile_id, elo_rating, wins, losses, matches)
-  VALUES (v_root_arena_id, p_loser_id, v_l_new, 0, 1, 1)
+  VALUES (v_loser_root_id, p_loser_id, v_l_new, 0, 1, 1)
   ON CONFLICT (arena_id, profile_id) DO UPDATE
     SET elo_rating = v_l_new,
         losses     = arena_profile_stats.losses + 1,

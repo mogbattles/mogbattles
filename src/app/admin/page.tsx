@@ -199,17 +199,18 @@ function CategoryMultiSelect({
   const dropRef = useRef<HTMLDivElement>(null);
   const id = useId();
 
-  const activeCategories = allCategories.filter((c) => c.is_active);
+  const activeCategories = useMemo(() => allCategories.filter((c) => c.is_active), [allCategories]);
   // Only sub-categories (depth > 0) are selectable
-  const selectableCategories = activeCategories.filter((c) => c.depth > 0);
+  const selectableCategories = useMemo(() => activeCategories.filter((c) => c.depth > 0), [activeCategories]);
   // Filter out root category slugs from value (legacy data cleanup)
-  const rootSlugs = new Set(activeCategories.filter((c) => c.depth === 0).map((c) => c.slug));
-  const rawClean = value.filter((v) => !rootSlugs.has(v));
+  const rootSlugs = useMemo(() => new Set(activeCategories.filter((c) => c.depth === 0).map((c) => c.slug)), [activeCategories]);
   // Auto-include parent categories for any selected children
   // e.g. if PSL Icons is selected, Men should also be selected
+  const valueKey = value.join(",");
   const cleanValue = useMemo(() => {
-    const result = [...rawClean];
-    for (const slug of rawClean) {
+    const raw = value.filter((v) => !rootSlugs.has(v));
+    const result = [...raw];
+    for (const slug of raw) {
       const cat = activeCategories.find((c) => c.slug === slug);
       if (cat) {
         let parentId = cat.parent_id;
@@ -223,7 +224,8 @@ function CategoryMultiSelect({
       }
     }
     return result;
-  }, [rawClean, activeCategories]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [valueKey, rootSlugs, activeCategories]);
 
   // Close when clicking outside either the button or the portal dropdown
   useEffect(() => {
