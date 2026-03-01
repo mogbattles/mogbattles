@@ -12,13 +12,10 @@ import {
 } from "@/lib/tags";
 import {
   getImageVotesForProfiles,
-  getMyVotedImages,
-  toggleImageVote,
   sortImageUrlsByVotes,
 } from "@/lib/image_votes";
 import { useAuth, useImpersonation } from "@/context/AuthContext";
 import ProfileTags from "./ProfileTags";
-import TagPopup from "./TagPopup";
 import Link from "next/link";
 import gsap from "gsap";
 
@@ -51,11 +48,6 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
   // ── Tags state ──────────────────────────────────────────────────────────────
   const [pairTags, setPairTags] = useState<Map<string, TagEntry[]>>(new Map());
   const [myVotedTags, setMyVotedTags] = useState<Map<string, Set<string>>>(new Map());
-  const [hoveredCard, setHoveredCard] = useState<"left" | "right" | null>(null);
-  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // ── Emote state (king laughing / king angry) ─────────────────────────────
-  const [kingEmote, setKingEmote] = useState<{ type: "laugh" | "angry"; side: "left" | "right" } | null>(null);
 
   // ── Swipe overlay state ──────────────────────────────────────────────────
   const [swipeOverlay, setSwipeOverlay] = useState<{ side: "left" | "right"; intensity: number } | null>(null);
@@ -75,9 +67,8 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
   const preloadedUrls = useRef<Set<string>>(new Set());
   const nextPairRef = useRef<[ArenaProfile, ArenaProfile] | null>(null);
 
-  // ── Image votes state ────────────────────────────────────────────────────────
+  // ── Image votes state (for sorting display images) ────────────────────────
   const [pairImageVotes, setPairImageVotes] = useState<Map<string, Map<string, number>>>(new Map());
-  const [myVotedImagesMap, setMyVotedImagesMap] = useState<Map<string, Set<string>>>(new Map());
 
   const preloadImages = useCallback((profiles: ArenaProfile[]) => {
     profiles.forEach((p) => {
@@ -165,14 +156,11 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
       getImageVotesForProfiles(ids),
       user ? getMyVotedTags(pair[0].id, user.id) : Promise.resolve(new Set<string>()),
       user ? getMyVotedTags(pair[1].id, user.id) : Promise.resolve(new Set<string>()),
-      user ? getMyVotedImages(pair[0].id, user.id) : Promise.resolve(new Set<string>()),
-      user ? getMyVotedImages(pair[1].id, user.id) : Promise.resolve(new Set<string>()),
-    ]).then(([tags, imageVotes, vt0, vt1, vi0, vi1]) => {
+    ]).then(([tags, imageVotes, vt0, vt1]) => {
       setPairTags(tags as Map<string, TagEntry[]>);
       setPairImageVotes(imageVotes as Map<string, Map<string, number>>);
       if (user) {
         setMyVotedTags(new Map([[pair[0].id, vt0 as Set<string>], [pair[1].id, vt1 as Set<string>]]));
-        setMyVotedImagesMap(new Map([[pair[0].id, vi0 as Set<string>], [pair[1].id, vi1 as Set<string>]]));
       }
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -203,12 +191,6 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pair?.[0]?.id, pair?.[1]?.id]);
-
-  // ── Show king emote on vote ─────────────────────────────────────────────────
-  function showKingEmote(winnerSide: "left" | "right") {
-    setKingEmote({ type: "laugh", side: winnerSide });
-    setTimeout(() => setKingEmote(null), 1400);
-  }
 
   const handleVote = async (winner: ArenaProfile, loser: ArenaProfile) => {
     if (animating) return;
@@ -256,7 +238,6 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
 
     setLastResult(`${winner.name} mogs! +${eloGain} ELO`);
     const winnerIsLeft = winner.id === pair![0].id;
-    showKingEmote(winnerIsLeft ? "left" : "right");
 
     const updatedProfiles = profiles.map((p) => {
       if (p.id === winner.id) return { ...p, elo_rating: newWinnerElo, wins: p.wins + 1, matches: p.matches + 1 };
@@ -306,43 +287,6 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
     const refreshed = await getTopTagsForProfile(profileId, 3);
     setPairTags((prev) => { const next = new Map(prev); next.set(profileId, refreshed); return next; });
   };
-
-  const handleImageVote = async (profileId: string, imageUrl: string, currentlyVoted: boolean) => {
-    if (!user) return;
-    setMyVotedImagesMap((prev) => {
-      const next = new Map(prev); const cur = new Set(next.get(profileId) ?? []);
-      if (currentlyVoted) cur.delete(imageUrl); else cur.add(imageUrl);
-      next.set(profileId, cur); return next;
-    });
-    setPairImageVotes((prev) => {
-      const next = new Map(prev); const profileMap = new Map(next.get(profileId) ?? []);
-      const current = profileMap.get(imageUrl) ?? 0;
-      profileMap.set(imageUrl, Math.max(0, current + (currentlyVoted ? -1 : 1)));
-      next.set(profileId, profileMap); return next;
-    });
-    const { error: imgErr } = await toggleImageVote(profileId, imageUrl, user.id, currentlyVoted);
-    if (imgErr) {
-      setMyVotedImagesMap((prev) => {
-        const next = new Map(prev); const cur = new Set(next.get(profileId) ?? []);
-        if (currentlyVoted) cur.add(imageUrl); else cur.delete(imageUrl);
-        next.set(profileId, cur); return next;
-      });
-      setPairImageVotes((prev) => {
-        const next = new Map(prev); const profileMap = new Map(next.get(profileId) ?? []);
-        const current = profileMap.get(imageUrl) ?? 0;
-        profileMap.set(imageUrl, Math.max(0, current + (currentlyVoted ? 1 : -1)));
-        next.set(profileId, profileMap); return next;
-      });
-    }
-  };
-
-  function handleCardEnter(side: "left" | "right") {
-    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-    setHoveredCard(side);
-  }
-  function handleCardLeave() {
-    hideTimerRef.current = setTimeout(() => setHoveredCard(null), 120);
-  }
 
   // ── Touch swipe handlers (Tinder-style) ──────────────────────────────────────
   function handleSwipeStart(e: React.TouchEvent) {
@@ -582,10 +526,8 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
 
   if (!pair) return null;
 
-  const leftVotes  = pairImageVotes.get(pair[0].id) ?? new Map<string, number>();
-  const rightVotes = pairImageVotes.get(pair[1].id) ?? new Map<string, number>();
-  const leftImgs   = sortImageUrlsByVotes(pair[0].image_urls, leftVotes);
-  const rightImgs  = sortImageUrlsByVotes(pair[1].image_urls, rightVotes);
+  const leftImgs   = sortImageUrlsByVotes(pair[0].image_urls, pairImageVotes.get(pair[0].id) ?? new Map<string, number>());
+  const rightImgs  = sortImageUrlsByVotes(pair[1].image_urls, pairImageVotes.get(pair[1].id) ?? new Map<string, number>());
 
   const leftShowMogs = swipeOverlay?.side === "left" && swipeOverlay.intensity > 0.3;
   const rightShowMogs = swipeOverlay?.side === "right" && swipeOverlay.intensity > 0.3;
@@ -624,33 +566,6 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
         </div>
       )}
 
-      {/* King Emotes */}
-      {kingEmote && (
-        <>
-          {/* Winner: King Laughing */}
-          <div className="fixed z-50 pointer-events-none"
-            style={{
-              left: kingEmote.side === "left" ? "15%" : "65%",
-              top: "30%",
-              animation: "kingEmoteIn 1.2s ease-out forwards",
-            }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/emotes/king-laughing.svg" alt="King Laughing" className="w-24 h-24 drop-shadow-2xl" />
-          </div>
-          {/* Loser: King Angry */}
-          <div className="fixed z-50 pointer-events-none"
-            style={{
-              left: kingEmote.side === "left" ? "65%" : "15%",
-              top: "30%",
-              animation: "kingEmoteIn 1.2s ease-out forwards",
-              animationDelay: "0.15s",
-            }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/emotes/king-angry.svg" alt="King Angry" className="w-20 h-20 drop-shadow-2xl" />
-          </div>
-        </>
-      )}
-
       {/* ── Cards area (touch-enabled) ── */}
       <div
         className="flex gap-3 items-start justify-center"
@@ -659,33 +574,20 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
         onTouchEnd={handleSwipeEnd}
       >
         {/* ── Left card ── */}
-        <div ref={leftCardRef} className="flex flex-col items-center flex-1" style={{ maxWidth: "200px", position: "relative" }}
-          onMouseEnter={() => handleCardEnter("left")} onMouseLeave={handleCardLeave}>
+        <div ref={leftCardRef} className="flex flex-col items-center flex-1" style={{ maxWidth: "200px", position: "relative" }}>
           <ProfileTags
             tags={pairTags.get(pair[0].id) ?? []}
             myVotedTags={myVotedTags.get(pair[0].id) ?? new Set()}
             onVote={user ? (tag) => handleTagVote(pair[0].id, tag) : null}
           />
-          <div className="relative w-full">
-            <TinderCard
-              profile={pair[0]}
-              imageUrls={leftImgs}
-              side="left"
-              onVote={() => handleVote(pair[0], pair[1])}
-              showMogs={leftShowMogs}
-              showNope={leftShowNope}
-            />
-            {hoveredCard === "left" && (
-              <TagPopup side="left" profileName={pair[0].name}
-                existingTags={pairTags.get(pair[0].id) ?? []}
-                myVotedTags={myVotedTags.get(pair[0].id) ?? new Set()}
-                userId={user?.id ?? null}
-                onVote={(tag) => handleTagVote(pair[0].id, tag)}
-                images={leftImgs} imageVotes={leftVotes}
-                myVotedImages={myVotedImagesMap.get(pair[0].id)}
-                onImageVote={(url, voted) => handleImageVote(pair[0].id, url, voted)} />
-            )}
-          </div>
+          <TinderCard
+            profile={pair[0]}
+            imageUrls={leftImgs}
+            side="left"
+            onVote={() => handleVote(pair[0], pair[1])}
+            showMogs={leftShowMogs}
+            showNope={leftShowNope}
+          />
         </div>
 
         {/* VS badge */}
@@ -703,90 +605,35 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
         </div>
 
         {/* ── Right card ── */}
-        <div ref={rightCardRef} className="flex flex-col items-center flex-1" style={{ maxWidth: "200px", position: "relative" }}
-          onMouseEnter={() => handleCardEnter("right")} onMouseLeave={handleCardLeave}>
+        <div ref={rightCardRef} className="flex flex-col items-center flex-1" style={{ maxWidth: "200px", position: "relative" }}>
           <ProfileTags
             tags={pairTags.get(pair[1].id) ?? []}
             myVotedTags={myVotedTags.get(pair[1].id) ?? new Set()}
             onVote={user ? (tag) => handleTagVote(pair[1].id, tag) : null}
           />
-          <div className="relative w-full">
-            <TinderCard
-              profile={pair[1]}
-              imageUrls={rightImgs}
-              side="right"
-              onVote={() => handleVote(pair[1], pair[0])}
-              showMogs={rightShowMogs}
-              showNope={rightShowNope}
-            />
-            {hoveredCard === "right" && (
-              <TagPopup side="right" profileName={pair[1].name}
-                existingTags={pairTags.get(pair[1].id) ?? []}
-                myVotedTags={myVotedTags.get(pair[1].id) ?? new Set()}
-                userId={user?.id ?? null}
-                onVote={(tag) => handleTagVote(pair[1].id, tag)}
-                images={rightImgs} imageVotes={rightVotes}
-                myVotedImages={myVotedImagesMap.get(pair[1].id)}
-                onImageVote={(url, voted) => handleImageVote(pair[1].id, url, voted)} />
-            )}
-          </div>
+          <TinderCard
+            profile={pair[1]}
+            imageUrls={rightImgs}
+            side="right"
+            onVote={() => handleVote(pair[1], pair[0])}
+            showMogs={rightShowMogs}
+            showNope={rightShowNope}
+          />
         </div>
       </div>
 
-      {/* ── Action buttons (Tinder-style bottom bar) ── */}
-      <div className="flex items-center justify-center gap-4 mt-5">
-        {/* Skip button */}
+      {/* ── Skip button ── */}
+      <div className="flex items-center justify-center mt-4">
         <button
           onClick={() => pickRandomPair(profiles, votedPairs)}
           disabled={animating}
-          className="w-12 h-12 rounded-full flex items-center justify-center text-lg transition-all active:scale-90"
+          className="text-[11px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full transition-all active:scale-95 hover:opacity-80"
           style={{
-            background: "rgba(239,68,68,0.1)",
-            border: "2px solid rgba(239,68,68,0.3)",
-            color: "#EF4444",
+            background: "rgba(34,34,51,0.5)",
+            border: "1px solid rgba(34,34,51,0.9)",
+            color: "#4A4A66",
           }}>
-          ✕
-        </button>
-
-        {/* Vote Left */}
-        <button
-          onClick={() => !animating && pair && handleVote(pair[0], pair[1])}
-          disabled={animating}
-          className="w-16 h-16 rounded-full flex items-center justify-center text-2xl transition-all active:scale-90"
-          style={{
-            background: "linear-gradient(135deg, rgba(139,92,246,0.15), rgba(139,92,246,0.05))",
-            border: "2px solid rgba(139,92,246,0.4)",
-            color: "#A78BFA",
-            boxShadow: "0 0 20px rgba(139,92,246,0.15)",
-          }}>
-          👑
-        </button>
-
-        {/* Vote Right */}
-        <button
-          onClick={() => !animating && pair && handleVote(pair[1], pair[0])}
-          disabled={animating}
-          className="w-16 h-16 rounded-full flex items-center justify-center text-2xl transition-all active:scale-90"
-          style={{
-            background: "linear-gradient(135deg, rgba(240,192,64,0.15), rgba(240,192,64,0.05))",
-            border: "2px solid rgba(240,192,64,0.4)",
-            color: "#F0C040",
-            boxShadow: "0 0 20px rgba(240,192,64,0.15)",
-          }}>
-          👑
-        </button>
-
-        {/* Skip button */}
-        <button
-          onClick={() => pickRandomPair(profiles, votedPairs)}
-          disabled={animating}
-          className="w-12 h-12 rounded-full flex items-center justify-center text-sm transition-all active:scale-90"
-          style={{
-            background: "rgba(34,197,94,0.1)",
-            border: "2px solid rgba(34,197,94,0.3)",
-            color: "#22C55E",
-          }}>
-          ↻
+          skip
         </button>
       </div>
 
