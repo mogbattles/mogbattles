@@ -347,21 +347,30 @@ export default function ExplorePage() {
   const customScrollRef = useRef<HTMLDivElement>(null);
 
   // Split arenas: highlighted (All + Members), official, moderator, custom
+  // Root arenas ("men", "women") are hidden — they're infrastructure, not browsable
   const HIGHLIGHTED_SLUGS = ["all", "members"];
+  const ROOT_ARENA_SLUGS = ["men", "women", "humans"];
   const highlightedArenas = HIGHLIGHTED_SLUGS
     .map((slug) => arenas.find((a) => a.slug === slug))
     .filter(Boolean) as ArenaWithCount[];
-  const officialArenas = arenas.filter((a) => a.is_official && !HIGHLIGHTED_SLUGS.includes(a.slug));
+  const officialArenas = arenas.filter((a) => a.is_official && !HIGHLIGHTED_SLUGS.includes(a.slug) && !ROOT_ARENA_SLUGS.includes(a.slug));
   const moderatorArenas = arenas.filter((a) => (a as ArenaWithCount & { arena_tier?: string }).arena_tier === "moderator");
   const customArenas = arenas.filter((a) => !a.is_official && (a as ArenaWithCount & { arena_tier?: string }).arena_tier !== "moderator");
 
-  // Load initial categories — fetch all root categories, auto-select first
+  // Load initial categories — fetch root tabs (Men/Women)
+  // If there's a single hidden root (e.g. "Humans"), skip it and show its children as tabs.
   useEffect(() => {
-    getCategoryChildren(null).then((roots) => {
-      setRootCategories(roots);
-      if (roots.length > 0) {
-        setSelectedRoot(roots[0]);
-        getCategoryChildren(roots[0].id).then((children) => {
+    getCategoryChildren(null).then(async (roots) => {
+      let tabs = roots;
+      // Single hidden root → use its children as tabs (Humans → [Men, Women])
+      if (roots.length === 1) {
+        const children = await getCategoryChildren(roots[0].id);
+        if (children.length > 0) tabs = children;
+      }
+      setRootCategories(tabs);
+      if (tabs.length > 0) {
+        setSelectedRoot(tabs[0]);
+        getCategoryChildren(tabs[0].id).then((children) => {
           setCategoryChildren(children);
           setCategoryLoading(false);
         });

@@ -27,13 +27,19 @@ export default function NewArenaPage() {
   const [rootCategories, setRootCategories] = useState<CategoryRow[]>([]);
   const [selectedRoot, setSelectedRoot] = useState<CategoryRow | null>(null);
 
-  // Load categories for the picker — fetch all roots, select first
+  // Load categories for the picker — show Men/Women tabs
+  // If there's a single hidden root (e.g. "Humans"), skip it and show its children.
   useEffect(() => {
-    getCategoryChildren(null).then((roots) => {
-      setRootCategories(roots);
-      if (roots.length > 0) {
-        setSelectedRoot(roots[0]);
-        getCategoryChildren(roots[0].id).then(setCategoryOptions);
+    getCategoryChildren(null).then(async (roots) => {
+      let tabs = roots;
+      if (roots.length === 1) {
+        const children = await getCategoryChildren(roots[0].id);
+        if (children.length > 0) tabs = children;
+      }
+      setRootCategories(tabs);
+      if (tabs.length > 0) {
+        setSelectedRoot(tabs[0]);
+        getCategoryChildren(tabs[0].id).then(setCategoryOptions);
       }
     });
   }, []);

@@ -1742,7 +1742,7 @@ export default function AdminPage() {
         <div className="flex items-center justify-between p-5 cursor-pointer hover:bg-zinc-800/50 transition-colors" onClick={() => togglePanel("categories")}>
           <div>
             <h2 className="text-white font-bold text-base">🗂️ Category Hierarchy</h2>
-            <p className="text-zinc-500 text-xs mt-0.5">Manage the category tree (Humans → Actors, Athletes, etc.)</p>
+            <p className="text-zinc-500 text-xs mt-0.5">Manage the category tree (Men → Actors, Athletes, etc.)</p>
           </div>
           <div className="flex items-center gap-3">
             {categoryMsg && (
