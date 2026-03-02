@@ -15,10 +15,14 @@ function avatarUrl(name: string) {
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1a1a1a&color=555&size=96&bold=true`;
 }
 
-function TierBadge({ elo }: { elo: number }) {
+function TierBadge({ elo, size = 42 }: { elo: number; size?: number }) {
   const tier = getTier(elo);
   return (
-    <div className={`rank-badge ${tier.cssClass}`} title={tier.name}>
+    <div
+      className={`rank-badge ${tier.cssClass}`}
+      title={tier.name}
+      style={{ width: size, height: size, minWidth: size, borderRadius: 10 }}
+    >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={tier.iconUrl}
@@ -166,15 +170,29 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
                 el.style.boxShadow = "none";
               }}
             >
-              {/* Rank # + Tier Icon */}
-              <div className="flex items-center gap-2 shrink-0" style={{ minWidth: "60px" }}>
+              {/* Left: Rank # + Tier Icon + ELO + Tier Name */}
+              <div className="flex items-center gap-3 shrink-0">
                 <span
                   className="text-xs font-black w-5 text-right"
                   style={{ color: "var(--text-faint)" }}
                 >
                   {entry.rank}
                 </span>
-                <TierBadge elo={entry.elo_rating} />
+                <TierBadge elo={entry.elo_rating} size={42} />
+                <div className="flex flex-col">
+                  <span
+                    className="font-black text-lg leading-tight"
+                    style={{ color: isPslGod ? "var(--gold)" : "var(--text-primary)" }}
+                  >
+                    {entry.elo_rating}
+                  </span>
+                  <span
+                    className="text-[10px] font-black uppercase tracking-widest leading-tight"
+                    style={{ color: isPslGod ? "rgba(255,215,0,0.6)" : "var(--text-faint)" }}
+                  >
+                    {arenaSpecific ? "ARENA" : tier.name}
+                  </span>
+                </div>
               </div>
 
               {/* Avatar */}
@@ -195,7 +213,7 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
                 }}
               />
 
-              {/* Name + tags + record */}
+              {/* Name + tags */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <h3 className="text-[color:var(--text-primary)] font-black truncate text-sm sm:text-base">
@@ -221,25 +239,15 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
                     ))}
                   </div>
                 )}
-
-                <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
-                  {entry.wins}W – {entry.losses}L · {entry.matches} battles
-                </p>
               </div>
 
-              {/* ELO + Tier Name */}
+              {/* Right: W/L record */}
               <div className="text-right shrink-0">
-                <span
-                  className="font-black text-lg sm:text-xl"
-                  style={{ color: isPslGod ? "var(--gold)" : "var(--text-primary)" }}
-                >
-                  {entry.elo_rating}
-                </span>
-                <p
-                  className="text-[10px] font-black uppercase tracking-widest"
-                  style={{ color: isPslGod ? "rgba(255,215,0,0.6)" : "var(--text-faint)" }}
-                >
-                  {arenaSpecific ? "ARENA" : tier.name}
+                <p className="font-black text-sm" style={{ color: "var(--text-primary)" }}>
+                  {entry.wins}W – {entry.losses}L
+                </p>
+                <p className="text-[10px] font-bold" style={{ color: "var(--text-faint)" }}>
+                  {entry.matches} battles
                 </p>
               </div>
             </Link>

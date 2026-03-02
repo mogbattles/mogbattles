@@ -42,21 +42,21 @@
 /* ─── Theme CSS custom properties ────────────────────────────────────────────── */
 :root,
 [data-theme="dark"] {
-  /* Surfaces */
-  --bg-primary:    #0A0A0A;
-  --bg-secondary:  #111111;
-  --bg-card:       #1A1A1A;
-  --bg-elevated:   #222222;
+  /* Surfaces — pitch black nav, dark grey body, lighter cards */
+  --bg-primary:    #0F0F0F;
+  --bg-secondary:  #161616;
+  --bg-card:       #1E1E1E;
+  --bg-elevated:   #282828;
 
   /* Text */
   --text-primary:   #FFFFFF;
-  --text-secondary: #999999;
-  --text-muted:     #666666;
-  --text-faint:     #444444;
+  --text-secondary: #AAAAAA;
+  --text-muted:     #777777;
+  --text-faint:     #555555;
 
   /* Borders */
-  --border:        #2A2A2A;
-  --border-hover:  #444444;
+  --border:        #333333;
+  --border-hover:  #505050;
 
   /* Accent — neutral white for dark mode */
   --accent:        #FFFFFF;
@@ -77,13 +77,13 @@
   --accent-glow-strong: rgba(255, 255, 255, 0.25);
 
   /* Scrollbar */
-  --scrollbar-track: #0A0A0A;
-  --scrollbar-thumb: #2A2A2A;
-  --scrollbar-hover: #444444;
+  --scrollbar-track: #0F0F0F;
+  --scrollbar-thumb: #333333;
+  --scrollbar-hover: #505050;
 
-  /* Nav */
-  --nav-bg: rgba(10, 10, 10, 0.98);
-  --nav-border: rgba(255, 255, 255, 0.06);
+  /* Nav — pitch black */
+  --nav-bg: rgba(0, 0, 0, 0.98);
+  --nav-border: rgba(255, 255, 255, 0.08);
 }
 
 [data-theme="light"] {
@@ -457,11 +457,11 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
   overflow: hidden;
-  border: 1px solid var(--border);
+  border: 2px solid var(--border);
   background: var(--bg-elevated);
 }
 

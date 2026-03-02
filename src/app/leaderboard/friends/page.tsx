@@ -26,13 +26,18 @@ function Avatar({ src, name, size = 36 }: { src: string | null; name: string; si
 function TierIcon({ elo }: { elo: number }) {
   const tier = getTier(elo);
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={tier.iconUrl}
-      alt={tier.name}
+    <div
+      className={`rank-badge ${tier.cssClass}`}
       title={tier.name}
-      className={`w-6 h-6 rounded object-cover ${tier.cssClass}`}
-    />
+      style={{ width: 36, height: 36, minWidth: 36, borderRadius: 8 }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={tier.iconUrl}
+        alt={tier.name}
+        className="w-full h-full object-cover"
+      />
+    </div>
   );
 }
 
@@ -127,17 +132,24 @@ export default function FriendsLeaderboardPage() {
                 background: "var(--bg-card)",
               }}
             >
-              <span className="text-xs font-black w-4 text-right shrink-0" style={{ color: "var(--text-faint)" }}>
-                {i + 1}
-              </span>
-              <TierIcon elo={friend.elo_rating} />
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-xs font-black w-4 text-right" style={{ color: "var(--text-faint)" }}>
+                  {i + 1}
+                </span>
+                <TierIcon elo={friend.elo_rating} />
+                <div className="flex flex-col">
+                  <span className="font-black text-base leading-tight" style={{ color: "var(--text-primary)" }}>
+                    {friend.elo_rating}
+                  </span>
+                  <span className="text-[9px] font-black uppercase tracking-widest leading-tight" style={{ color: "var(--text-faint)" }}>
+                    {getTier(friend.elo_rating).name}
+                  </span>
+                </div>
+              </div>
               <Avatar src={friend.image_url} name={friend.name} size={36} />
               <div className="flex-1 min-w-0">
                 <p className="font-black text-[color:var(--text-primary)] text-sm truncate">{friend.name}</p>
               </div>
-              <p className="font-black text-sm shrink-0" style={{ color: "var(--gold)" }}>
-                {friend.elo_rating}
-              </p>
               <Link
                 href={`/messages/${friend.user_id}`}
                 onClick={(e) => e.stopPropagation()}
