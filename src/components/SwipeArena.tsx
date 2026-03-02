@@ -245,9 +245,11 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
     const eloGain = newWinnerElo - (eloData?.winner_elo_before ?? winner.elo_rating);
 
     // If ELO data is missing (RPC error or empty response), compute expected gain client-side
+    // Uses dynamic K-factor: K=40 for <30 matches, K=32 for 30-100, K=24 for 101+
+    const kFactor = winner.matches < 30 ? 40 : winner.matches < 100 ? 32 : 24;
     const displayGain = eloGain !== 0
       ? eloGain
-      : Math.round(32 * (1 - 1 / (1 + Math.pow(10, (loser.elo_rating - winner.elo_rating) / 400))));
+      : Math.round(kFactor * (1 - 1 / (1 + Math.pow(10, (loser.elo_rating - winner.elo_rating) / 400))));
 
     setLastResult(`${winner.name} mogs! +${displayGain} ELO`);
     const winnerIsLeft = winner.id === pair![0].id;
