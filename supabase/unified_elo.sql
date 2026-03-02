@@ -94,7 +94,7 @@ DECLARE
 BEGIN
   -- Walk up the profile's category ancestors and find the HIGHEST
   -- ancestor that has an official arena (e.g. "Men" or "Women").
-  WITH profile_cat AS (
+  WITH RECURSIVE profile_cat AS (
     SELECT category_id FROM profile_categories
     WHERE profile_id = p_profile_id
     LIMIT 1
