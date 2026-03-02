@@ -1,13 +1,15 @@
 // ─── Clean SVG navigation icons (Lucide-style, 24x24 viewBox) ───────────────
 // Stroke-based, theme-aware via currentColor. No emoji, no external deps.
 
+import type { ReactNode } from "react";
+
 interface Props {
   name: string;
   size?: number;
   className?: string;
 }
 
-const paths: Record<string, React.ReactNode> = {
+const paths: Record<string, ReactNode> = {
   explore: (
     <>
       <circle cx="12" cy="12" r="10" />
