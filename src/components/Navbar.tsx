@@ -98,6 +98,23 @@ export default function Navbar() {
         >
           Mogbattles
         </span>
+        <span
+          style={{
+            fontSize: "9px",
+            fontWeight: 800,
+            letterSpacing: "0.1em",
+            color: "var(--text-muted)",
+            background: "var(--bg-elevated)",
+            border: "1px solid var(--border)",
+            borderRadius: "6px",
+            padding: "2px 6px",
+            textTransform: "uppercase",
+            lineHeight: "1",
+            marginTop: "2px",
+          }}
+        >
+          Beta
+        </span>
       </Link>
 
       {/* Desktop nav links */}

@@ -181,6 +181,7 @@ export interface Database {
           winner_elo_after: number;
           loser_elo_after: number;
           arena_id: string | null;
+          created_at: string;
         };
         Insert: {
           winner_id: string;

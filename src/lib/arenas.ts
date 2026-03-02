@@ -429,6 +429,16 @@ export async function getLeaderboardForArena(
   } else if (arenaSpecific) {
     // Arena-specific ELO mode: use this arena's own stats directly
     statsArenaId = arenaId;
+    // Still filter to only profiles in this category so non-members don't appear
+    if (thisArena?.category_id) {
+      const { getCategoryDescendantIds } = await import("@/lib/categories");
+      const descendantIds = await getCategoryDescendantIds(thisArena.category_id);
+      const { data: pcRows } = await client
+        .from("profile_categories")
+        .select("profile_id")
+        .in("category_id", descendantIds);
+      filterProfileIds = new Set(((pcRows ?? []) as { profile_id: string }[]).map((r) => r.profile_id));
+    }
   }
 
   type LRow = {
@@ -1135,4 +1145,47 @@ export async function getMyProfile(userId: string): Promise<ArenaProfile | null>
     country: p.country ?? null,
     gender: p.gender ?? null,
   };
+}
+
+// ─── Daily ELO change for leaderboard tickers ─────────────────────────────────
+
+export async function getDailyEloChanges(
+  profileIds: string[]
+): Promise<Map<string, number>> {
+  if (profileIds.length === 0) return new Map();
+
+  const client = db();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayIso = today.toISOString();
+
+  // Fetch all matches from today involving any of the profiles
+  const { data: winnerMatches } = await client
+    .from("matches")
+    .select("winner_id, winner_elo_after, winner_elo_before")
+    .in("winner_id", profileIds)
+    .gte("created_at", todayIso);
+
+  const { data: loserMatches } = await client
+    .from("matches")
+    .select("loser_id, loser_elo_after, loser_elo_before")
+    .in("loser_id", profileIds)
+    .gte("created_at", todayIso);
+
+  const changes = new Map<string, number>();
+
+  if (winnerMatches) {
+    for (const m of winnerMatches) {
+      const delta = (m.winner_elo_after ?? 0) - (m.winner_elo_before ?? 0);
+      changes.set(m.winner_id, (changes.get(m.winner_id) ?? 0) + delta);
+    }
+  }
+  if (loserMatches) {
+    for (const m of loserMatches) {
+      const delta = (m.loser_elo_after ?? 0) - (m.loser_elo_before ?? 0);
+      changes.set(m.loser_id, (changes.get(m.loser_id) ?? 0) + delta);
+    }
+  }
+
+  return changes;
 }

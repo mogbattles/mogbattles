@@ -14,7 +14,7 @@ export default async function LeaderboardArenaPage({
   if (!arena) notFound();
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6">
+    <div className="max-w-5xl mx-auto px-4 py-6">
       {/* Back */}
       <div className="mb-5">
         <Link

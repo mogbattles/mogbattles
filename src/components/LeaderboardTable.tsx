@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getLeaderboardForArena, type ArenaProfile } from "@/lib/arenas";
+import { getLeaderboardForArena, getDailyEloChanges, type ArenaProfile } from "@/lib/arenas";
 import { getTopTagsForProfiles, type TagEntry } from "@/lib/tags";
 import { countryFlagByName } from "@/lib/countries";
 import { getTier } from "@/lib/tiers";
@@ -21,7 +21,7 @@ function TierBadge({ elo, size = 42 }: { elo: number; size?: number }) {
     <div
       className={`rank-badge ${tier.cssClass}`}
       title={tier.name}
-      style={{ width: size, height: size, minWidth: size, borderRadius: 10 }}
+      style={{ width: size, height: size, minWidth: size, borderRadius: 0 }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
@@ -33,9 +33,24 @@ function TierBadge({ elo, size = 42 }: { elo: number; size?: number }) {
   );
 }
 
+function EloDelta({ change }: { change: number }) {
+  if (change === 0) return null;
+  const isPositive = change > 0;
+  return (
+    <span
+      className="inline-flex items-center gap-0.5 text-[10px] sm:text-[11px] font-black leading-none"
+      style={{ color: isPositive ? "var(--success)" : "var(--danger)" }}
+    >
+      <span style={{ fontSize: "8px" }}>{isPositive ? "▲" : "▼"}</span>
+      {Math.abs(change)}
+    </span>
+  );
+}
+
 export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: { arenaId: string; arenaSlug?: string; isSubCategory?: boolean }) {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [topTags, setTopTags] = useState<Map<string, TagEntry[]>>(new Map());
+  const [eloChanges, setEloChanges] = useState<Map<string, number>>(new Map());
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [arenaSpecific, setArenaSpecific] = useState(false);
@@ -50,8 +65,13 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
     setLoading(false);
 
     if (data.length > 0) {
-      const tagMap = await getTopTagsForProfiles(data.map((e) => e.id));
+      const ids = data.map((e) => e.id);
+      const [tagMap, dailyChanges] = await Promise.all([
+        getTopTagsForProfiles(ids),
+        getDailyEloChanges(ids),
+      ]);
       setTopTags(tagMap);
+      setEloChanges(dailyChanges);
     }
   };
 
@@ -144,12 +164,13 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
           const tags = topTags.get(entry.id) ?? [];
           const tier = getTier(entry.elo_rating);
           const isPslGod = tier.isSpecial;
+          const dailyChange = eloChanges.get(entry.id) ?? 0;
 
           return (
             <Link
               key={entry.id}
               href={`/players/${entry.id}`}
-              className={`flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl rank-row${isPslGod ? " rank-row-psl-god" : ""}`}
+              className={`flex items-center gap-2 sm:gap-4 p-2.5 sm:p-4 rounded-xl rank-row${isPslGod ? " rank-row-psl-god" : ""}`}
               style={{
                 background: "var(--bg-card)",
                 border: `1px solid ${isPslGod ? "rgba(255,215,0,0.3)" : "var(--border)"}`,
@@ -170,25 +191,28 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
                 el.style.boxShadow = "none";
               }}
             >
-              {/* Left: Rank # + Tier Icon + ELO + Tier Name */}
-              <div className="flex items-center gap-3 shrink-0">
+              {/* Left: Rank # + Tier Icon + ELO + Tier Name + Daily Change */}
+              <div className="flex items-center gap-2 sm:gap-3 shrink-0" style={{ minWidth: "120px" }}>
                 <span
-                  className="text-xs font-black w-5 text-right"
+                  className="text-[10px] sm:text-xs font-black w-4 sm:w-5 text-right"
                   style={{ color: "var(--text-faint)" }}
                 >
                   {entry.rank}
                 </span>
-                <TierBadge elo={entry.elo_rating} size={42} />
-                <div className="flex flex-col">
+                <TierBadge elo={entry.elo_rating} size={36} />
+                <div className="flex flex-col" style={{ width: "62px" }}>
+                  <div className="flex items-center gap-1">
+                    <span
+                      className="font-black text-base sm:text-lg leading-tight"
+                      style={{ color: "var(--text-primary)" }}
+                    >
+                      {entry.elo_rating}
+                    </span>
+                    <EloDelta change={dailyChange} />
+                  </div>
                   <span
-                    className="font-black text-lg leading-tight"
-                    style={{ color: isPslGod ? "var(--gold)" : "var(--text-primary)" }}
-                  >
-                    {entry.elo_rating}
-                  </span>
-                  <span
-                    className="text-[10px] font-black uppercase tracking-widest leading-tight"
-                    style={{ color: isPslGod ? "rgba(255,215,0,0.6)" : "var(--text-faint)" }}
+                    className="text-[7px] sm:text-[8px] font-black uppercase tracking-wide leading-tight"
+                    style={{ color: isPslGod ? "rgba(255,215,0,0.6)" : "var(--text-faint)", lineHeight: "1.2" }}
                   >
                     {arenaSpecific ? "ARENA" : tier.name}
                   </span>
@@ -202,8 +226,8 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
                 alt={entry.name}
                 className="rounded-full object-cover shrink-0"
                 style={{
-                  width: "44px",
-                  height: "44px",
+                  width: "38px",
+                  height: "38px",
                   border: "2px solid var(--border)",
                 }}
                 onError={(e) => {
@@ -216,14 +240,14 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
               {/* Name + tags */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <h3 className="text-[color:var(--text-primary)] font-black truncate text-sm sm:text-base">
+                  <h3 className="text-[color:var(--text-primary)] font-black truncate text-xs sm:text-base">
                     {entry.name}
                   </h3>
-                  {flag && <span className="text-base shrink-0">{flag}</span>}
+                  {flag && <span className="text-sm sm:text-base shrink-0">{flag}</span>}
                 </div>
 
                 {tags.length > 0 && (
-                  <div className="flex gap-1 mt-1 flex-wrap">
+                  <div className="hidden sm:flex gap-1 mt-1 flex-wrap">
                     {tags.map(({ tag }) => (
                       <span
                         key={tag}
@@ -241,13 +265,20 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
                 )}
               </div>
 
-              {/* Right: W/L record */}
+              {/* Right: W/L record — compact on mobile */}
               <div className="text-right shrink-0">
-                <p className="font-black text-sm" style={{ color: "var(--text-primary)" }}>
-                  {entry.wins}W – {entry.losses}L
+                <p
+                  className="font-black text-[10px] sm:text-sm"
+                  style={{ color: "var(--text-primary)" }}
+                >
+                  <span className="sm:hidden">{entry.wins}–{entry.losses}</span>
+                  <span className="hidden sm:inline">{entry.wins}W – {entry.losses}L</span>
                 </p>
-                <p className="text-[10px] font-bold" style={{ color: "var(--text-faint)" }}>
-                  {entry.matches} battles
+                <p
+                  className="text-[8px] sm:text-[10px] font-bold"
+                  style={{ color: "var(--text-faint)" }}
+                >
+                  {entry.matches}<span className="hidden sm:inline"> battles</span>
                 </p>
               </div>
             </Link>

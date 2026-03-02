@@ -29,7 +29,7 @@ function TierIcon({ elo }: { elo: number }) {
     <div
       className={`rank-badge ${tier.cssClass}`}
       title={tier.name}
-      style={{ width: 36, height: 36, minWidth: 36, borderRadius: 8 }}
+      style={{ width: 36, height: 36, minWidth: 36, borderRadius: 0 }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
@@ -58,7 +58,7 @@ export default function FriendsLeaderboardPage() {
   }, [user, authLoading, router]);
 
   return (
-    <div className="max-w-md mx-auto px-4 py-12">
+    <div className="max-w-5xl mx-auto px-4 py-12">
       {/* Back */}
       <Link
         href="/leaderboard"

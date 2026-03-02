@@ -35,6 +35,7 @@ interface Profile {
   country: string | null;
   user_id: string | null;
   is_test_profile: boolean;
+  gender: string | null;
 }
 
 interface WikiSummary {
@@ -491,9 +492,19 @@ export default function AdminPage() {
   const [newImageUrl, setNewImageUrl] = useState("");
   const [adding, setAdding] = useState(false);
 
+  // Name editing inputs (per profile)
+  const [nameInputs, setNameInputs] = useState<Record<string, string>>({});
+  const [savingName, setSavingName] = useState<string | null>(null);
+
   // ELO manipulation inputs (per profile)
   const [eloInputs, setEloInputs] = useState<Record<string, string>>({});
   const [savingElo, setSavingElo] = useState<string | null>(null);
+
+  // Profile list filters
+  const [userTypeFilter, setUserTypeFilter] = useState<"all" | "seeded" | "registered">("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [countryFilter, setCountryFilter] = useState<string>("all");
+  const [genderFilter, setGenderFilter] = useState<"all" | "male" | "female">("all");
 
   // ELO sync fix
 
@@ -617,6 +628,7 @@ export default function AdminPage() {
       const slugs: Record<string, string> = {};
       const stats: Record<string, { height: string; weight: string; country: string }> = {};
       const elos: Record<string, string> = {};
+      const names: Record<string, string> = {};
 
       profs.forEach((p) => {
         const urls = p.image_urls?.length ? p.image_urls : p.image_url ? [p.image_url] : [];
@@ -628,11 +640,13 @@ export default function AdminPage() {
           country: p.country ?? "",
         };
         elos[p.id] = p.elo_rating.toString();
+        names[p.id] = p.name;
       });
       setImageInputs(imgs);
       setSlugInputs(slugs);
       setStatsInputs(stats);
       setEloInputs(elos);
+      setNameInputs(names);
 
       // Fetch user roles for profiles that have a real user_id
       const userIds = profs.filter((p) => p.user_id).map((p) => p.user_id!);
@@ -982,6 +996,30 @@ export default function AdminPage() {
       );
       setMessage("✅ Stats saved.");
     }
+  }
+
+  // ── Save name ──────────────────────────────────────────────────────────────
+  async function saveName(profileId: string) {
+    const newName = (nameInputs[profileId] ?? "").trim();
+    if (!newName) { setMessage("Name cannot be empty."); return; }
+    setSavingName(profileId);
+    setMessage(null);
+    const { data, error } = await supabase
+      .from("profiles")
+      .update({ name: newName })
+      .eq("id", profileId)
+      .select();
+    if (error) {
+      setMessage(`❌ ${(error as { message: string }).message}`);
+    } else if (!data || data.length === 0) {
+      setMessage("❌ Update blocked — no rows changed. Check RLS policies (run fix_admin_profiles_update.sql).");
+    } else {
+      setProfiles((prev) =>
+        prev.map((p) => p.id === profileId ? { ...p, name: newName } : p)
+      );
+      setMessage("✅ Name saved.");
+    }
+    setSavingName(null);
   }
 
   // ── Fetch wiki into slot ─────────────────────────────────────────────────────
@@ -1471,6 +1509,32 @@ export default function AdminPage() {
   }
 
   const missingImages = profiles.filter((p) => p.wikipedia_slug && !p.image_url).length;
+
+  // ── Unique countries from loaded profiles (for filter dropdown) ────────────
+  const uniqueCountries = useMemo(() => {
+    const set = new Set<string>();
+    profiles.forEach((p) => { if (p.country) set.add(p.country); });
+    return Array.from(set).sort();
+  }, [profiles]);
+
+  // ── Filtered profiles (applying all filter dropdowns) ─────────────────────
+  const filteredProfiles = useMemo(() => {
+    return profiles.filter((p) => {
+      // User type filter
+      if (userTypeFilter === "seeded" && !(p.is_test_profile === true || !p.user_id)) return false;
+      if (userTypeFilter === "registered" && !(p.user_id && p.is_test_profile !== true)) return false;
+      // Category filter
+      if (categoryFilter !== "all") {
+        const cats = p.categories ?? (p.category ? [p.category] : []);
+        if (!cats.includes(categoryFilter)) return false;
+      }
+      // Country filter
+      if (countryFilter !== "all" && p.country !== countryFilter) return false;
+      // Gender filter
+      if (genderFilter !== "all" && p.gender !== genderFilter) return false;
+      return true;
+    });
+  }, [profiles, userTypeFilter, categoryFilter, countryFilter, genderFilter]);
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
@@ -2449,12 +2513,75 @@ Clavicular,Looksmaxxers,5'11",165,United States,https://example.com/clav.jpg,`}
         </div>
       )}
 
+      {/* ── Filter Bar ────────────────────────────────────────────────────── */}
+      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3 mb-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="text-zinc-500 text-xs font-bold uppercase tracking-wider shrink-0">Filters</span>
+
+          {/* User Type */}
+          <select
+            value={userTypeFilter}
+            onChange={(e) => setUserTypeFilter(e.target.value as "all" | "seeded" | "registered")}
+            className="bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-orange-500"
+          >
+            <option value="all">All Users</option>
+            <option value="seeded">Seeded Users</option>
+            <option value="registered">Registered Users</option>
+          </select>
+
+          {/* Category */}
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-orange-500"
+          >
+            <option value="all">All Categories</option>
+            {CATEGORIES.filter((c) => c.value !== null).map((c) => (
+              <option key={c.value} value={c.value!}>{c.label}</option>
+            ))}
+          </select>
+
+          {/* Country */}
+          <select
+            value={countryFilter}
+            onChange={(e) => setCountryFilter(e.target.value)}
+            className="bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-orange-500"
+          >
+            <option value="all">All Countries</option>
+            {uniqueCountries.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+
+          {/* Gender */}
+          <select
+            value={genderFilter}
+            onChange={(e) => setGenderFilter(e.target.value as "all" | "male" | "female")}
+            className="bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-orange-500"
+          >
+            <option value="all">All Genders</option>
+            <option value="male">Men</option>
+            <option value="female">Women</option>
+          </select>
+
+          {/* Active filter count + reset */}
+          {(userTypeFilter !== "all" || categoryFilter !== "all" || countryFilter !== "all" || genderFilter !== "all") && (
+            <button
+              onClick={() => { setUserTypeFilter("all"); setCategoryFilter("all"); setCountryFilter("all"); setGenderFilter("all"); }}
+              className="text-orange-400 hover:text-orange-300 text-xs font-bold transition-colors"
+            >
+              Clear filters ({filteredProfiles.length}/{profiles.length})
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* ── Profile Lists (separated by type) ─────────────────────────────── */}
       {(() => {
-        // Split profiles into 3 groups
-        const realUsers = profiles.filter((p) => p.user_id && p.is_test_profile !== true);
-        const seededUsers = profiles.filter((p) => !p.user_id && !p.is_test_profile);
-        const officialProfiles = profiles.filter((p) => p.is_test_profile === true);
+        // Split filteredProfiles into 3 groups
+        const realUsers = filteredProfiles.filter((p) => p.user_id && p.is_test_profile !== true);
+        const seededUsers = filteredProfiles.filter((p) => !p.user_id && !p.is_test_profile);
+        const officialProfiles = filteredProfiles.filter((p) => p.is_test_profile === true);
 
         const sections = [
           { key: "users", label: "👤 Registered Users", profiles: realUsers, color: "#22C55E", border: "rgba(34,197,94,0.2)" },
@@ -2613,6 +2740,32 @@ Clavicular,Looksmaxxers,5'11",165,United States,https://example.com/clav.jpg,`}
               {/* Expanded Editor */}
               {isExpanded && (
                 <div className="border-t border-zinc-800 p-4 bg-zinc-950/50 space-y-5">
+
+                  {/* ── Name Edit ── */}
+                  <div>
+                    <p className="text-zinc-500 text-xs font-bold uppercase tracking-wider mb-3">
+                      Profile Name
+                    </p>
+                    <div className="flex items-end gap-3">
+                      <div className="flex-1 max-w-xs">
+                        <label className="block text-zinc-600 text-xs mb-1">Display name</label>
+                        <input
+                          type="text"
+                          placeholder="Profile name"
+                          value={nameInputs[profile.id] ?? profile.name}
+                          onChange={(e) => setNameInputs((prev) => ({ ...prev, [profile.id]: e.target.value }))}
+                          className="w-full bg-zinc-800 border border-zinc-700 text-zinc-300 placeholder:text-zinc-600 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-orange-500"
+                        />
+                      </div>
+                      <button
+                        onClick={() => saveName(profile.id)}
+                        disabled={savingName === profile.id || (nameInputs[profile.id] ?? profile.name) === profile.name}
+                        className="bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white text-xs font-black px-3 py-2 rounded-lg transition-colors"
+                      >
+                        {savingName === profile.id ? "Saving…" : "Save Name"}
+                      </button>
+                    </div>
+                  </div>
 
                   {/* ── ELO Override ── */}
                   <div>

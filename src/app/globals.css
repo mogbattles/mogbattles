@@ -277,11 +277,9 @@ main {
 @keyframes psl-god-glow {
   0%, 100% {
     box-shadow: 0 0 8px rgba(255,215,0,0.3), 0 0 16px rgba(255,215,0,0.1);
-    border-color: rgba(255,215,0,0.5);
   }
   50% {
     box-shadow: 0 0 16px rgba(255,215,0,0.5), 0 0 32px rgba(255,215,0,0.25), 0 0 48px rgba(255,215,0,0.1);
-    border-color: rgba(255,215,0,0.8);
   }
 }
 
@@ -459,24 +457,23 @@ main {
   justify-content: center;
   width: 42px;
   height: 42px;
-  border-radius: 10px;
+  border-radius: 0;
   overflow: hidden;
-  border: 2px solid var(--border);
-  background: var(--bg-elevated);
+  border: none;
+  background: transparent;
 }
 
-/* Tier border colors (grey → gold progression) */
-.tier-ngmi         { border-color: #555; }
-.tier-low-normie   { border-color: #777; }
-.tier-mid-normie   { border-color: #999; }
-.tier-high-normie  { border-color: #bbb; }
-.tier-chadlite     { border-color: #d4a800; }
-.tier-chad         { border-color: #f0c040; }
-.tier-gigachad     { border-color: #ffd700; box-shadow: 0 0 6px rgba(255,215,0,0.15); }
+/* Tier styles (no borders — keep glow/shadow effects) */
+.tier-ngmi         { }
+.tier-low-normie   { }
+.tier-mid-normie   { }
+.tier-high-normie  { }
+.tier-chadlite     { }
+.tier-chad         { }
+.tier-gigachad     { box-shadow: 0 0 6px rgba(255,215,0,0.15); }
 
 /* PSL God — glowing electric sparkle */
 .tier-psl-god {
-  border-color: rgba(255, 215, 0, 0.6);
   animation: psl-god-glow 2s ease-in-out infinite;
 }
 
