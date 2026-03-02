@@ -859,12 +859,12 @@ export default function ExplorePage() {
                           <Link href={`/swipe/${arena.slug}`}
                             className="flex-1 text-center py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wide transition-all"
                             style={{ background: "var(--bg-elevated)", color: "var(--accent)", border: "1px solid var(--border)" }}>
-                            {"\u2694\uFE0F"} Battle
+                            Swipe
                           </Link>
                           <Link href={`/leaderboard/${arena.slug}`}
                             className="flex-1 text-center py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wide transition-all"
                             style={{ background: "rgba(240,192,64,0.08)", color: "var(--gold)", border: "1px solid rgba(240,192,64,0.25)" }}>
-                            {"\uD83C\uDFC6"} Ranks
+                            Ranks
                           </Link>
                         </div>
                       </div>
@@ -1040,7 +1040,7 @@ export default function ExplorePage() {
               className="group rounded-2xl p-4 text-center transition-all duration-200 hover:scale-[1.03] active:scale-[0.98]"
               style={{ background: "linear-gradient(135deg, rgba(128,128,128,0.1), rgba(128,128,128,0.03))", border: "1px solid var(--border)" }}>
               <span className="text-3xl block mb-2">{"\u2694\uFE0F"}</span>
-              <span className="text-xs font-black uppercase tracking-wider" style={{ color: "var(--accent)" }}>Quick Battle</span>
+              <span className="text-xs font-black uppercase tracking-wider" style={{ color: "var(--accent)" }}>Quick Swipe</span>
             </Link>
             <Link href="/leaderboard/all"
               className="group rounded-2xl p-4 text-center transition-all duration-200 hover:scale-[1.03] active:scale-[0.98]"

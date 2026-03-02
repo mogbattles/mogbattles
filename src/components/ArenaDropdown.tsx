@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { getPublicArenas, type ArenaWithCount } from "@/lib/arenas";
-import { ARENA_EMOJIS } from "./ArenaCard";
+import { ArenaIcon } from "./ArenaCard";
 
 const RECENTLY_VIEWED_KEY = "mogbattles_recent_arenas";
 const MAX_RECENT = 5;
@@ -89,7 +89,6 @@ export default function ArenaDropdown({ currentSlug }: ArenaDropdownProps) {
   }
 
   const displayName = currentArena?.name ?? currentSlug;
-  const displayIcon = ARENA_EMOJIS[currentSlug] ?? "⚔️";
 
   return (
     <div ref={ref} className="relative px-4 pt-3 pb-1">
@@ -104,7 +103,7 @@ export default function ArenaDropdown({ currentSlug }: ArenaDropdownProps) {
           boxShadow: open ? "0 0 12px var(--accent-glow)" : "none",
         }}
       >
-        <span>{displayIcon}</span>
+        <ArenaIcon slug={currentSlug} size={20} />
         <span className="flex-1 text-left">{displayName}</span>
         <span
           className="text-xs transition-transform duration-200"
@@ -171,7 +170,7 @@ export default function ArenaDropdown({ currentSlug }: ArenaDropdownProps) {
                       if (!isActive) (e.currentTarget as HTMLElement).style.background = "transparent";
                     }}
                   >
-                    <span className="text-xl shrink-0">{ARENA_EMOJIS[arena.slug] ?? "⚔️"}</span>
+                    <ArenaIcon slug={arena.slug} size={22} className="shrink-0" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span

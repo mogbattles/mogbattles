@@ -3,14 +3,14 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getPublicArenas, type ArenaWithCount } from "@/lib/arenas";
-import { ARENA_EMOJIS } from "./ArenaCard";
+import { ArenaIcon } from "./ArenaCard";
 import ArenaCard from "./ArenaCard";
 
 // ─── Featured big card (All / All Players) ───────────────────────────────────
 
 function FeaturedCard({ arena }: { arena: ArenaWithCount }) {
   const [hov, setHov] = useState(false);
-  const icon = ARENA_EMOJIS[arena.slug] ?? "⚔️";
+  // Use clean SVG icon
   return (
     <Link
       href={`/leaderboard/${arena.slug}`}
@@ -35,7 +35,7 @@ function FeaturedCard({ arena }: { arena: ArenaWithCount }) {
 
       <div className="relative p-6">
         <div className="flex items-start justify-between mb-4">
-          <span className="text-5xl leading-none">{icon}</span>
+          <ArenaIcon slug={arena.slug} size={48} />
           {arena.is_verified && (
             <span
               className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full"

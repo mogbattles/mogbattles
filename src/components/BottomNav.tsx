@@ -6,13 +6,14 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { getTotalUnreadCount } from "@/lib/messaging";
 import { createClient } from "@/lib/supabase";
+import NavIcon from "./NavIcon";
 
 const tabs = [
-  { href: "/explore",     label: "Explore",  icon: "🧭" },
-  { href: "/swipe",       label: "Battle",   icon: "⚔️" },
-  { href: "/leaderboard", label: "Ranks",    icon: "🏆" },
-  { href: "/messages",    label: "DMs",      icon: "💬" },
-  { href: "/profile",     label: "Me",       icon: "👤" },
+  { href: "/explore",     label: "Explore",  icon: "explore" },
+  { href: "/swipe",       label: "Swipe",    icon: "swipe" },
+  { href: "/leaderboard", label: "Ranks",    icon: "leaderboard" },
+  { href: "/messages",    label: "DMs",      icon: "messages" },
+  { href: "/profile",     label: "Me",       icon: "profile" },
 ];
 
 export default function BottomNav() {
@@ -90,16 +91,15 @@ export default function BottomNav() {
                 <span
                   className="leading-none transition-all duration-200"
                   style={{
-                    fontSize:   isActive ? "22px" : "20px",
                     display:    "block",
                     transform:  isActive ? "scale(1.18)" : "scale(1)",
-                    filter:     isActive
-                      ? "drop-shadow(0 0 6px var(--accent-glow))"
-                      : "grayscale(0.4) brightness(0.5)",
+                    color:      isActive ? "var(--accent)" : "var(--text-muted)",
+                    filter:     isActive ? "drop-shadow(0 0 6px var(--accent-glow))" : "none",
+                    opacity:    isActive ? 1 : 0.5,
                     transition: "all 0.2s ease",
                   }}
                 >
-                  {tab.icon}
+                  <NavIcon name={tab.icon} size={isActive ? 22 : 20} />
                 </span>
                 {showBadge && (
                   <span

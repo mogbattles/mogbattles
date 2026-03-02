@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import NavIcon from "./NavIcon";
 
 interface ArenaCardProps {
   name: string;
@@ -16,21 +17,28 @@ interface ArenaCardProps {
   arena_tier?: "official" | "moderator" | "custom";
 }
 
-export const ARENA_EMOJIS: Record<string, string> = {
-  all: "\uD83C\uDF0D",
-  members: "\uD83D\uDC65",
-  friends: "\uD83E\uDD1D",
-  "public-figures": "\uD83C\uDF99\uFE0F",
-  actors: "\uD83C\uDFAC",
-  looksmaxxers: "\uD83D\uDC8E",
-  "psl-icons": "\uD83D\uDC41",
-  singers: "\uD83C\uDFB5",
-  athletes: "\uD83C\uDFC6",
-  streamers: "\uD83D\uDCFA",
-  politicians: "\uD83C\uDFDB\uFE0F",
-  "political-commentators": "\uD83C\uDF99",
-  models: "\uD83D\uDC57",
+// Map arena slug → NavIcon name for clean SVG icons
+const ARENA_ICON_NAMES: Record<string, string> = {
+  all: "globe",
+  members: "users",
+  friends: "handshake",
+  "public-figures": "mic",
+  actors: "clapperboard",
+  looksmaxxers: "gem",
+  "psl-icons": "eye",
+  singers: "music",
+  athletes: "trophy",
+  streamers: "tv",
+  politicians: "landmark",
+  "political-commentators": "mic",
+  models: "shirt",
 };
+
+// Reusable arena icon component (exported for ArenaDropdown, LeaderboardHome, etc.)
+export function ArenaIcon({ slug, size = 24, className }: { slug: string; size?: number; className?: string }) {
+  const name = ARENA_ICON_NAMES[slug] ?? "swipe";
+  return <NavIcon name={name} size={size} className={className} />;
+}
 
 // Arena background gradients (used when no thumbnail is provided)
 const ARENA_GRADIENTS: Record<string, string> = {
@@ -57,7 +65,7 @@ export default function ArenaCard({
   thumbnail_url,
   arena_tier,
 }: ArenaCardProps) {
-  const icon = emoji ?? ARENA_EMOJIS[slug] ?? "\u2694\uFE0F";
+  const iconName = ARENA_ICON_NAMES[slug] ?? "swipe";
   const gradient = ARENA_GRADIENTS[slug] ?? ARENA_GRADIENTS.default;
 
   // ── "More arenas" wide card ─────────────────────────────────────────────────
@@ -69,7 +77,7 @@ export default function ArenaCard({
         <div className="relative flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <span className="text-3xl">{"\uD83C\uDF10"}</span>
+              <NavIcon name="globe" size={32} className="opacity-80" />
               <h3 className="text-[color:var(--text-primary)] font-black text-xl">More Arenas</h3>
             </div>
             <p className="text-sm" style={{ color: "var(--text-muted)" }}>Search, filter &amp; create custom arenas</p>
@@ -107,7 +115,7 @@ export default function ArenaCard({
           ) : (
             <div className="w-full h-full flex items-center justify-center"
               style={{ background: gradient }}>
-              <span className="text-6xl sm:text-7xl opacity-60 group-hover:opacity-90 group-hover:scale-110 transition-all duration-300">{icon}</span>
+              <NavIcon name={iconName} size={72} className="opacity-60 group-hover:opacity-90 group-hover:scale-110 transition-all duration-300" />
             </div>
           )}
           {/* Gradient overlay */}
@@ -151,7 +159,7 @@ export default function ArenaCard({
               }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--bg-elevated)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--border-hover)"; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--bg-elevated)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--border)"; }}>
-              {"\u2694\uFE0F"} Battle
+              Swipe
             </Link>
             <Link href={`/leaderboard/${slug}`}
               className="flex-1 text-center py-2.5 rounded-xl text-[12px] font-black uppercase tracking-wide transition-all"
@@ -162,7 +170,7 @@ export default function ArenaCard({
               }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(240,192,64,0.18)"; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(240,192,64,0.1)"; }}>
-              {"\uD83C\uDFC6"} Ranks
+              Ranks
             </Link>
           </div>
         </div>
@@ -197,7 +205,7 @@ export default function ArenaCard({
           ) : (
             <div className="w-full h-full flex items-center justify-center"
               style={{ background: gradient }}>
-              <span className="text-5xl opacity-60 group-hover:opacity-90 group-hover:scale-110 transition-all duration-300">{icon}</span>
+              <NavIcon name={iconName} size={56} className="opacity-60 group-hover:opacity-90 group-hover:scale-110 transition-all duration-300" />
             </div>
           )}
           {/* Gradient overlay */}
@@ -249,7 +257,7 @@ export default function ArenaCard({
               }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--bg-elevated)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--border-hover)"; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--bg-elevated)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--border)"; }}>
-              {"\u2694\uFE0F"} Battle
+              Swipe
             </Link>
             <Link href={`/leaderboard/${slug}`}
               className="flex-1 text-center py-2 rounded-xl text-[11px] font-black uppercase tracking-wide transition-all"
@@ -260,7 +268,7 @@ export default function ArenaCard({
               }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(240,192,64,0.15)"; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(240,192,64,0.08)"; }}>
-              {"\uD83C\uDFC6"} Ranks
+              Ranks
             </Link>
           </div>
         </div>
@@ -270,7 +278,7 @@ export default function ArenaCard({
 
   // ── Swipe / leaderboard mode: single link card ──────────────────────────────
   const href = `/${mode}/${slug}`;
-  const actionLabel = mode === "leaderboard" ? "Rankings \u2192" : "Battle \u2192";
+  const actionLabel = mode === "leaderboard" ? "Rankings \u2192" : "Swipe \u2192";
 
   return (
     <Link href={href}
@@ -288,7 +296,7 @@ export default function ArenaCard({
         style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.03) 0%, transparent 70%)" }} />
       <div className="relative">
         <div className="flex items-start justify-between mb-2">
-          <span className="text-2xl">{icon}</span>
+          <ArenaIcon slug={slug} size={28} />
           {is_verified && (
             <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full"
               style={{ color: "var(--gold)", background: "rgba(240,192,64,0.1)", border: "1px solid rgba(240,192,64,0.2)" }}>

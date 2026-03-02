@@ -7,20 +7,22 @@ import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import { getTotalUnreadCount } from "@/lib/messaging";
 import { createClient } from "@/lib/supabase";
+import NavIcon from "./NavIcon";
 
 const NAV_LINKS = [
-  { href: "/explore",     label: "Explore",      icon: "🧭" },
-  { href: "/swipe",       label: "Battle",        icon: "⚔️" },
-  { href: "/leaderboard", label: "Leaderboards",  icon: "🏆" },
-  { href: "/messages",    label: "Messages",      icon: "💬" },
-  { href: "/profile",     label: "Profile",       icon: "👤" },
+  { href: "/explore",     label: "Explore",      icon: "explore" },
+  { href: "/swipe",       label: "Swipe",         icon: "swipe" },
+  { href: "/live",        label: "Live",           icon: "live" },
+  { href: "/leaderboard", label: "Leaderboards",  icon: "leaderboard" },
+  { href: "/messages",    label: "Messages",      icon: "messages" },
+  { href: "/profile",     label: "Profile",       icon: "profile" },
 ];
 
 const MENU_ITEMS = [
-  { href: "/news",     label: "News",            icon: "📰", desc: "Latest MogBattles updates" },
-  { href: "/articles", label: "Articles",        icon: "📝", desc: "In-depth pieces by mods & admins" },
-  { href: "/forum",    label: "Forum",           icon: "💬", desc: "Community boards" },
-  { href: "/about",    label: "About MogBattles",icon: "ℹ️", desc: "What is this place?" },
+  { href: "/news",     label: "News",            icon: "news", desc: "Latest MogBattles updates" },
+  { href: "/articles", label: "Articles",        icon: "article", desc: "In-depth pieces by mods & admins" },
+  { href: "/forum",    label: "Forum",           icon: "forum", desc: "Community boards" },
+  { href: "/about",    label: "About MogBattles",icon: "info", desc: "What is this place?" },
 ];
 
 export default function Navbar() {
@@ -136,7 +138,7 @@ export default function Navbar() {
                 border: isActive ? "1px solid var(--border)" : "1px solid transparent",
               }}
             >
-              <span className="text-sm leading-none">{link.icon}</span>
+              <NavIcon name={link.icon} size={16} />
               <span>{link.label}</span>
               {showBadge && (
                 <span
@@ -199,7 +201,7 @@ export default function Navbar() {
               border: menuOpen ? "1px solid var(--border)" : "1px solid transparent",
             }}
           >
-            <span className="text-sm leading-none">☰</span>
+            <NavIcon name="menu" size={16} />
             <span className="hidden sm:inline text-xs">More</span>
           </button>
 
@@ -233,7 +235,7 @@ export default function Navbar() {
                         if (!isActive) (e.currentTarget as HTMLElement).style.background = "transparent";
                       }}
                     >
-                      <span className="text-lg leading-none mt-0.5">{item.icon}</span>
+                      <NavIcon name={item.icon} size={18} className="mt-0.5 shrink-0" />
                       <div className="min-w-0">
                         <p
                           className="text-sm font-bold leading-tight"

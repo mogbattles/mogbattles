@@ -1,0 +1,120 @@
+-- ═══════════════════════════════════════════════════════════════════════════
+-- FIX: Members arena ELO must propagate to "All" arena
+--
+-- PROBLEM:
+--   The sync_all_arena_elo trigger explicitly skips the "members" arena,
+--   so when users vote in the Members swipe arena, the ELO changes are
+--   written to the members arena_profile_stats but NEVER propagate to
+--   the "all" arena. This means members-only votes don't affect global
+--   rankings or the leaderboard.
+--
+-- FIX:
+--   Remove the "members" skip from the trigger. The trigger now:
+--     • Skips "all" arena rows (prevents infinite recursion)
+--     • Propagates ELO deltas from official arenas AND the "members" arena
+--     • Still ignores custom community arenas
+--
+-- HOW TO RUN: paste into Supabase → SQL Editor → Run
+-- ═══════════════════════════════════════════════════════════════════════════
+
+
+-- ── Drop old trigger + function ─────────────────────────────────────────────
+
+DROP TRIGGER IF EXISTS sync_all_arena_elo ON arena_profile_stats;
+DROP FUNCTION IF EXISTS sync_all_arena_elo();
+
+
+-- ── Recreate with members fix ───────────────────────────────────────────────
+
+CREATE OR REPLACE FUNCTION sync_all_arena_elo()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_all_arena_id UUID;
+  v_elo_delta    INT;
+BEGIN
+  -- Resolve the "all" arena ID once
+  SELECT id INTO v_all_arena_id
+  FROM arenas
+  WHERE slug = 'all'
+  LIMIT 1;
+
+  -- If "all" arena doesn't exist yet, nothing to do
+  IF v_all_arena_id IS NULL THEN
+    RETURN NEW;
+  END IF;
+
+  -- ── Recursion guard ──────────────────────────────────────────────────────
+  -- Only skip "all" arena itself (prevents infinite recursion)
+  IF NEW.arena_id = v_all_arena_id THEN
+    RETURN NEW;
+  END IF;
+
+  -- ── Source guard ─────────────────────────────────────────────────────────
+  -- Propagate from: official category arenas + the "members" arena
+  -- Skip: custom community arenas
+  IF NOT EXISTS (
+    SELECT 1 FROM arenas
+    WHERE id = NEW.arena_id
+      AND (is_official = TRUE OR slug = 'members')
+  ) THEN
+    RETURN NEW;
+  END IF;
+
+  -- ── Propagate ────────────────────────────────────────────────────────────
+  IF TG_OP = 'UPDATE' THEN
+    v_elo_delta := NEW.elo_rating - OLD.elo_rating;
+
+    -- Apply delta to "all" arena (upsert handles missing rows)
+    INSERT INTO arena_profile_stats
+      (arena_id, profile_id, elo_rating, wins, losses, matches)
+    VALUES
+      (v_all_arena_id, NEW.profile_id, 1200 + v_elo_delta, 0, 0, 0)
+    ON CONFLICT (arena_id, profile_id) DO UPDATE
+      SET elo_rating = arena_profile_stats.elo_rating + v_elo_delta;
+
+  ELSIF TG_OP = 'INSERT' THEN
+    -- On INSERT: ensure an "all" arena row exists for this profile at 1200.
+    -- Do NOT add a delta here — no votes have been cast yet.
+    INSERT INTO arena_profile_stats
+      (arena_id, profile_id, elo_rating, wins, losses, matches)
+    VALUES
+      (v_all_arena_id, NEW.profile_id, 1200, 0, 0, 0)
+    ON CONFLICT (arena_id, profile_id) DO NOTHING;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+
+-- ── Attach trigger ──────────────────────────────────────────────────────────
+
+CREATE TRIGGER sync_all_arena_elo
+AFTER INSERT OR UPDATE ON arena_profile_stats
+FOR EACH ROW
+EXECUTE FUNCTION sync_all_arena_elo();
+
+
+-- ── Backfill: recalculate "all" ELO including members arena ─────────────────
+-- Formula: all_elo = GREATEST(100,  1200 + SUM(source_elo - 1200))
+-- Sources: all official arenas + members arena (excluding "all" itself)
+
+WITH correct_elos AS (
+  SELECT
+    aps.profile_id,
+    GREATEST(100, 1200 + SUM(aps.elo_rating - 1200)) AS correct_elo
+  FROM arena_profile_stats aps
+  JOIN arenas a ON a.id = aps.arena_id
+  WHERE (a.is_official = TRUE OR a.slug = 'members')
+    AND a.slug != 'all'
+  GROUP BY aps.profile_id
+)
+UPDATE arena_profile_stats target
+SET    elo_rating = ce.correct_elo
+FROM   correct_elos ce
+WHERE  target.profile_id = ce.profile_id
+  AND  target.arena_id   = (SELECT id FROM arenas WHERE slug = 'all');
