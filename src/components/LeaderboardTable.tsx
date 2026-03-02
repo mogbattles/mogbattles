@@ -6,6 +6,7 @@ import { getLeaderboardForArena, getDailyEloChanges, type ArenaProfile } from "@
 import { getTopTagsForProfiles, type TagEntry } from "@/lib/tags";
 import { countryFlagByName } from "@/lib/countries";
 import { getTier } from "@/lib/tiers";
+import { BadgeDelta } from "@/components/ui/badge-delta";
 
 interface LeaderboardEntry extends ArenaProfile {
   rank: number;
@@ -30,20 +31,6 @@ function TierBadge({ elo, size = 42 }: { elo: number; size?: number }) {
         className="w-full h-full object-cover"
       />
     </div>
-  );
-}
-
-function EloDelta({ change }: { change: number }) {
-  if (change === 0) return null;
-  const isPositive = change > 0;
-  return (
-    <span
-      className="inline-flex items-center gap-0.5 text-[10px] sm:text-[11px] font-black leading-none"
-      style={{ color: isPositive ? "var(--success)" : "var(--danger)" }}
-    >
-      <span style={{ fontSize: "8px" }}>{isPositive ? "▲" : "▼"}</span>
-      {Math.abs(change)}
-    </span>
   );
 }
 
@@ -209,7 +196,13 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
                     >
                       {entry.elo_rating}
                     </span>
-                    <EloDelta change={dailyChange} />
+                    {dailyChange !== 0 && (
+                      <BadgeDelta
+                        value={Math.abs(dailyChange)}
+                        deltaType={dailyChange > 0 ? "increase" : "decrease"}
+                        variant="outline"
+                      />
+                    )}
                   </div>
                   <span
                     className="text-[7px] sm:text-[8px] font-black uppercase tracking-wide leading-tight"
