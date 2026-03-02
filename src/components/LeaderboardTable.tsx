@@ -55,14 +55,14 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
   const [search, setSearch] = useState("");
   const [arenaSpecific, setArenaSpecific] = useState(false);
 
-  const fetchData = async (useArenaSpecific = false) => {
-    setLoading(true);
+  const fetchData = async (useArenaSpecific = false, isInitial = false) => {
+    if (isInitial) setLoading(true);
     const data = await getLeaderboardForArena(arenaId, {
       membersOnly: arenaSlug === "members",
       arenaSpecific: useArenaSpecific,
     });
     setEntries(data);
-    setLoading(false);
+    if (isInitial) setLoading(false);
 
     if (data.length > 0) {
       const ids = data.map((e) => e.id);
@@ -76,9 +76,9 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
   };
 
   useEffect(() => {
-    fetchData(arenaSpecific);
+    fetchData(arenaSpecific, true);
     const interval = setInterval(() => {
-      if (!document.hidden) fetchData(arenaSpecific);
+      if (!document.hidden) fetchData(arenaSpecific, false);
     }, 30000);
     return () => clearInterval(interval);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -224,10 +224,11 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
               <img
                 src={entry.image_url || avatarUrl(entry.name)}
                 alt={entry.name}
-                className="rounded-full object-cover shrink-0"
+                className="object-cover shrink-0"
                 style={{
-                  width: "38px",
-                  height: "38px",
+                  width: "56px",
+                  height: "56px",
+                  borderRadius: "12px",
                   border: "2px solid var(--border)",
                 }}
                 onError={(e) => {
