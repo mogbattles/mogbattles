@@ -1500,17 +1500,8 @@ export default function AdminPage() {
     );
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-[60vh]">
-        <div className="text-zinc-400 animate-pulse">Loading admin…</div>
-      </div>
-    );
-  }
-
-  const missingImages = profiles.filter((p) => p.wikipedia_slug && !p.image_url).length;
-
   // ── Unique countries from loaded profiles (for filter dropdown) ────────────
+  // NOTE: useMemo hooks MUST be above all early returns to satisfy React's rules of hooks
   const uniqueCountries = useMemo(() => {
     const set = new Set<string>();
     profiles.forEach((p) => { if (p.country) set.add(p.country); });
@@ -1535,6 +1526,16 @@ export default function AdminPage() {
       return true;
     });
   }, [profiles, userTypeFilter, categoryFilter, countryFilter, genderFilter]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[60vh]">
+        <div className="text-zinc-400 animate-pulse">Loading admin…</div>
+      </div>
+    );
+  }
+
+  const missingImages = profiles.filter((p) => p.wikipedia_slug && !p.image_url).length;
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
