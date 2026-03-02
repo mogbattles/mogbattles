@@ -1147,7 +1147,7 @@ export async function getMyProfile(userId: string): Promise<ArenaProfile | null>
   };
 }
 
-// ─── Daily ELO change for leaderboard tickers ─────────────────────────────────
+// ─── Daily ELO change for leaderboard tickers (from elo_snapshots) ────────────
 
 export async function getDailyEloChanges(
   profileIds: string[]
@@ -1155,40 +1155,59 @@ export async function getDailyEloChanges(
   if (profileIds.length === 0) return new Map();
 
   const client = db();
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const todayIso = today.toISOString();
-
-  // Fetch all matches from today involving any of the profiles
-  const { data: winnerMatches, error: wErr } = await client
-    .from("matches")
-    .select("winner_id, winner_elo_after, winner_elo_before")
-    .in("winner_id", profileIds)
-    .gte("created_at", todayIso);
-
-  const { data: loserMatches, error: lErr } = await client
-    .from("matches")
-    .select("loser_id, loser_elo_after, loser_elo_before")
-    .in("loser_id", profileIds)
-    .gte("created_at", todayIso);
-
   const changes = new Map<string, number>();
 
-  // If queries fail (e.g. created_at column missing), return empty silently
-  if (wErr || lErr) return changes;
+  // Get yesterday's date string (YYYY-MM-DD)
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toISOString().split("T")[0];
 
-  if (winnerMatches) {
-    for (const m of winnerMatches) {
-      const delta = (m.winner_elo_after ?? 0) - (m.winner_elo_before ?? 0);
-      changes.set(m.winner_id, (changes.get(m.winner_id) ?? 0) + delta);
-    }
-  }
-  if (loserMatches) {
-    for (const m of loserMatches) {
-      const delta = (m.loser_elo_after ?? 0) - (m.loser_elo_before ?? 0);
-      changes.set(m.loser_id, (changes.get(m.loser_id) ?? 0) + delta);
-    }
+  // Fetch yesterday's snapshots for all profiles
+  const { data, error } = await client
+    .from("elo_snapshots")
+    .select("profile_id, elo_rating")
+    .in("profile_id", profileIds)
+    .eq("snapshot_date", yesterdayStr);
+
+  if (error || !data) return changes;
+
+  // Build a map of yesterday's ELO
+  const yesterdayElo = new Map<string, number>();
+  for (const row of data) {
+    yesterdayElo.set(row.profile_id, row.elo_rating);
   }
 
-  return changes;
+  return yesterdayElo;
+}
+
+// ─── ELO history for player profile graphs ────────────────────────────────────
+
+export interface EloSnapshot {
+  date: string;       // YYYY-MM-DD
+  elo_rating: number;
+}
+
+export async function getEloHistory(
+  profileId: string,
+  days = 90
+): Promise<EloSnapshot[]> {
+  const client = db();
+
+  const since = new Date();
+  since.setDate(since.getDate() - days);
+  const sinceStr = since.toISOString().split("T")[0];
+
+  const { data, error } = await client
+    .from("elo_snapshots")
+    .select("snapshot_date, elo_rating")
+    .eq("profile_id", profileId)
+    .gte("snapshot_date", sinceStr)
+    .order("snapshot_date", { ascending: true });
+
+  if (error || !data) return [];
+
+  return data.map((row) => ({
+    date: row.snapshot_date,
+    elo_rating: row.elo_rating,
+  }));
 }

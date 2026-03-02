@@ -171,6 +171,21 @@ export interface Database {
           status?: "approved" | "pending";
         };
       };
+      elo_snapshots: {
+        Row: {
+          profile_id: string;
+          snapshot_date: string;
+          elo_rating: number;
+        };
+        Insert: {
+          profile_id: string;
+          snapshot_date?: string;
+          elo_rating: number;
+        };
+        Update: {
+          elo_rating?: number;
+        };
+      };
       matches: {
         Row: {
           id: string;

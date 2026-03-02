@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { getProfileById, getMyGlobalRank, type ArenaProfile } from "@/lib/arenas";
+import EloHistoryChart from "@/components/EloHistoryChart";
 import { countryFlagByName } from "@/lib/countries";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -380,6 +381,11 @@ export default function PlayerPage() {
           </div>
         </div>
       )}
+
+      {/* ELO History Chart */}
+      <div className="mb-5">
+        <EloHistoryChart profileId={id} currentElo={profile.elo_rating} />
+      </div>
 
       {/* Physical stats */}
       {(profile.height_in || profile.weight_lbs || profile.country) && (

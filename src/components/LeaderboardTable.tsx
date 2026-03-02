@@ -164,7 +164,8 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
           const tags = topTags.get(entry.id) ?? [];
           const tier = getTier(entry.elo_rating);
           const isPslGod = tier.isSpecial;
-          const dailyChange = eloChanges.get(entry.id) ?? 0;
+          const yesterdayElo = eloChanges.get(entry.id);
+          const dailyChange = yesterdayElo != null ? entry.elo_rating - yesterdayElo : 0;
 
           return (
             <Link
