@@ -1172,10 +1172,10 @@ export async function getDailyEloChanges(
     .in("loser_id", profileIds)
     .gte("created_at", todayIso);
 
+  const changes = new Map<string, number>();
+
   // If queries fail (e.g. created_at column missing), return empty silently
   if (wErr || lErr) return changes;
-
-  const changes = new Map<string, number>();
 
   if (winnerMatches) {
     for (const m of winnerMatches) {
