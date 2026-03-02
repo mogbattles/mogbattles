@@ -944,17 +944,20 @@ export default function AdminPage() {
   async function saveImages(profileId: string) {
     const urls = (imageInputs[profileId] ?? []).map((u) => u.trim()).filter(Boolean);
     const primary = urls[0] ?? null;
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("profiles")
       .update({ image_urls: urls, image_url: primary })
-      .eq("id", profileId);
-    if (!error) {
+      .eq("id", profileId)
+      .select();
+    if (error) {
+      setMessage(`❌ ${(error as { message: string }).message}`);
+    } else if (!data || data.length === 0) {
+      setMessage("❌ Update blocked — no rows changed. Check RLS policies (run fix_admin_profiles_update.sql).");
+    } else {
       setProfiles((prev) =>
         prev.map((p) => p.id === profileId ? { ...p, image_urls: urls, image_url: primary } : p)
       );
       setMessage("✅ Images saved.");
-    } else {
-      setMessage(`❌ ${(error as { message: string }).message}`);
     }
   }
 
@@ -964,17 +967,20 @@ export default function AdminPage() {
     const height_in = parseHeightInput(s.height);
     const weight_lbs = parseFloat(s.weight) || null;
     const country = s.country.trim() || null;
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("profiles")
       .update({ height_in, weight_lbs, country })
-      .eq("id", profileId);
-    if (!error) {
+      .eq("id", profileId)
+      .select();
+    if (error) {
+      setMessage(`❌ ${(error as { message: string }).message}`);
+    } else if (!data || data.length === 0) {
+      setMessage("❌ Update blocked — no rows changed. Check RLS policies (run fix_admin_profiles_update.sql).");
+    } else {
       setProfiles((prev) =>
         prev.map((p) => p.id === profileId ? { ...p, height_in, weight_lbs, country } : p)
       );
       setMessage("✅ Stats saved.");
-    } else {
-      setMessage(`❌ ${(error as { message: string }).message}`);
     }
   }
 
@@ -994,16 +1000,23 @@ export default function AdminPage() {
       setImageInputs((prev) => ({ ...prev, [profileId]: updated }));
       const urls = updated.map((u) => u.trim()).filter(Boolean);
       const primary = urls[0] ?? null;
-      await supabase
+      const { data: wikiData, error: wikiErr } = await supabase
         .from("profiles")
         .update({ image_urls: urls, image_url: primary, wikipedia_slug: slug.trim() })
-        .eq("id", profileId);
-      setProfiles((prev) =>
-        prev.map((p) =>
-          p.id === profileId ? { ...p, image_urls: urls, image_url: primary, wikipedia_slug: slug.trim() } : p
-        )
-      );
-      setMessage("✅ Image fetched and saved.");
+        .eq("id", profileId)
+        .select();
+      if (wikiErr) {
+        setMessage(`❌ ${(wikiErr as { message: string }).message}`);
+      } else if (!wikiData || wikiData.length === 0) {
+        setMessage("❌ Image fetched but save blocked — check RLS policies (run fix_admin_profiles_update.sql).");
+      } else {
+        setProfiles((prev) =>
+          prev.map((p) =>
+            p.id === profileId ? { ...p, image_urls: urls, image_url: primary, wikipedia_slug: slug.trim() } : p
+          )
+        );
+        setMessage("✅ Image fetched and saved.");
+      }
     }
     setFetchingId(null);
     setFetchingSlot(null);
@@ -1019,7 +1032,8 @@ export default function AdminPage() {
       const imageUrl = await fetchWikiImage(profile.wikipedia_slug!);
       if (imageUrl) {
         const urls = [imageUrl];
-        await supabase.from("profiles").update({ image_urls: urls, image_url: imageUrl }).eq("id", profile.id);
+        const { data: fetchAllData } = await supabase.from("profiles").update({ image_urls: urls, image_url: imageUrl }).eq("id", profile.id).select();
+        if (!fetchAllData || fetchAllData.length === 0) { failed++; continue; }
         setProfiles((prev) => prev.map((p) => p.id === profile.id ? { ...p, image_url: imageUrl, image_urls: urls } : p));
         setImageInputs((prev) => {
           const ex = prev[profile.id] ?? ["", "", "", ""];
@@ -1041,10 +1055,20 @@ export default function AdminPage() {
     const category = (catSlugs[0] ?? null) as Category;
 
     // 1. Update legacy fields on profiles table
-    const { error } = await supabase
+    const { data: catData, error } = await supabase
       .from("profiles")
       .update({ categories: catSlugs, category })
-      .eq("id", profileId);
+      .eq("id", profileId)
+      .select();
+
+    if (error) {
+      setMessage(`❌ Category save failed: ${(error as { message: string }).message}`);
+      return;
+    }
+    if (!catData || catData.length === 0) {
+      setMessage("❌ Category update blocked — check RLS policies (run fix_admin_profiles_update.sql).");
+      return;
+    }
 
     // 2. Sync profile_categories junction table (using category IDs)
     const categoryIds = catSlugs
@@ -1052,12 +1076,11 @@ export default function AdminPage() {
       .filter(Boolean) as string[];
     await setProfileCategories(profileId, categoryIds);
 
-    if (!error)
-      setProfiles((prev) =>
-        prev.map((p) =>
-          p.id === profileId ? { ...p, categories: catSlugs, category } : p
-        )
-      );
+    setProfiles((prev) =>
+      prev.map((p) =>
+        p.id === profileId ? { ...p, categories: catSlugs, category } : p
+      )
+    );
   }
 
   // ── Toggle user role (admin/moderator) ──────────────────────────────────────
@@ -1082,7 +1105,7 @@ export default function AdminPage() {
   // ── Slug save on blur ────────────────────────────────────────────────────────
   async function handleSlugSave(profileId: string) {
     const slug = (slugInputs[profileId] ?? "").trim();
-    await supabase.from("profiles").update({ wikipedia_slug: slug || null }).eq("id", profileId);
+    await supabase.from("profiles").update({ wikipedia_slug: slug || null }).eq("id", profileId).select();
     setProfiles((prev) => prev.map((p) => p.id === profileId ? { ...p, wikipedia_slug: slug || null } : p));
   }
 
@@ -1246,27 +1269,37 @@ export default function AdminPage() {
     setMessage(null);
 
     // 1. Update profiles table directly
-    const { error: profErr } = await supabase
+    const { data: profData, error: profErr } = await supabase
       .from("profiles")
       .update({ elo_rating: newElo })
-      .eq("id", profileId);
+      .eq("id", profileId)
+      .select();
 
     if (profErr) {
       setMessage(`❌ ${(profErr as { message: string }).message}`);
       setSavingElo(null);
       return;
     }
+    if (!profData || profData.length === 0) {
+      setMessage("❌ Profile ELO update blocked — no rows changed. Check RLS policies (run fix_admin_profiles_update.sql).");
+      setSavingElo(null);
+      return;
+    }
 
     // 2. Update all arena_profile_stats rows (triggers will fire and may corrupt "all" arena)
-    const { error: statsErr } = await supabase
+    const { data: statsData, error: statsErr } = await supabase
       .from("arena_profile_stats")
       .update({ elo_rating: newElo })
-      .eq("profile_id", profileId);
+      .eq("profile_id", profileId)
+      .select();
 
     if (statsErr) {
       setMessage(`⚠️ Profile ELO updated but arena stats failed: ${(statsErr as { message: string }).message}`);
       setSavingElo(null);
       return;
+    }
+    if (!statsData || statsData.length === 0) {
+      setMessage(`⚠️ Profile ELO updated but arena stats unchanged (0 rows). Check arena_profile_stats RLS policies.`);
     }
 
     // 3. Recalculate "all" arena from scratch to fix trigger cascade damage
@@ -1277,7 +1310,7 @@ export default function AdminPage() {
     setMessage(
       syncErr
         ? `⚠️ ELO set to ${newElo} but sync repair failed: ${(syncErr as { message: string }).message}`
-        : `✅ ELO set to ${newElo} (all arenas) + sync repaired.`
+        : `✅ ELO set to ${newElo} (all arenas, ${statsData?.length ?? 0} rows) + sync repaired.`
     );
     setSavingElo(null);
   }
