@@ -15,7 +15,7 @@ import {
   type FeaturedBattle,
   type HeadToHeadStats,
 } from "@/lib/arenas";
-import ArenaCard, { ARENA_EMOJIS } from "@/components/ArenaCard";
+import ArenaCard, { ArenaIcon } from "@/components/ArenaCard";
 import { useAuth } from "@/context/AuthContext";
 import { createBrowserClient } from "@supabase/ssr";
 import type { User } from "@supabase/supabase-js";
@@ -305,7 +305,7 @@ function SearchDropdown({ query, profiles, arenas, onClose }: {
           {arenas.slice(0, 5).map((a) => (
             <Link key={a.id} href={`/swipe/${a.slug}`} onClick={onClose}
               className="flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 transition-colors">
-              <span className="text-xl shrink-0">{ARENA_EMOJIS[a.slug] ?? "\u2694\uFE0F"}</span>
+              <span className="shrink-0"><ArenaIcon slug={a.slug} size={20} /></span>
               <div className="min-w-0">
                 <p className="text-[color:var(--text-primary)] font-bold text-sm truncate">{a.name}</p>
                 <p className="text-[10px] font-bold" style={{ color: "var(--text-muted)" }}>{a.player_count} players</p>
@@ -810,7 +810,7 @@ export default function ExplorePage() {
               <div className="flex gap-3">
                 {highlightedArenas.map((arena) => {
                   const topPlayers = topPlayersMap[arena.id] ?? [];
-                  const icon = ARENA_EMOJIS[arena.slug] ?? "\u2694\uFE0F";
+                  const iconSlug = arena.slug;
                   return (
                     <div key={arena.id}
                       className="group flex-1 min-w-0 rounded-xl overflow-hidden transition-all duration-200 hover:scale-[1.02]"
@@ -818,7 +818,7 @@ export default function ExplorePage() {
                       <div className="px-4 py-3">
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2 min-w-0">
-                            <span className="text-lg shrink-0">{icon}</span>
+                            <span className="shrink-0"><ArenaIcon slug={iconSlug} size={18} /></span>
                             <div className="min-w-0">
                               <h3 className="text-[color:var(--text-primary)] font-black text-sm leading-tight truncate">{arena.name}</h3>
                               <p className="text-[10px] font-bold" style={{ color: "var(--text-muted)" }}>{arena.player_count} players</p>
