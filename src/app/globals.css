@@ -274,19 +274,27 @@ main {
   100% { background-position: 200% center; }
 }
 
-@keyframes rank-glow-gold {
-  0%, 100% { box-shadow: 0 0 8px rgba(240,192,64,0.3), 0 0 16px rgba(240,192,64,0.1); }
-  50%       { box-shadow: 0 0 16px rgba(240,192,64,0.5), 0 0 32px rgba(240,192,64,0.2); }
+@keyframes psl-god-glow {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(255,215,0,0.3), 0 0 16px rgba(255,215,0,0.1);
+    border-color: rgba(255,215,0,0.5);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(255,215,0,0.5), 0 0 32px rgba(255,215,0,0.25), 0 0 48px rgba(255,215,0,0.1);
+    border-color: rgba(255,215,0,0.8);
+  }
 }
 
-@keyframes rank-glow-silver {
-  0%, 100% { box-shadow: 0 0 8px rgba(192,192,192,0.2), 0 0 12px rgba(192,192,192,0.1); }
-  50%       { box-shadow: 0 0 12px rgba(192,192,192,0.4), 0 0 24px rgba(192,192,192,0.15); }
+@keyframes psl-sparkle {
+  0%   { transform: translateY(0) scale(0); opacity: 0; }
+  30%  { transform: translateY(-6px) scale(1.2); opacity: 1; }
+  60%  { transform: translateY(-12px) scale(0.8); opacity: 0.6; }
+  100% { transform: translateY(-20px) scale(0); opacity: 0; }
 }
 
-@keyframes rank-glow-bronze {
-  0%, 100% { box-shadow: 0 0 6px rgba(205,127,50,0.2), 0 0 10px rgba(205,127,50,0.1); }
-  50%       { box-shadow: 0 0 10px rgba(205,127,50,0.35), 0 0 20px rgba(205,127,50,0.15); }
+@keyframes psl-row-shimmer {
+  0%, 100% { box-shadow: 0 0 12px rgba(255,215,0,0.08); }
+  50%       { box-shadow: 0 0 24px rgba(255,215,0,0.15), 0 0 48px rgba(255,215,0,0.05); }
 }
 
 /* ─── Reusable utilities ──────────────────────────────────────────────────── */
@@ -443,62 +451,53 @@ main {
   animation: pulseRing 2s ease-in-out infinite;
 }
 
-/* ─── Overwatch Leaderboard Rank Badges ──────────────────────────────────────── */
+/* ─── ELO Tier Badge System ──────────────────────────────────────────────────── */
 .rank-badge {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
-  font-weight: 900;
-  font-size: 14px;
-}
-
-.rank-badge-1 {
-  background: linear-gradient(135deg, #FFD700, #F0C040, #B8902A);
-  color: #1A1000;
-  animation: rank-glow-gold 2.5s ease-in-out infinite;
-}
-
-.rank-badge-2 {
-  background: linear-gradient(135deg, #E8E8E8, #C0C0C0, #A0A0A0);
-  color: #333;
-  animation: rank-glow-silver 3s ease-in-out infinite;
-}
-
-.rank-badge-3 {
-  background: linear-gradient(135deg, #E8A040, #CD7F32, #A0602A);
-  color: #fff;
-  animation: rank-glow-bronze 3s ease-in-out infinite;
-}
-
-.rank-badge-default {
-  background: var(--bg-elevated);
-  color: var(--text-muted);
+  overflow: hidden;
   border: 1px solid var(--border);
+  background: var(--bg-elevated);
 }
 
-/* Ember particles on hover (top 3 only) */
-.rank-row-top:hover .rank-badge::before,
-.rank-row-top:hover .rank-badge::after {
+/* Tier border colors (grey → gold progression) */
+.tier-ngmi         { border-color: #555; }
+.tier-low-normie   { border-color: #777; }
+.tier-mid-normie   { border-color: #999; }
+.tier-high-normie  { border-color: #bbb; }
+.tier-chadlite     { border-color: #d4a800; }
+.tier-chad         { border-color: #f0c040; }
+.tier-gigachad     { border-color: #ffd700; box-shadow: 0 0 6px rgba(255,215,0,0.15); }
+
+/* PSL God — glowing electric sparkle */
+.tier-psl-god {
+  border-color: rgba(255, 215, 0, 0.6);
+  animation: psl-god-glow 2s ease-in-out infinite;
+}
+
+.tier-psl-god::before,
+.tier-psl-god::after {
   content: '';
   position: absolute;
-  width: 4px;
-  height: 4px;
+  width: 3px;
+  height: 3px;
   border-radius: 50%;
-  background: currentColor;
+  background: #FFD700;
   opacity: 0;
-  animation: ember-float 1.2s ease-out infinite;
+  animation: psl-sparkle 1.5s ease-in-out infinite;
+  z-index: 10;
 }
-.rank-row-top:hover .rank-badge::before {
-  top: -2px; left: 30%;
-  animation-delay: 0s;
-}
-.rank-row-top:hover .rank-badge::after {
-  top: -2px; right: 30%;
-  animation-delay: 0.4s;
+.tier-psl-god::before { top: -2px; left: 20%; animation-delay: 0s; }
+.tier-psl-god::after  { bottom: -2px; right: 20%; animation-delay: 0.5s; }
+
+/* PSL God row shimmer */
+.rank-row-psl-god {
+  animation: psl-row-shimmer 3s ease-in-out infinite;
 }
 
 /* Leaderboard row hover effect */
@@ -508,9 +507,6 @@ main {
 .rank-row:hover {
   transform: scale(1.005);
   border-color: var(--border-hover) !important;
-}
-.rank-row-top:hover {
-  transform: scale(1.01);
 }
 
 /* ─── Ambient glow orbs (decorative) ──────────────────────────────────────── */

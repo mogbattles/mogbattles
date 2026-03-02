@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { getMutualFollows, type FollowProfile } from "@/lib/follows";
+import { getTier } from "@/lib/tiers";
 
 function Avatar({ src, name, size = 36 }: { src: string | null; name: string; size?: number }) {
   const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1a1a1a&color=888&size=${size * 2}&bold=true`;
@@ -22,14 +23,16 @@ function Avatar({ src, name, size = 36 }: { src: string | null; name: string; si
   );
 }
 
-function RankLabel({ rank }: { rank: number }) {
-  if (rank === 1) return <span className="text-sm">👑</span>;
-  if (rank === 2) return <span className="text-sm">🥈</span>;
-  if (rank === 3) return <span className="text-sm">🥉</span>;
+function TierIcon({ elo }: { elo: number }) {
+  const tier = getTier(elo);
   return (
-    <span className="text-xs font-black w-5 text-center" style={{ color: "var(--text-faint)" }}>
-      {rank}
-    </span>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={tier.iconUrl}
+      alt={tier.name}
+      title={tier.name}
+      className={`w-6 h-6 rounded object-cover ${tier.cssClass}`}
+    />
   );
 }
 
@@ -124,9 +127,10 @@ export default function FriendsLeaderboardPage() {
                 background: "var(--bg-card)",
               }}
             >
-              <div className="w-5 flex justify-center shrink-0">
-                <RankLabel rank={i + 1} />
-              </div>
+              <span className="text-xs font-black w-4 text-right shrink-0" style={{ color: "var(--text-faint)" }}>
+                {i + 1}
+              </span>
+              <TierIcon elo={friend.elo_rating} />
               <Avatar src={friend.image_url} name={friend.name} size={36} />
               <div className="flex-1 min-w-0">
                 <p className="font-black text-[color:var(--text-primary)] text-sm truncate">{friend.name}</p>

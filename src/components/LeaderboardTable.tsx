@@ -5,6 +5,7 @@ import Link from "next/link";
 import { getLeaderboardForArena, type ArenaProfile } from "@/lib/arenas";
 import { getTopTagsForProfiles, type TagEntry } from "@/lib/tags";
 import { countryFlagByName } from "@/lib/countries";
+import { getTier } from "@/lib/tiers";
 
 interface LeaderboardEntry extends ArenaProfile {
   rank: number;
@@ -14,25 +15,16 @@ function avatarUrl(name: string) {
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1a1a1a&color=555&size=96&bold=true`;
 }
 
-function RankLabel({ rank }: { rank: number }) {
-  if (rank === 1) return (
-    <div className="rank-badge rank-badge-1">
-      <span className="text-sm font-black" style={{ color: "var(--gold)" }}>1</span>
-    </div>
-  );
-  if (rank === 2) return (
-    <div className="rank-badge rank-badge-2">
-      <span className="text-sm font-black" style={{ color: "var(--silver)" }}>2</span>
-    </div>
-  );
-  if (rank === 3) return (
-    <div className="rank-badge rank-badge-3">
-      <span className="text-sm font-black" style={{ color: "var(--bronze)" }}>3</span>
-    </div>
-  );
+function TierBadge({ elo }: { elo: number }) {
+  const tier = getTier(elo);
   return (
-    <div className="rank-badge rank-badge-default">
-      <span className="text-xs font-black" style={{ color: "var(--text-faint)" }}>#{rank}</span>
+    <div className={`rank-badge ${tier.cssClass}`} title={tier.name}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={tier.iconUrl}
+        alt={tier.name}
+        className="w-full h-full object-cover"
+      />
     </div>
   );
 }
@@ -130,8 +122,8 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="Search by name or country..."
-        className="w-full rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none transition-colors"
-        style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
+        className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none transition-colors"
+        style={{ background: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
         onFocus={(e) => { e.target.style.borderColor = "var(--accent)"; }}
         onBlur={(e) => { e.target.style.borderColor = "var(--border)"; }}
       />
@@ -146,50 +138,43 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
         {filtered.map((entry) => {
           const flag = countryFlagByName(entry.country);
           const tags = topTags.get(entry.id) ?? [];
-          const isTop = entry.rank <= 3;
-          const topBorder =
-            entry.rank === 1 ? "rgba(240,192,64,0.25)"
-            : entry.rank === 2 ? "rgba(192,192,192,0.18)"
-            : "rgba(180,100,40,0.18)";
-
-          const rowBg =
-            entry.rank === 1 ? "rgba(240,192,64,0.04)"
-            : entry.rank === 2 ? "rgba(192,192,192,0.03)"
-            : entry.rank === 3 ? "rgba(180,100,40,0.03)"
-            : "var(--bg-card)";
-
-          const hoverGlow =
-            entry.rank === 1 ? "0 0 20px rgba(240,192,64,0.15)"
-            : entry.rank === 2 ? "0 0 20px rgba(192,192,192,0.12)"
-            : entry.rank === 3 ? "0 0 20px rgba(180,100,40,0.12)"
-            : "0 0 14px rgba(0,0,0,0.2)";
+          const tier = getTier(entry.elo_rating);
+          const isPslGod = tier.isSpecial;
 
           return (
             <Link
               key={entry.id}
               href={`/players/${entry.id}`}
-              className={`flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl rank-row${isTop ? " rank-row-top" : ""}`}
+              className={`flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl rank-row${isPslGod ? " rank-row-psl-god" : ""}`}
               style={{
-                background: rowBg,
-                border: `1px solid ${isTop ? topBorder : "var(--border)"}`,
-                transition: "all 0.3s ease",
+                background: "var(--bg-card)",
+                border: `1px solid ${isPslGod ? "rgba(255,215,0,0.3)" : "var(--border)"}`,
+                transition: "all 0.2s ease",
               }}
               onMouseEnter={(e) => {
                 const el = e.currentTarget as HTMLElement;
-                el.style.transform = "scale(1.01)";
-                el.style.borderColor = isTop ? topBorder : "var(--border-hover)";
-                el.style.boxShadow = hoverGlow;
+                el.style.transform = "scale(1.005)";
+                el.style.borderColor = isPslGod ? "rgba(255,215,0,0.5)" : "var(--border-hover)";
+                el.style.boxShadow = isPslGod
+                  ? "0 0 24px rgba(255,215,0,0.2)"
+                  : "0 0 14px rgba(0,0,0,0.15)";
               }}
               onMouseLeave={(e) => {
                 const el = e.currentTarget as HTMLElement;
                 el.style.transform = "scale(1)";
-                el.style.borderColor = isTop ? topBorder : "var(--border)";
+                el.style.borderColor = isPslGod ? "rgba(255,215,0,0.3)" : "var(--border)";
                 el.style.boxShadow = "none";
               }}
             >
-              {/* Rank */}
-              <div className="w-9 flex items-center justify-center shrink-0">
-                <RankLabel rank={entry.rank} />
+              {/* Rank # + Tier Icon */}
+              <div className="flex items-center gap-2 shrink-0" style={{ minWidth: "60px" }}>
+                <span
+                  className="text-xs font-black w-5 text-right"
+                  style={{ color: "var(--text-faint)" }}
+                >
+                  {entry.rank}
+                </span>
+                <TierBadge elo={entry.elo_rating} />
               </div>
 
               {/* Avatar */}
@@ -201,13 +186,7 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
                 style={{
                   width: "44px",
                   height: "44px",
-                  border: entry.rank === 1
-                    ? "2px solid rgba(240,192,64,0.5)"
-                    : entry.rank === 2
-                    ? "2px solid rgba(192,192,192,0.35)"
-                    : entry.rank === 3
-                    ? "2px solid rgba(180,100,40,0.35)"
-                    : "2px solid var(--border)",
+                  border: "2px solid var(--border)",
                 }}
                 onError={(e) => {
                   const img = e.target as HTMLImageElement;
@@ -248,19 +227,19 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
                 </p>
               </div>
 
-              {/* ELO */}
+              {/* ELO + Tier Name */}
               <div className="text-right shrink-0">
                 <span
                   className="font-black text-lg sm:text-xl"
-                  style={{ color: entry.rank === 1 ? "var(--gold)" : arenaSpecific ? "#D97706" : "var(--text-primary)" }}
+                  style={{ color: isPslGod ? "var(--gold)" : "var(--text-primary)" }}
                 >
                   {entry.elo_rating}
                 </span>
                 <p
                   className="text-[10px] font-black uppercase tracking-widest"
-                  style={{ color: "var(--text-faint)" }}
+                  style={{ color: isPslGod ? "rgba(255,215,0,0.6)" : "var(--text-faint)" }}
                 >
-                  {arenaSpecific ? "ARENA" : "ELO"}
+                  {arenaSpecific ? "ARENA" : tier.name}
                 </p>
               </div>
             </Link>
