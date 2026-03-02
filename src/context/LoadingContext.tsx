@@ -9,6 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { usePathname } from "next/navigation";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -33,10 +34,12 @@ export const useLoading = () => useContext(LoadingContext);
 // ─── Provider ────────────────────────────────────────────────────────────────
 
 export function LoadingProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
   const [progress, setProgressRaw] = useState(0);
   const [visible, setVisible] = useState(false);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const simInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+  const safetyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLoadingRef = useRef(false);
 
   // Keep ref in sync
@@ -45,6 +48,7 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
   const cleanup = useCallback(() => {
     if (simInterval.current) { clearInterval(simInterval.current); simInterval.current = null; }
     if (hideTimer.current) { clearTimeout(hideTimer.current); hideTimer.current = null; }
+    if (safetyTimer.current) { clearTimeout(safetyTimer.current); safetyTimer.current = null; }
   }, []);
 
   const finish = useCallback(() => {
@@ -53,7 +57,7 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
     hideTimer.current = setTimeout(() => {
       setVisible(false);
       setProgressRaw(0);
-    }, 350);
+    }, 100);
   }, [cleanup]);
 
   const start = useCallback(() => {
@@ -61,17 +65,22 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
     setProgressRaw(0);
     setVisible(true);
 
-    // Simulate smooth progress: fast start, slowing down, never exceeds 92%
+    // Very fast simulation — reaches ~90% in under a second
     let current = 0;
     simInterval.current = setInterval(() => {
-      if (current < 25) current += 5;
-      else if (current < 50) current += 3;
-      else if (current < 75) current += 1.5;
-      else if (current < 92) current += 0.4;
-      current = Math.min(current, 92);
+      if (current < 40) current += 12;
+      else if (current < 70) current += 6;
+      else if (current < 85) current += 2;
+      else if (current < 95) current += 0.3;
+      current = Math.min(current, 95);
       setProgressRaw(Math.round(current));
-    }, 60);
-  }, [cleanup]);
+    }, 30);
+
+    // Safety: never stay visible longer than 2.5s
+    safetyTimer.current = setTimeout(() => {
+      finish();
+    }, 2500);
+  }, [cleanup, finish]);
 
   const setProgress = useCallback((v: number) => {
     const clamped = Math.min(100, Math.max(0, v));
@@ -80,12 +89,25 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
     if (clamped >= 100) finish();
   }, [finish]);
 
-  // ─── Route change detection ──────────────────────────────────────────────
+  // ─── Route change detection via pathname ────────────────────────────────
+
+  const prevPathname = useRef(pathname);
+
+  // When pathname changes, the new page has rendered → finish loading
+  useEffect(() => {
+    if (prevPathname.current !== pathname) {
+      prevPathname.current = pathname;
+      if (isLoadingRef.current) {
+        finish();
+      }
+    }
+  }, [pathname, finish]);
+
+  // ─── Click detection for internal navigation ───────────────────────────
 
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // Detect internal link clicks → start loading
     const handleClick = (e: MouseEvent) => {
       const anchor = (e.target as Element)?.closest?.("a");
       if (
@@ -100,19 +122,8 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    // Detect when <main> children change → route finished
-    const mainEl = document.querySelector("main");
-    let observer: MutationObserver | null = null;
-    if (mainEl) {
-      observer = new MutationObserver(() => {
-        // Use ref to avoid stale closure
-        if (isLoadingRef.current) finish();
-      });
-      observer.observe(mainEl, { childList: true, subtree: false });
-    }
-
     // Back/forward button
-    const handlePop = () => { if (!isLoadingRef.current) start(); };
+    const handlePop = () => { start(); };
 
     document.addEventListener("click", handleClick, true);
     window.addEventListener("popstate", handlePop);
@@ -120,22 +131,8 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
     return () => {
       document.removeEventListener("click", handleClick, true);
       window.removeEventListener("popstate", handlePop);
-      observer?.disconnect();
       cleanup();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // ─── Initial page load ───────────────────────────────────────────────────
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (document.readyState === "complete") return; // Already loaded
-
-    start();
-    const done = () => finish();
-    window.addEventListener("load", done);
-    return () => window.removeEventListener("load", done);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

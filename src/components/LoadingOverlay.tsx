@@ -5,8 +5,8 @@ import { useLoading } from "@/context/LoadingContext";
 // ─── Circular progress ring (SVG) — no text, just the ring ──────────────────
 
 function CircularProgress({ value }: { value: number }) {
-  const size = 40;
-  const strokeWidth = 3;
+  const size = 20;
+  const strokeWidth = 2;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (value / 100) * circumference;
@@ -52,7 +52,7 @@ export default function LoadingOverlay() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-3"
       style={{
         background: "var(--bg-primary)",
         animation: "fadeIn 0.15s ease-out",
