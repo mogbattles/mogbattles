@@ -228,7 +228,10 @@ export default function SwipeArena({ arena }: SwipeArenaProps) {
         p_loser_id: loser.id,
         p_voter_id: user?.id ?? null,
       });
-      if (rpcError) console.error("record_match error:", rpcError);
+      if (rpcError) {
+        console.error("record_match error:", rpcError);
+        setLastResult(`⚠️ Vote failed: ${rpcError.message || "RPC error"}`);
+      }
       // record_match RETURNS TABLE → Supabase wraps as array; unwrap first row
       // Also handle the case where .rpc() returns a single object (some client versions)
       if (Array.isArray(data) && data.length > 0) {
