@@ -1160,17 +1160,20 @@ export async function getDailyEloChanges(
   const todayIso = today.toISOString();
 
   // Fetch all matches from today involving any of the profiles
-  const { data: winnerMatches } = await client
+  const { data: winnerMatches, error: wErr } = await client
     .from("matches")
     .select("winner_id, winner_elo_after, winner_elo_before")
     .in("winner_id", profileIds)
     .gte("created_at", todayIso);
 
-  const { data: loserMatches } = await client
+  const { data: loserMatches, error: lErr } = await client
     .from("matches")
     .select("loser_id, loser_elo_after, loser_elo_before")
     .in("loser_id", profileIds)
     .gte("created_at", todayIso);
+
+  // If queries fail (e.g. created_at column missing), return empty silently
+  if (wErr || lErr) return changes;
 
   const changes = new Map<string, number>();
 

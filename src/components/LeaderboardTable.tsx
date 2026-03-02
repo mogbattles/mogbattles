@@ -194,8 +194,8 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
               {/* Left: Rank # + Tier Icon + ELO + Tier Name + Daily Change */}
               <div className="flex items-center gap-2 sm:gap-3 shrink-0" style={{ minWidth: "120px" }}>
                 <span
-                  className="text-[10px] sm:text-xs font-black w-4 sm:w-5 text-right"
-                  style={{ color: "var(--text-faint)" }}
+                  className="text-sm sm:text-base font-black w-5 sm:w-7 text-right"
+                  style={{ color: "var(--text-secondary)" }}
                 >
                   {entry.rank}
                 </span>
