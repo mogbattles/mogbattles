@@ -236,6 +236,11 @@ main {
   to   { transform: scale(1);    opacity: 1; }
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 @keyframes emoteFloat {
   0%   { transform: translateY(0) scale(0.5) rotate(0deg); opacity: 1; }
   30%  { transform: translateY(-40px) scale(1.2) rotate(-10deg); opacity: 1; }

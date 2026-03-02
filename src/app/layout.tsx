@@ -7,6 +7,8 @@ import PageTransition from "@/components/PageTransition";
 import ImpersonationBanner from "@/components/ImpersonationBanner";
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { LoadingProvider } from "@/context/LoadingContext";
+import LoadingOverlay from "@/components/LoadingOverlay";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -43,13 +45,16 @@ export default function RootLayout({
       >
         <AuthProvider>
           <ThemeProvider>
-            <ImpersonationBanner />
-            <Navbar />
-            {/* pt-14 = below fixed navbar; pb-24 = above fixed bottom nav + safe area */}
-            <main className="pt-14 pb-24 lg:pb-8">
-              <PageTransition>{children}</PageTransition>
-            </main>
-            <BottomNav />
+            <LoadingProvider>
+              <LoadingOverlay />
+              <ImpersonationBanner />
+              <Navbar />
+              {/* pt-14 = below fixed navbar; pb-24 = above fixed bottom nav + safe area */}
+              <main className="pt-14 pb-24 lg:pb-8">
+                <PageTransition>{children}</PageTransition>
+              </main>
+              <BottomNav />
+            </LoadingProvider>
           </ThemeProvider>
         </AuthProvider>
       </body>
