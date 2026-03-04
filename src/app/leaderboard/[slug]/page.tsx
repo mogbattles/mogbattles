@@ -61,8 +61,9 @@ export default async function LeaderboardArenaPage({
         arenaId={arena.id}
         arenaSlug={slug}
         isSubCategory={
-          !!arena.category_id &&
-          !["all", "members", "men", "women", "humans"].includes(slug)
+          slug === "all" ||
+          (!!arena.category_id &&
+          !["members", "men", "women", "humans"].includes(slug))
         }
       />
     </div>

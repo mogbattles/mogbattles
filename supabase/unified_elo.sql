@@ -295,14 +295,77 @@ END;
 $$;
 
 
--- ── PART 5: Update sync trigger — root arenas → "all" ───────────────────────
--- The existing sync_all_arena_elo trigger still works: it propagates any
--- non-"all"/non-"members" arena stats to "all". Since record_match now writes
--- to root arenas ("men", "women"), the trigger naturally propagates root → "all".
--- We just need to update the recursion guard to also skip root arena slugs
--- from triggering further propagation to themselves.
--- (No change needed — the trigger already skips "all"/"members" and propagates
--- everything else to "all". Root arenas propagate to "all" correctly.)
+-- ── PART 5: Sync trigger — root arenas → "all" ─────────────────────────────
+-- Propagates ELO changes from ROOT arenas (men, women) and "members" to "all".
+-- Sub-arenas are SKIPPED to avoid double-counting (root already propagated).
+
+DROP TRIGGER IF EXISTS sync_all_arena_elo ON arena_profile_stats;
+DROP FUNCTION IF EXISTS sync_all_arena_elo();
+
+CREATE OR REPLACE FUNCTION sync_all_arena_elo()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_all_arena_id UUID;
+  v_elo_delta    INT;
+  v_root_id      UUID;
+BEGIN
+  SELECT id INTO v_all_arena_id
+  FROM arenas WHERE slug = 'all' LIMIT 1;
+
+  IF v_all_arena_id IS NULL THEN
+    RETURN NEW;
+  END IF;
+
+  -- Skip writes to the "all" arena itself (prevent recursion)
+  IF NEW.arena_id = v_all_arena_id THEN
+    RETURN NEW;
+  END IF;
+
+  -- Only propagate from ROOT arenas + members
+  IF EXISTS (SELECT 1 FROM arenas WHERE id = NEW.arena_id AND slug = 'members') THEN
+    NULL;  -- members always propagates
+  ELSE
+    IF NOT EXISTS (
+      SELECT 1 FROM arenas WHERE id = NEW.arena_id AND is_official = TRUE
+    ) THEN
+      RETURN NEW;  -- not official, skip
+    END IF;
+
+    v_root_id := get_root_arena_id(NEW.arena_id);
+    IF v_root_id IS DISTINCT FROM NEW.arena_id THEN
+      RETURN NEW;  -- sub-arena, skip (root already propagated)
+    END IF;
+  END IF;
+
+  -- Propagate delta to "all"
+  IF TG_OP = 'UPDATE' THEN
+    v_elo_delta := NEW.elo_rating - OLD.elo_rating;
+    INSERT INTO arena_profile_stats
+      (arena_id, profile_id, elo_rating, wins, losses, matches)
+    VALUES
+      (v_all_arena_id, NEW.profile_id, 1200 + v_elo_delta, 0, 0, 0)
+    ON CONFLICT (arena_id, profile_id) DO UPDATE
+      SET elo_rating = arena_profile_stats.elo_rating + v_elo_delta;
+  ELSIF TG_OP = 'INSERT' THEN
+    INSERT INTO arena_profile_stats
+      (arena_id, profile_id, elo_rating, wins, losses, matches)
+    VALUES
+      (v_all_arena_id, NEW.profile_id, 1200, 0, 0, 0)
+    ON CONFLICT (arena_id, profile_id) DO NOTHING;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER sync_all_arena_elo
+AFTER INSERT OR UPDATE ON arena_profile_stats
+FOR EACH ROW
+EXECUTE FUNCTION sync_all_arena_elo();
 
 
 -- ── PART 6: Backfill — merge sub-arena stats into root arenas ───────────────

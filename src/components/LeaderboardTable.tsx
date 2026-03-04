@@ -100,7 +100,7 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
 
   return (
     <div className="space-y-3">
-      {/* ELO mode toggle — only for sub-category arenas */}
+      {/* ELO mode toggle */}
       {isSubCategory && (
         <div className="flex rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
           <button
@@ -112,7 +112,7 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
               borderRight: "1px solid var(--border)",
             }}
           >
-            Global ELO
+            {arenaSlug === "all" ? "All Players" : "Global ELO"}
           </button>
           <button
             onClick={() => setArenaSpecific(true)}
@@ -122,7 +122,7 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
               color: arenaSpecific ? "var(--gold)" : "var(--text-muted)",
             }}
           >
-            Arena ELO
+            {arenaSlug === "all" ? "Swiped in All" : "Arena ELO"}
           </button>
         </div>
       )}

@@ -429,8 +429,23 @@ export async function getLeaderboardForArena(
   } else if (arenaSpecific) {
     // Arena-specific ELO mode: use this arena's own stats directly
     statsArenaId = arenaId;
-    // Still filter to only profiles in this category so non-members don't appear
-    if (thisArena?.category_id) {
+
+    if (thisArena?.slug === "all") {
+      // "All" arena-specific mode: filter to profiles with matches in the "all" arena
+      const { data: matchedRows } = await client
+        .from("matches")
+        .select("winner_id, loser_id")
+        .eq("arena_id", arenaId);
+      if (matchedRows && matchedRows.length > 0) {
+        const ids = new Set<string>();
+        for (const m of matchedRows as { winner_id: string; loser_id: string }[]) {
+          ids.add(m.winner_id);
+          ids.add(m.loser_id);
+        }
+        filterProfileIds = ids;
+      }
+    } else if (thisArena?.category_id) {
+      // Still filter to only profiles in this category so non-members don't appear
       const { getCategoryDescendantIds } = await import("@/lib/categories");
       const descendantIds = await getCategoryDescendantIds(thisArena.category_id);
       const { data: pcRows } = await client
