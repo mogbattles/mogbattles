@@ -472,6 +472,7 @@ export default function AdminPage() {
   }, []);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [userRoles, setUserRoles] = useState<Record<string, UserRole[]>>({});
+  const [userEmails, setUserEmails] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [imageInputs, setImageInputs] = useState<Record<string, string[]>>({});
@@ -661,6 +662,16 @@ export default function AdminPage() {
           rolesMap[r.user_id].push(r.role as UserRole);
         });
         setUserRoles(rolesMap);
+
+        // Fetch user emails via RPC
+        const { data: emailRows } = await supabase.rpc("get_user_emails", { user_ids: userIds });
+        if (emailRows) {
+          const emailMap: Record<string, string> = {};
+          (emailRows as { user_id: string; email: string }[]).forEach((r) => {
+            emailMap[r.user_id] = r.email;
+          });
+          setUserEmails(emailMap);
+        }
       }
 
       setLoading(false);
@@ -2638,6 +2649,9 @@ Clavicular,Looksmaxxers,5'11",165,United States,https://example.com/clav.jpg,`}
                         style={{ background: "rgba(240,192,64,0.15)", color: "var(--gold)", border: "1px solid rgba(240,192,64,0.3)" }}>premium</span>
                     )}
                   </div>
+                  {profile.user_id && userEmails[profile.user_id] && (
+                    <p className="text-[10px] mt-0.5 truncate" style={{ color: "#6B7280" }}>{userEmails[profile.user_id]}</p>
+                  )}
                   <div className="flex gap-2 mt-0.5 flex-wrap">
                     <p className="text-zinc-500 text-xs">{profile.elo_rating} ELO</p>
                     {profile.height_in && (

@@ -129,9 +129,9 @@ export async function getPublicArenas(): Promise<ArenaWithCount[]> {
     countMap[row.arena_id] = (countMap[row.arena_id] ?? 0) + 1;
   });
 
-  // For sub-category arenas with no stats, derive count from profile_categories
+  // For system sub-category arenas with no stats, derive count from profile_categories
   const needsCategoryCount = arenas.filter(
-    (a) => a.is_official && a.category_id && !countMap[a.id]
+    (a) => a.is_official && !a.creator_id && a.category_id && !countMap[a.id]
   );
   if (needsCategoryCount.length > 0) {
     const catIds = needsCategoryCount.map((a) => a.category_id).filter(Boolean) as string[];
@@ -146,6 +146,27 @@ export async function getPublicArenas(): Promise<ArenaWithCount[]> {
     needsCategoryCount.forEach((a) => {
       if (a.category_id && catCountMap[a.category_id]) {
         countMap[a.id] = catCountMap[a.category_id];
+      }
+    });
+  }
+
+  // For user-created arenas with no stats yet, count from arena_members
+  const needsMemberCount = arenas.filter(
+    (a) => a.creator_id && !countMap[a.id]
+  );
+  if (needsMemberCount.length > 0) {
+    const { data: memberRows } = await client
+      .from("arena_members")
+      .select("arena_id")
+      .in("arena_id", needsMemberCount.map((a) => a.id))
+      .eq("status", "approved");
+    const memberCountMap: Record<string, number> = {};
+    (memberRows ?? []).forEach((row) => {
+      memberCountMap[row.arena_id] = (memberCountMap[row.arena_id] ?? 0) + 1;
+    });
+    needsMemberCount.forEach((a) => {
+      if (memberCountMap[a.id]) {
+        countMap[a.id] = memberCountMap[a.id];
       }
     });
   }
@@ -230,12 +251,12 @@ export async function getExploreArenas(opts?: {
     matchCount[row.arena_id] = (matchCount[row.arena_id] ?? 0) + (row.matches ?? 0);
   });
 
-  // For sub-category arenas with no stats, derive count from profile_categories
-  const needsCategoryCount = arenas.filter(
-    (a) => a.is_official && a.category_id && !playerCount[a.id]
+  // For system sub-category arenas with no stats, derive count from profile_categories
+  const needsCategoryCount2 = arenas.filter(
+    (a) => a.is_official && !a.creator_id && a.category_id && !playerCount[a.id]
   );
-  if (needsCategoryCount.length > 0) {
-    const catIds = needsCategoryCount.map((a) => a.category_id).filter(Boolean) as string[];
+  if (needsCategoryCount2.length > 0) {
+    const catIds = needsCategoryCount2.map((a) => a.category_id).filter(Boolean) as string[];
     const { data: pcRows } = await client
       .from("profile_categories")
       .select("category_id")
@@ -244,9 +265,30 @@ export async function getExploreArenas(opts?: {
     (pcRows ?? []).forEach((row) => {
       catCountMap[row.category_id] = (catCountMap[row.category_id] ?? 0) + 1;
     });
-    needsCategoryCount.forEach((a) => {
+    needsCategoryCount2.forEach((a) => {
       if (a.category_id && catCountMap[a.category_id]) {
         playerCount[a.id] = catCountMap[a.category_id];
+      }
+    });
+  }
+
+  // For user-created arenas with no stats yet, count from arena_members
+  const needsMemberCount2 = arenas.filter(
+    (a) => a.creator_id && !playerCount[a.id]
+  );
+  if (needsMemberCount2.length > 0) {
+    const { data: memberRows } = await client
+      .from("arena_members")
+      .select("arena_id")
+      .in("arena_id", needsMemberCount2.map((a) => a.id))
+      .eq("status", "approved");
+    const memberCountMap: Record<string, number> = {};
+    (memberRows ?? []).forEach((row) => {
+      memberCountMap[row.arena_id] = (memberCountMap[row.arena_id] ?? 0) + 1;
+    });
+    needsMemberCount2.forEach((a) => {
+      if (memberCountMap[a.id]) {
+        playerCount[a.id] = memberCountMap[a.id];
       }
     });
   }
@@ -292,7 +334,11 @@ export async function getProfilesForArena(
 
   let profileIds: string[];
 
-  if (arena.is_official) {
+  // User-created arenas always use arena_members for their roster.
+  // Only system arenas (no creator_id) use profile_categories.
+  const isSystemArena = !arena.creator_id;
+
+  if (isSystemArena && arena.is_official) {
     if (arena.slug === "members") {
       // "All Players" arena — only registered user accounts
       const { data } = await client.from("profiles").select("id").not("user_id", "is", null);
@@ -318,6 +364,7 @@ export async function getProfilesForArena(
       profileIds = ((data ?? []) as { id: string }[]).map((p) => p.id);
     }
   } else {
+    // User-created arenas + non-official system arenas use arena_members
     const { data } = await client
       .from("arena_members")
       .select("profile_id")
@@ -333,13 +380,17 @@ export async function getProfilesForArena(
     .select("id, name, image_url, image_urls, wikipedia_slug, category, categories, height_in, weight_lbs, country, gender")
     .in("id", profileIds);
 
-  // Resolve root arena for ELO lookup (sub-category arenas share root ELO)
+  // Resolve root arena for ELO lookup.
+  // Only system arenas (no creator_id) share root ELO.
+  // User-created arenas use their own arena_profile_stats.
   let statsArenaId = arena.id;
-  const isNonCustomArena = arena.is_official ||
-    (arena.arena_tier && arena.arena_tier !== "custom");
-  if (arena.category_id && isNonCustomArena) {
-    const rootId = await getRootArenaId(arena.id);
-    if (rootId) statsArenaId = rootId;
+  if (isSystemArena && arena.category_id) {
+    const isNonCustomArena = arena.is_official ||
+      (arena.arena_tier && arena.arena_tier !== "custom");
+    if (isNonCustomArena) {
+      const rootId = await getRootArenaId(arena.id);
+      if (rootId) statsArenaId = rootId;
+    }
   }
 
   const { data: stats } = await client
@@ -401,19 +452,25 @@ export async function getLeaderboardForArena(
   // Resolve root arena for ELO stats
   const { data: thisArena } = await client
     .from("arenas")
-    .select("id, slug, category_id, is_official, arena_tier")
+    .select("id, slug, category_id, is_official, arena_tier, creator_id")
     .eq("id", arenaId)
     .maybeSingle();
 
   let statsArenaId = arenaId;
   let filterProfileIds: Set<string> | null = null;
 
-  // Non-custom arenas resolve to root arena for global ELO
+  // User-created arenas always use their own stats + arena_members.
+  // Only system arenas (no creator_id) resolve to root arena for global ELO.
+  const isSystemArena = !thisArena?.creator_id;
   const isNonCustom = thisArena?.is_official ||
     (thisArena?.arena_tier && thisArena.arena_tier !== "custom");
 
-  if (thisArena?.category_id && isNonCustom && !arenaSpecific) {
-    // Global ELO mode: resolve to root arena, filter by sub-category membership
+  if (!isSystemArena) {
+    // User-created arena: use its own arena_profile_stats directly (no root resolution)
+    statsArenaId = arenaId;
+    // No filtering needed — arena_profile_stats only has arena_members
+  } else if (thisArena?.category_id && isNonCustom && !arenaSpecific) {
+    // System arena global ELO mode: resolve to root arena, filter by sub-category membership
     const rootId = await getRootArenaId(arenaId);
     if (rootId && rootId !== arenaId) {
       statsArenaId = rootId;
@@ -529,26 +586,27 @@ export async function getTopProfilesForArena(
 ): Promise<{ id: string; name: string; image_url: string | null; elo_rating: number }[]> {
   const client = db();
 
-  // Check if this arena should resolve to root (non-custom only)
+  // Check if this arena should resolve to root (system arenas only, not user-created)
   const { data: arenaInfo } = await client
     .from("arenas")
-    .select("is_official, arena_tier, category_id")
+    .select("is_official, arena_tier, category_id, creator_id")
     .eq("id", arenaId)
     .maybeSingle();
 
+  const isSystemArena = !arenaInfo?.creator_id;
   const isNonCustom = arenaInfo?.is_official ||
     (arenaInfo?.arena_tier && arenaInfo.arena_tier !== "custom");
 
-  const rootId = isNonCustom ? await getRootArenaId(arenaId) : null;
+  // Only system arenas resolve to root; user-created arenas use their own stats
+  const rootId = (isSystemArena && isNonCustom) ? await getRootArenaId(arenaId) : null;
   const statsArenaId = rootId ?? arenaId;
 
-  // If this is a sub-category, get profile IDs to filter by
+  // If this is a system sub-category, get profile IDs to filter by
   let filterProfileIds: Set<string> | null = null;
-  if (rootId && rootId !== arenaId) {
-    const thisArena = arenaInfo;
-    if (thisArena?.category_id) {
+  if (isSystemArena && rootId && rootId !== arenaId) {
+    if (arenaInfo?.category_id) {
       const { getCategoryDescendantIds } = await import("@/lib/categories");
-      const descendantIds = await getCategoryDescendantIds(thisArena.category_id);
+      const descendantIds = await getCategoryDescendantIds(arenaInfo.category_id);
       const { data: pcRows } = await client
         .from("profile_categories")
         .select("profile_id")
@@ -922,9 +980,12 @@ export async function createArena(input: {
         ? slug
         : `${slug}-${Math.random().toString(36).slice(2, 6)}`;
 
+    // Custom arenas don't affect global ELO (relative ELO only)
+    const affects_elo = input.arena_tier !== "custom";
+
     const { data, error } = await client
       .from("arenas")
-      .insert({ ...input, slug: finalSlug })
+      .insert({ ...input, slug: finalSlug, affects_elo })
       .select()
       .single();
 

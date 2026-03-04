@@ -319,7 +319,7 @@ export default function NewArenaPage() {
                   🎮 Custom
                 </span>
                 <span className="block text-xs mt-0.5" style={{ color: arenaTier === "custom" ? "var(--text-muted)" : "var(--text-faint)" }}>
-                  Community arena. Affects ELO when using existing profiles.
+                  Community arena. Relative ELO only — does not affect global rankings.
                 </span>
               </button>
             </div>
