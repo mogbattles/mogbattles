@@ -5,7 +5,7 @@ import Link from "next/link";
 import { getLeaderboardForArena, getDailyEloChanges, type ArenaProfile } from "@/lib/arenas";
 import { getTopTagsForProfiles, type TagEntry } from "@/lib/tags";
 import { countryFlagByName } from "@/lib/countries";
-import { getTier } from "@/lib/tiers";
+import { getTier, type Gender } from "@/lib/tiers";
 import { BadgeDelta } from "@/components/ui/badge-delta";
 
 interface LeaderboardEntry extends ArenaProfile {
@@ -16,8 +16,8 @@ function avatarUrl(name: string) {
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1a1a1a&color=555&size=96&bold=true`;
 }
 
-function TierBadge({ elo, size = 42 }: { elo: number; size?: number }) {
-  const tier = getTier(elo);
+function TierBadge({ elo, gender, size = 42 }: { elo: number; gender?: Gender; size?: number }) {
+  const tier = getTier(elo, gender);
   return (
     <div
       className={`rank-badge ${tier.cssClass}`}
@@ -149,7 +149,8 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
         {filtered.map((entry) => {
           const flag = countryFlagByName(entry.country);
           const tags = topTags.get(entry.id) ?? [];
-          const tier = getTier(entry.elo_rating);
+          const g: Gender = entry.gender === "female" ? "female" : "male";
+          const tier = getTier(entry.elo_rating, g);
           const isPslGod = tier.isSpecial;
           const yesterdayElo = eloChanges.get(entry.id);
           const dailyChange = yesterdayElo != null ? entry.elo_rating - yesterdayElo : 0;
@@ -187,7 +188,7 @@ export default function LeaderboardTable({ arenaId, arenaSlug, isSubCategory }: 
                 >
                   {entry.rank}
                 </span>
-                <TierBadge elo={entry.elo_rating} size={36} />
+                <TierBadge elo={entry.elo_rating} gender={g} size={36} />
                 <div className="flex flex-col" style={{ width: "62px" }}>
                   <div className="flex items-center gap-1">
                     <span

@@ -384,7 +384,7 @@ export default function PlayerPage() {
 
       {/* ELO History Chart */}
       <div className="mb-5">
-        <EloHistoryChart profileId={id} currentElo={profile.elo_rating} />
+        <EloHistoryChart profileId={id} currentElo={profile.elo_rating} gender={profile.gender === "female" ? "female" : "male"} />
       </div>
 
       {/* Physical stats */}

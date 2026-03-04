@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getEloHistory, type EloSnapshot } from "@/lib/arenas";
-import { getTier } from "@/lib/tiers";
+import { getTier, type Gender } from "@/lib/tiers";
 
 // ─── Pure SVG line chart — no external deps ──────────────────────────────────
 
@@ -195,7 +195,7 @@ function Chart({ data }: { data: EloSnapshot[] }) {
 
 // ─── Main exported component ─────────────────────────────────────────────────
 
-export default function EloHistoryChart({ profileId, currentElo }: { profileId: string; currentElo: number }) {
+export default function EloHistoryChart({ profileId, currentElo, gender }: { profileId: string; currentElo: number; gender?: Gender }) {
   const [data, setData] = useState<EloSnapshot[] | null>(null);
   const [days, setDays] = useState(30);
 
@@ -219,7 +219,7 @@ export default function EloHistoryChart({ profileId, currentElo }: { profileId: 
     );
   }
 
-  const tier = getTier(currentElo);
+  const tier = getTier(currentElo, gender);
   const firstElo = data.length > 0 ? data[0].elo_rating : currentElo;
   const totalChange = currentElo - firstElo;
 

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { getMutualFollows, type FollowProfile } from "@/lib/follows";
-import { getTier } from "@/lib/tiers";
+import { getTier, type Gender } from "@/lib/tiers";
 
 function Avatar({ src, name, size = 36 }: { src: string | null; name: string; size?: number }) {
   const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1a1a1a&color=888&size=${size * 2}&bold=true`;
@@ -23,8 +23,8 @@ function Avatar({ src, name, size = 36 }: { src: string | null; name: string; si
   );
 }
 
-function TierIcon({ elo }: { elo: number }) {
-  const tier = getTier(elo);
+function TierIcon({ elo, gender }: { elo: number; gender?: Gender }) {
+  const tier = getTier(elo, gender);
   return (
     <div
       className={`rank-badge ${tier.cssClass}`}
@@ -136,13 +136,13 @@ export default function FriendsLeaderboardPage() {
                 <span className="text-xs font-black w-4 text-right" style={{ color: "var(--text-faint)" }}>
                   {i + 1}
                 </span>
-                <TierIcon elo={friend.elo_rating} />
+                <TierIcon elo={friend.elo_rating} gender={friend.gender === "female" ? "female" : "male"} />
                 <div className="flex flex-col">
                   <span className="font-black text-base leading-tight" style={{ color: "var(--text-primary)" }}>
                     {friend.elo_rating}
                   </span>
                   <span className="text-[9px] font-black uppercase tracking-widest leading-tight" style={{ color: "var(--text-faint)" }}>
-                    {getTier(friend.elo_rating).name}
+                    {getTier(friend.elo_rating, friend.gender === "female" ? "female" : "male").name}
                   </span>
                 </div>
               </div>

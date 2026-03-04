@@ -468,22 +468,62 @@ main {
   background: transparent;
 }
 
-/* Tier styles (no borders — keep glow/shadow effects) */
-.tier-ngmi         { }
-.tier-low-normie   { }
-.tier-mid-normie   { }
-.tier-high-normie  { }
-.tier-chadlite     { }
-.tier-chad         { }
-.tier-gigachad     { box-shadow: 0 0 6px rgba(255,215,0,0.15); }
+/* ─── Tier styles ─────────────────────────────────────────────── */
+/* Low tiers — no effects */
+.tier-low-subhuman  { }
+.tier-subhuman      { }
+.tier-high-subhuman { }
 
-/* PSL God — glowing electric sparkle */
-.tier-psl-god {
+/* Normie tiers (men: LTN/MTN/HTN, women: LTB/MTB/HTB) — no effects */
+.tier-ltn-minus  { }
+.tier-ltn        { }
+.tier-ltn-plus   { }
+.tier-mtn-minus  { }
+.tier-mtn        { }
+.tier-mtn-plus   { }
+.tier-htn-minus  { }
+.tier-htn        { }
+.tier-htn-plus   { }
+.tier-ltb-minus  { }
+.tier-ltb        { }
+.tier-ltb-plus   { }
+.tier-mtb-minus  { }
+.tier-mtb        { }
+.tier-mtb-plus   { }
+.tier-htb-minus  { }
+.tier-htb        { }
+.tier-htb-plus   { }
+
+/* Upper tiers — subtle glow */
+.tier-chadlite   { }
+.tier-chad       { }
+.tier-stacylite  { }
+.tier-stacy      { }
+.tier-high-chad  { box-shadow: 0 0 6px rgba(255,215,0,0.15); }
+.tier-high-stacy { box-shadow: 0 0 6px rgba(255,140,200,0.2); }
+
+/* Elite tiers — special glow animation */
+.tier-adamlite,
+.tier-adam,
+.tier-true-adam,
+.tier-evelite,
+.tier-eve,
+.tier-true-eve {
   animation: psl-god-glow 2s ease-in-out infinite;
 }
 
-.tier-psl-god::before,
-.tier-psl-god::after {
+.tier-adamlite::before,
+.tier-adamlite::after,
+.tier-adam::before,
+.tier-adam::after,
+.tier-true-adam::before,
+.tier-true-adam::after,
+.tier-evelite::before,
+.tier-evelite::after,
+.tier-eve::before,
+.tier-eve::after,
+.tier-true-eve::before,
+.tier-true-eve::after {
   content: '';
   position: absolute;
   width: 3px;
@@ -494,10 +534,20 @@ main {
   animation: psl-sparkle 1.5s ease-in-out infinite;
   z-index: 10;
 }
-.tier-psl-god::before { top: -2px; left: 20%; animation-delay: 0s; }
-.tier-psl-god::after  { bottom: -2px; right: 20%; animation-delay: 0.5s; }
+.tier-adamlite::before,
+.tier-adam::before,
+.tier-true-adam::before,
+.tier-evelite::before,
+.tier-eve::before,
+.tier-true-eve::before { top: -2px; left: 20%; animation-delay: 0s; }
+.tier-adamlite::after,
+.tier-adam::after,
+.tier-true-adam::after,
+.tier-evelite::after,
+.tier-eve::after,
+.tier-true-eve::after  { bottom: -2px; right: 20%; animation-delay: 0.5s; }
 
-/* PSL God row shimmer */
+/* Special row shimmer for elite tiers */
 .rank-row-psl-god {
   animation: psl-row-shimmer 3s ease-in-out infinite;
 }

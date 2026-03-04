@@ -64,6 +64,7 @@ export interface FollowProfile {
   name: string;
   image_url: string | null;
   elo_rating: number;
+  gender: string | null;
 }
 
 // Returns profiles that follow userId
@@ -79,7 +80,7 @@ export async function getFollowers(userId: string): Promise<FollowProfile[]> {
 
   const { data: profiles } = await client
     .from("profiles")
-    .select("user_id, name, image_url, elo_rating")
+    .select("user_id, name, image_url, elo_rating, gender")
     .in("user_id", ids);
 
   return ((profiles ?? []) as FollowProfile[]);
@@ -98,7 +99,7 @@ export async function getFollowing(userId: string): Promise<FollowProfile[]> {
 
   const { data: profiles } = await client
     .from("profiles")
-    .select("user_id, name, image_url, elo_rating")
+    .select("user_id, name, image_url, elo_rating, gender")
     .in("user_id", ids);
 
   return ((profiles ?? []) as FollowProfile[]);
@@ -129,7 +130,7 @@ export async function getMutualFollows(userId: string): Promise<FollowProfile[]>
 
   const { data: profiles } = await client
     .from("profiles")
-    .select("user_id, name, image_url, elo_rating")
+    .select("user_id, name, image_url, elo_rating, gender")
     .in("user_id", mutualIds);
 
   return ((profiles ?? []) as FollowProfile[]);
